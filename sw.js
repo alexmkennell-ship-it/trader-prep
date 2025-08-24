@@ -1,16 +1,10 @@
-// Simple offline cache (bump version when you change HTML/JS)
-const CACHE = 'trader-prep-v4';
-const ASSETS = [
-  './',
-  './index.html',
-  './manifest.webmanifest',
-  './sw.js'
-];
+// Offline cache (bump this when you change HTML/JS)
+const CACHE = 'trader-prep-v5';
+const ASSETS = ['./', './index.html', './manifest.webmanifest', './sw.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
 });
-
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
@@ -18,9 +12,6 @@ self.addEventListener('activate', e => {
     ).then(() => self.clients.claim())
   );
 });
-
 self.addEventListener('fetch', e => {
-  e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request))
-  );
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
 });
