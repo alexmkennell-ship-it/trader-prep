@@ -40,7 +40,7 @@
   <div class="card">
     <div class="row">
       <strong>Settings</strong>
-      <span class="muted">(optional API keys for auto-summary)</span>
+      <span class="muted">(optional API keys; app now works without keys)</span>
     </div>
     <div style="margin-top:10px" class="row">
       <label for="gnews">GNews API Key</label>
@@ -54,13 +54,6 @@
       <button id="saveKeys">Save Keys</button>
       <span id="saveMsg" class="muted"></span>
     </div>
-    <details style="margin-top:8px">
-      <summary class="muted">Where to get keys?</summary>
-      <div class="muted" style="margin-top:6px">
-        • <b>News</b>: gnews.io → free token (client-side friendly).<br>
-        • <b>Prices</b>: alphavantage.co → free key (map futures → ETF for daily move).
-      </div>
-    </details>
   </div>
 
   <!-- STEP 1: PICK MARKETS -->
@@ -83,7 +76,7 @@
 
     <div class="row" style="margin-top:12px">
       <button id="start" class="primary">Analyze</button>
-      <button id="quick" title="Just show links (no APIs)">Quick links only</button>
+      <button id="quick" title="Just show links">Quick links only</button>
     </div>
   </div>
 
@@ -116,7 +109,6 @@
   </div>
 
   <script>
-    // --- Simple PWA registration ---
     if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
 
     // --- Elements ---
@@ -134,7 +126,7 @@
     const saveBtn = document.getElementById('saveKeys');
     const saveMsg = document.getElementById('saveMsg');
 
-    // --- Persist API keys locally on device ---
+    // --- Persist API keys locally ---
     function loadKeys(){
       gnewsEl.value = localStorage.getItem('GNEWS_KEY') || '';
       alphaEl.value = localStorage.getItem('ALPHA_KEY') || '';
@@ -174,24 +166,15 @@
       }
     }
 
-    // Map futures → ETFs for “last day” summary via Alpha Vantage
-    const FUTURES_TO_ETF = {
-      ES: 'SPY',
-      NQ: 'QQQ',
-      YM: 'DIA',
-      RTY: 'IWM',
-      CL: 'USO',
-      GC: 'GLD',
-      ZN: 'IEF',
-      '6E': 'FXE'
-    };
+    // Map futures → ETFs (for price summary) + Stooq symbol
+    const FUTURES_TO_ETF = { ES:'SPY', NQ:'QQQ', YM:'DIA', RTY:'IWM', CL:'USO', GC:'GLD', ZN:'IEF', '6E':'FXE' };
+    const ETF_TO_STOOQ = { SPY:'spy.us', QQQ:'qqq.us', DIA:'dia.us', IWM:'iwm.us', USO:'uso.us', GLD:'gld.us', IEF:'ief.us', FXE:'fxe.us' };
 
-    // Basic keyword sentiment scoring for headlines
+    // Sentiment scoring (very simple keywords)
     const POS = ['beat','surge','strong','record','optim','rally','up','gain','bull','expand','growth'];
     const NEG = ['miss','fall','weak','cut','warn','down','bear','slump','contract','decline','risk','halt','ban','tariff'];
     function headlineScore(t){
-      const s = t.toLowerCase();
-      let score = 0;
+      const s = t.toLowerCase(); let score = 0;
       POS.forEach(w=>{ if(s.includes(w)) score+=1; });
       NEG.forEach(w=>{ if(s.includes(w)) score-=1; });
       return score;
@@ -202,101 +185,135 @@
       return ['Mixed/Neutral', 'warn'];
     }
 
-    // Fetch helper with timeout
     async function fetchJson(url, timeoutMs=12000){
-      const ctrl = new AbortController();
-      const t = setTimeout(()=>ctrl.abort(), timeoutMs);
+      const ctrl = new AbortController(); const t = setTimeout(()=>ctrl.abort(), timeoutMs);
       try{
-        const r = await fetch(url, {signal: ctrl.signal});
-        clearTimeout(t);
+        const r = await fetch(url, {signal: ctrl.signal}); clearTimeout(t);
         if(!r.ok) throw new Error('HTTP '+r.status);
         return await r.json();
-      } catch(e){
-        clearTimeout(t);
-        throw e;
+      } catch(e){ clearTimeout(t); throw e; }
+    }
+    async function fetchText(url, timeoutMs=12000){
+      const ctrl = new AbortController(); const t = setTimeout(()=>ctrl.abort(), timeoutMs);
+      try{
+        const r = await fetch(url, {signal: ctrl.signal}); clearTimeout(t);
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        return await r.text();
+      } catch(e){ clearTimeout(t); throw e; }
+    }
+
+    // --- NEWS: Prefer GNews if key; else Google News RSS fallback ---
+    async function getHeadlines(markets){
+      const gkey = (localStorage.getItem('GNEWS_KEY')||'').trim();
+      if(gkey){
+        try{
+          const query = encodeURIComponent(markets.join(' OR '));
+          const url = `https://gnews.io/api/v4/search?q=${query}&lang=en&country=us&max=25&expand=content&token=${gkey}`;
+          const data = await fetchJson(url);
+          const headlines = (data.articles||[]).map(a=>a.title||'').filter(Boolean);
+          return {source:'gnews', ok:true, headlines};
+        }catch(e){ /* fall through to RSS */ }
+      }
+      // RSS fallback (no key). Note: some browsers/sites may block via CORS.
+      try{
+        const query = encodeURIComponent(markets.join(' '));
+        const rssUrl = `https://news.google.com/rss/search?q=${query}&hl=en-US&gl=US&ceid=US:en`;
+        const xml = await fetchText(rssUrl);
+        const doc = new DOMParser().parseFromString(xml, 'text/xml');
+        const items = Array.from(doc.querySelectorAll('item > title'));
+        const headlines = items.map(n=>n.textContent || '').filter(Boolean);
+        return {source:'rss', ok:true, headlines};
+      }catch(e){
+        return {source:'rss', ok:false, reason:'RSS blocked by CORS'};
       }
     }
 
-    // News via GNews (client-key friendly). If no key, skip gracefully.
-    async function getNewsHeadlines(markets, gnewsKey){
-      if(!gnewsKey) return {ok:false, reason:'No GNews key'};
-      const query = encodeURIComponent(markets.join(' OR '));
-      const url = `https://gnews.io/api/v4/search?q=${query}&lang=en&country=us&max=25&expand=content&token=${gnewsKey}`;
-      const data = await fetchJson(url);
-      const headlines = (data.articles||[]).map(a=>a.title || '').filter(Boolean);
-      return {ok:true, headlines};
+    // --- LAST DAY: Prefer Alpha Vantage if key; else Stooq CSV fallback ---
+    async function getLastDayMove(markets){
+      const akey = (localStorage.getItem('ALPHA_KEY')||'').trim();
+      const etf = FUTURES_TO_ETF[markets[0]||'ES'] || 'SPY';
+
+      if(akey){
+        try{
+          const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${etf}&apikey=${akey}`;
+          const data = await fetchJson(url);
+          const series = data['Time Series (Daily)'] || {};
+          const days = Object.keys(series).sort().reverse();
+          if(days.length >= 2){
+            const d0 = series[days[0]], d1 = series[days[1]];
+            const c0 = parseFloat(d0['4. close']), c1 = parseFloat(d1['4. close']);
+            const pct = ((c0 - c1) / c1) * 100;
+            return {ok:true, etf, latest:days[0], prior:days[1], pct, source:'alpha'};
+          }
+        }catch(e){ /* fall through */ }
+      }
+
+      // Stooq fallback (no key). Uses US tickers like spy.us
+      try{
+        const stooqSym = ETF_TO_STOOQ[etf] || 'spy.us';
+        const url = `https://stooq.com/q/d/l/?s=${stooqSym}&i=d`;
+        const csv = await fetchText(url);
+        const rows = csv.trim().split('\n'); // header + data
+        if(rows.length >= 3){
+          const last = rows[rows.length-1].split(',');
+          const prev = rows[rows.length-2].split(',');
+          const latestDate = last[0], priorDate = prev[0];
+          const c0 = parseFloat(last[4]);   // close
+          const c1 = parseFloat(prev[4]);   // prior close
+          const pct = ((c0 - c1) / c1) * 100;
+          return {ok:true, etf, latest:latestDate, prior:priorDate, pct, source:'stooq'};
+        }
+        return {ok:false, reason:'Not enough data'};
+      } catch(e){
+        return {ok:false, reason:'Stooq unavailable'};
+      }
     }
 
-    // Previous trading day move via Alpha Vantage (ETF mapping)
-    async function getLastDayMove(markets, alphaKey){
-      if(!alphaKey) return {ok:false, reason:'No Alpha Vantage key'};
-      const first = FUTURES_TO_ETF[markets[0]] || 'SPY';
-      const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${first}&apikey=${alphaKey}`;
-      const data = await fetchJson(url);
-      const series = data['Time Series (Daily)'] || {};
-      const days = Object.keys(series).sort().reverse();
-      if(days.length < 2) return {ok:false, reason:'Not enough data'};
-      const d0 = series[days[0]], d1 = series[days[1]];
-      const c0 = parseFloat(d0['4. close']), c1 = parseFloat(d1['4. close']);
-      if(!(c0>0 && c1>0)) return {ok:false, reason:'Bad data'};
-      const pct = ((c0 - c1) / c1) * 100;
-      return {ok:true, etf:first, latest: days[0], prior: days[1], pct};
+    function sentimentFrom(headlines){
+      const total = headlines.reduce((acc,t)=>acc+headlineScore(t),0);
+      const [label, cls] = overallLabel(total);
+      return {label, cls, total};
     }
 
     async function buildSummary(markets){
-      summaryEl.innerHTML = `<span class="spinner"></span> Analyzing headlines & yesterday's action...`;
+      summaryEl.innerHTML = `<span class="spinner"></span> Analyzing headlines & previous trading day...`;
       const gkey = (localStorage.getItem('GNEWS_KEY')||'').trim();
       const akey = (localStorage.getItem('ALPHA_KEY')||'').trim();
-
       keyStatusEl.textContent = (!gkey || !akey)
-        ? 'Note: add API keys in Settings for automatic summaries.'
-        : 'Using saved API keys.';
+        ? 'Using no-key fallback for any missing services.'
+        : 'Using saved API keys where available.';
 
-      // Parallel fetch
-      let newsRes = {ok:false}, dayRes = {ok:false};
-      try { newsRes = await getNewsHeadlines(markets, gkey); } catch(e){ newsRes = {ok:false, reason: String(e)}; }
-      try { dayRes  = await getLastDayMove(markets, akey); } catch(e){ dayRes = {ok:false, reason: String(e)}; }
+      const [newsRes, dayRes] = await Promise.all([ getHeadlines(markets), getLastDayMove(markets) ]);
 
-      // Headline sentiment
-      let sentimentBlock = '';
-      if(newsRes.ok){
-        const score = newsRes.headlines.reduce((acc,t)=>acc+headlineScore(t),0);
-        const [label, cls] = overallLabel(score);
-        sentimentBlock = `<div class="pill ${cls}">News sentiment: ${label}</div>`;
+      // Headlines
+      let sentiBlock = '';
+      let overall = '';
+      let samples = '';
+      if(newsRes.ok && newsRes.headlines.length){
+        const senti = sentimentFrom(newsRes.headlines);
+        sentiBlock = `<div class="pill ${senti.cls}">News sentiment (${newsRes.source}): ${senti.label}</div>`;
+        if(senti.total >= 2) overall = `According to current news, <b>${markets.join(', ')}</b> lean <b>bullish</b> as of now.`;
+        else if(senti.total <= -2) overall = `According to current news, <b>${markets.join(', ')}</b> lean <b>bearish</b> as of now.`;
+        else overall = `According to current news, <b>${markets.join(', ')}</b> look <b>mixed/neutral</b> right now.`;
+        const top = newsRes.headlines.slice(0,5).map(h=>`<li>${h}</li>`).join('');
+        samples = `<details style="margin-top:8px"><summary>Top headlines</summary><ul>${top}</ul></details>`;
       } else {
-        sentimentBlock = `<div class="muted">News sentiment unavailable (${newsRes.reason||'missing key'})</div>`;
+        sentiBlock = `<div class="muted">News sentiment unavailable (${newsRes.reason||'no headlines'})</div>`;
+        overall = `Headlines unavailable—open links below or add a news API key in Settings.`;
       }
 
-      // Last day move
+      // Last day
       let lastDayBlock = '';
       if(dayRes.ok){
         const dir = dayRes.pct >= 0 ? '▲' : '▼';
         const cls = dayRes.pct >= 0 ? 'ok' : 'bad';
-        lastDayBlock = `<div class="pill ${cls}">Prev day (${dayRes.etf}): ${dir} ${dayRes.pct.toFixed(2)}% (close ${dayRes.latest})</div>`;
+        lastDayBlock = `<div class="pill ${cls}">Prev day (${dayRes.etf}, ${dayRes.source}): ${dir} ${dayRes.pct.toFixed(2)}% (close ${dayRes.latest})</div>`;
       } else {
-        lastDayBlock = `<div class="muted">Last day summary unavailable (${dayRes.reason||'missing key'})</div>`;
-      }
-
-      // Overall call
-      let overall = '';
-      if(newsRes.ok){
-        const score = newsRes.headlines.reduce((acc,t)=>acc+headlineScore(t),0);
-        if(score >= 2) overall = `According to current news, <b>${markets.join(', ')}</b> lean <b>bullish</b> as of now.`;
-        else if(score <= -2) overall = `According to current news, <b>${markets.join(', ')}</b> lean <b>bearish</b> as of now.`;
-        else overall = `According to current news, <b>${markets.join(', ')}</b> look <b>mixed/neutral</b> right now.`;
-      } else {
-        overall = `Add API keys in <b>Settings</b> to get an automatic “bullish / bearish / neutral” call.`;
-      }
-
-      // Show headlines sample if we have them
-      let samples = '';
-      if(newsRes.ok){
-        const top = newsRes.headlines.slice(0,5).map(h=>`<li>${h}</li>`).join('');
-        samples = `<details style="margin-top:8px"><summary>Top headlines used</summary><ul>${top}</ul></details>`;
+        lastDayBlock = `<div class="muted">Last day summary unavailable (${dayRes.reason||'no data'})</div>`;
       }
 
       summaryEl.innerHTML = `
-        <div>${sentimentBlock} ${lastDayBlock}</div>
+        <div>${sentiBlock} ${lastDayBlock}</div>
         <p style="margin-top:10px">${overall}</p>
         ${samples}
       `;
@@ -307,9 +324,8 @@
       const markets = sel.length ? sel : ['ES','NQ'];
       showOutput(markets);
       makeLinks(markets);
-      if(!linksOnly){ buildSummary(markets); } else {
-        summaryEl.innerHTML = `<span class="muted">Quick-links mode: add API keys in Settings and tap Analyze for automatic summaries.</span>`;
-      }
+      if(!linksOnly){ buildSummary(markets); }
+      else { summaryEl.innerHTML = `<span class="muted">Quick-links mode. Tap Analyze for auto-summary.</span>`; }
       window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
     }
 
