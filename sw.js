@@ -1,17 +1,279 @@
-// Offline cache (bump this when you change HTML/JS)
-const CACHE = 'trader-prep-v5';
-const ASSETS = ['./', './index.html', './manifest.webmanifest', './sw.js'];
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trader Prep</title>
 
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
-});
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
-  );
-});
-self.addEventListener('fetch', e => {
-  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
-});
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <style>
+    :root { --pad:16px; --radius:12px; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; padding: var(--pad); max-width: 820px; margin: auto; }
+    h1 { margin: 0 0 12px; }
+    .card { border: 1px solid #e6e6e6; border-radius: var(--radius); padding: var(--pad); margin-top: 12px; }
+    button, select, input { font-size: 16px; }
+    button { padding: 10px 14px; border-radius: 10px; border: 1px solid #d0d0d0; background:#fff; }
+    button.primary { background: #111; color: #fff; border-color:#111; }
+    .row { display:flex; gap:10px; align-items:center; flex-wrap: wrap; }
+    .muted { opacity:.7; font-size: 14px; }
+    .pill { display:inline-block; padding:4px 10px; border-radius:999px; border:1px solid #e2e2e2; margin: 4px 6px 0 0; }
+    .ok { color: #0a8; }
+    .warn { color:#b65; }
+    .bad { color:#c22; }
+    .spinner { display:inline-block; width:18px; height:18px; border:3px solid #ddd; border-top-color:#111; border-radius:50%; animation:spin 1s linear infinite; vertical-align: -3px; }
+    @keyframes spin{to{transform: rotate(360deg)}}
+    details summary { cursor: pointer; }
+    ul { padding-left:18px; }
+  </style>
+</head>
+<body>
+  <h1>I'm getting ready to trade!</h1>
+
+  <!-- SETTINGS -->
+  <div class="card">
+    <div class="row"><strong>Settings</strong><span class="muted">(optional API keys; app works without keys)</span></div>
+    <div style="margin-top:10px" class="row">
+      <label for="gnews">GNews API Key</label>
+      <input id="gnews" placeholder="gnews.io token" style="flex:1; padding:10px; border-radius:10px; border:1px solid #ddd">
+    </div>
+    <div style="margin-top:10px" class="row">
+      <label for="alpha">Alpha Vantage Key</label>
+      <input id="alpha" placeholder="alphavantage.co key" style="flex:1; padding:10px; border-radius:10px; border:1px solid #ddd">
+    </div>
+    <div style="margin-top:10px" class="row">
+      <button id="saveKeys">Save Keys</button>
+      <span id="saveMsg" class="muted"></span>
+    </div>
+  </div>
+
+  <!-- STEP 1: PICK MARKETS -->
+  <div class="card">
+    <strong>Choose your markets</strong>
+    <div style="margin-top:10px">
+      <label for="futures">Futures/markets</label><br>
+      <select id="futures" multiple size="8" style="width:100%; padding:8px; border-radius:10px; border:1px solid #ddd">
+        <option value="ES">ES – S&P 500</option>
+        <option value="NQ">NQ – Nasdaq 100</option>
+        <option value="YM">YM – Dow</option>
+        <option value="RTY">RTY – Russell 2000</option>
+        <option value="CL">CL – Crude Oil</option>
+        <option value="GC">GC – Gold</option>
+        <option value="ZN">ZN – 10-Yr Note</option>
+        <option value="6E">6E – EUR/USD</option>
+      </select>
+      <div class="muted" style="margin-top:6px">Tip: tap multiple items to select several. On iPhone, use “Select” then tap choices.</div>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <button id="start" class="primary">Analyze</button>
+      <button id="quick" title="Just show links">Quick links only</button>
+    </div>
+  </div>
+
+  <!-- OUTPUT -->
+  <div id="output" class="card" style="display:none">
+    <div class="row">
+      <strong>Trader Prep</strong>
+      <span class="muted">Now: <span id="now"></span></span>
+    </div>
+    <div style="margin-top:6px">
+      <div>Focus: <span id="focus"></span></div>
+      <div id="keyStatus" class="muted"></div>
+    </div>
+
+    <div id="summary" style="margin-top:12px"></div>
+
+    <h3 style="margin-top:16px">Quick Links</h3>
+    <ul id="links"></ul>
+
+    <details style="margin-top:12px">
+      <summary>What to check</summary>
+      <ol style="margin-top:8px">
+        <li>Overnight movement since last close (index futures / key names).</li>
+        <li>Economic calendar (today’s releases, Fed speakers).</li>
+        <li>Company or sector news for selected markets.</li>
+        <li>Macro headlines (geopolitics, energy, big tech policy).</li>
+        <li>Review your rules (risk, stops, targets, window).</li>
+      </ol>
+    </details>
+  </div>
+
+  <script>
+    // Public CORS proxy (no signup)
+    const PROXY_RAW = 'https://api.allorigins.win/raw?url=';   // returns raw body
+    // (There is also /get?url= which returns JSON with a "contents" field. We use /raw for simplicity.)
+
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
+
+    // Elements
+    const startBtn = document.getElementById('start');
+    const quickBtn = document.getElementById('quick');
+    const futuresSel = document.getElementById('futures');
+    const output = document.getElementById('output');
+    const nowEl = document.getElementById('now');
+    const focusEl = document.getElementById('focus');
+    const linksEl = document.getElementById('links');
+    const summaryEl = document.getElementById('summary');
+    const keyStatusEl = document.getElementById('keyStatus');
+    const gnewsEl = document.getElementById('gnews');
+    const alphaEl = document.getElementById('alpha');
+    const saveBtn = document.getElementById('saveKeys');
+    const saveMsg = document.getElementById('saveMsg');
+
+    function loadKeys(){ gnewsEl.value = localStorage.getItem('GNEWS_KEY') || ''; alphaEl.value = localStorage.getItem('ALPHA_KEY') || ''; }
+    function saveKeys(){ localStorage.setItem('GNEWS_KEY', gnewsEl.value.trim()); localStorage.setItem('ALPHA_KEY', alphaEl.value.trim()); saveMsg.textContent='Saved ✓'; setTimeout(()=>saveMsg.textContent='',1500); }
+    loadKeys(); saveBtn.addEventListener('click', saveKeys);
+
+    function getSelectedFutures(){ return Array.from(futuresSel.selectedOptions).map(o=>o.value); }
+    function showOutput(markets){ nowEl.textContent = new Date().toLocaleString(); focusEl.textContent = markets.join(', '); output.style.display = 'block'; }
+    function makeLinks(markets){
+      const q = encodeURIComponent(markets.join(' ') || 'ES NQ');
+      const items = [
+        ['Index Futures Snapshot', 'https://www.google.com/search?q=index+futures'],
+        ['Economic Calendar (today)', 'https://www.google.com/search?q=today+economic+calendar'],
+        ['Macro headlines', 'https://news.google.com/'],
+        [`News for ${markets.join(', ')}`, `https://news.google.com/search?q=${q}`]
+      ];
+      linksEl.innerHTML = '';
+      for (const [label,url] of items){
+        const li=document.createElement('li'); const a=document.createElement('a');
+        a.href=url; a.textContent=label; a.target='_blank'; li.appendChild(a); linksEl.appendChild(li);
+      }
+    }
+
+    const FUTURES_TO_ETF = { ES:'SPY', NQ:'QQQ', YM:'DIA', RTY:'IWM', CL:'USO', GC:'GLD', ZN:'IEF', '6E':'FXE' };
+    const ETF_TO_STOOQ = { SPY:'spy.us', QQQ:'qqq.us', DIA:'dia.us', IWM:'iwm.us', USO:'uso.us', GLD:'gld.us', IEF:'ief.us', FXE:'fxe.us' };
+
+    const POS = ['beat','surge','strong','record','optim','rally','up','gain','bull','expand','growth'];
+    const NEG = ['miss','fall','weak','cut','warn','down','bear','slump','contract','decline','risk','halt','ban','tariff'];
+    function headlineScore(t){ const s=t.toLowerCase(); let n=0; POS.forEach(w=>{if(s.includes(w))n++;}); NEG.forEach(w=>{if(s.includes(w))n--;}); return n; }
+    function overallLabel(score){ if(score>=2) return ['Bullish tilt','ok']; if(score<=-2) return ['Bearish tilt','bad']; return ['Mixed/Neutral','warn']; }
+
+    async function fetchJson(u){ const r=await fetch(u); if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }
+    async function fetchText(u){ const r=await fetch(u); if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); }
+
+    // NEWS: prefer GNews with key; else AllOrigins → Google News RSS
+    async function getHeadlines(markets){
+      const gkey=(localStorage.getItem('GNEWS_KEY')||'').trim();
+      if(gkey){
+        try{
+          const q=encodeURIComponent(markets.join(' OR '));
+          const url=`https://gnews.io/api/v4/search?q=${q}&lang=en&country=us&max=25&expand=content&token=${gkey}`;
+          const data=await fetchJson(url);
+          const headlines=(data.articles||[]).map(a=>a.title||'').filter(Boolean);
+          return {source:'gnews', ok:true, headlines};
+        }catch(e){}
+      }
+      // RSS via public proxy
+      const q = encodeURIComponent(markets.join(' '));
+      const rss = `https://news.google.com/rss/search?q=${q}&hl=en-US&gl=US&ceid=US:en`;
+      const xml = await fetchText(PROXY_RAW + encodeURIComponent(rss));
+      const doc = new DOMParser().parseFromString(xml, 'text/xml');
+      const items = Array.from(doc.querySelectorAll('item > title'));
+      const headlines = items.map(n=>n.textContent||'').filter(Boolean);
+      return {source:'rss-proxy', ok: headlines.length>0, headlines};
+    }
+
+    // LAST DAY: prefer Alpha with key; else AllOrigins → Stooq CSV
+    async function getLastDayMove(markets){
+      const akey=(localStorage.getItem('ALPHA_KEY')||'').trim();
+      const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
+
+      if(akey){
+        try{
+          const url=`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${etf}&apikey=${akey}`;
+          const data=await fetchJson(url);
+          const series=data['Time Series (Daily)']||{};
+          const days=Object.keys(series).sort().reverse();
+          if(days.length>=2){
+            const d0=series[days[0]], d1=series[days[1]];
+            const c0=parseFloat(d0['4. close']), c1=parseFloat(d1['4. close']);
+            const pct=((c0-c1)/c1)*100;
+            return {ok:true, etf, latest:days[0], prior:days[1], pct, source:'alpha'};
+          }
+        }catch(e){}
+      }
+
+      // Stooq via public proxy (handles weekends automatically)
+      const stooqSym = ETF_TO_STOOQ[etf] || 'spy.us';
+      const url = `https://stooq.com/q/d/l/?s=${encodeURIComponent(stooqSym)}&i=d`;
+      const csv = await fetchText(PROXY_RAW + encodeURIComponent(url));
+      const rows = csv.trim().split('\n');
+      if(rows.length>=3){
+        const last=rows[rows.length-1].split(',');   // latest trading day
+        const prev=rows[rows.length-2].split(',');   // prior trading day
+        const latestDate=last[0], priorDate=prev[0];
+        const c0=parseFloat(last[4]); const c1=parseFloat(prev[4]);
+        const pct=((c0-c1)/c1)*100;
+        return {ok:true, etf, latest:latestDate, prior:priorDate, pct, source:'stooq-proxy'};
+      }
+      return {ok:false, reason:'No data'};
+    }
+
+    function sentimentFrom(headlines){
+      const total=headlines.reduce((a,t)=>a+headlineScore(t),0);
+      const [label,cls]=overallLabel(total);
+      return {label,cls,total};
+    }
+
+    async function buildSummary(markets){
+      summaryEl.innerHTML = `<span class="spinner"></span> Analyzing headlines & previous trading day...`;
+      const gkey=(localStorage.getItem('GNEWS_KEY')||'').trim();
+      const akey=(localStorage.getItem('ALPHA_KEY')||'').trim();
+      keyStatusEl.textContent = (!gkey || !akey)
+        ? 'Using no-key fallback via public proxy (may be rate-limited).'
+        : 'Using saved API keys where available.';
+
+      const [newsRes, dayRes] = await Promise.all([ getHeadlines(markets), getLastDayMove(markets) ]);
+
+      // Headlines
+      let sentiBlock='', overall='', samples='';
+      if(newsRes.ok && newsRes.headlines.length){
+        const senti=sentimentFrom(newsRes.headlines);
+        sentiBlock = `<div class="pill ${senti.cls}">News sentiment (${newsRes.source}): ${senti.label}</div>`;
+        if(senti.total>=2) overall=`According to current news, <b>${markets.join(', ')}</b> lean <b>bullish</b> as of now.`;
+        else if(senti.total<=-2) overall=`According to current news, <b>${markets.join(', ')}</b> lean <b>bearish</b> as of now.`;
+        else overall=`According to current news, <b>${markets.join(', ')}</b> look <b>mixed/neutral</b> right now.`;
+        const top=newsRes.headlines.slice(0,5).map(h=>`<li>${h}</li>`).join('');
+        samples=`<details style="margin-top:8px"><summary>Top headlines</summary><ul>${top}</ul></details>`;
+      } else {
+        sentiBlock = `<div class="muted">News sentiment unavailable</div>`;
+        overall = `Headlines unavailable—open links below or add a news API key in Settings.`;
+      }
+
+      // Last day
+      let lastDayBlock='';
+      if(dayRes.ok){
+        const dir=dayRes.pct>=0?'▲':'▼';
+        const cls=dayRes.pct>=0?'ok':'bad';
+        lastDayBlock = `<div class="pill ${cls}">Prev day (${dayRes.etf}, ${dayRes.source}): ${dir} ${dayRes.pct.toFixed(2)}% (close ${dayRes.latest})</div>`;
+      } else {
+        lastDayBlock = `<div class="muted">Last day summary unavailable</div>`;
+      }
+
+      summaryEl.innerHTML = `
+        <div>${sentiBlock} ${lastDayBlock}</div>
+        <p style="margin-top:10px">${overall}</p>
+        ${samples}
+      `;
+    }
+
+    function startAnalyze({linksOnly=false}={}){
+      const sel=getSelectedFutures();
+      const markets=sel.length?sel:['ES','NQ'];
+      showOutput(markets);
+      makeLinks(markets);
+      if(!linksOnly){ buildSummary(markets); }
+      else { summaryEl.innerHTML = `<span class="muted">Quick-links mode. Tap Analyze for auto-summary.</span>`; }
+      window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
+    }
+
+    startBtn.addEventListener('click', ()=> startAnalyze({linksOnly:false}));
+    quickBtn.addEventListener('click', ()=> startAnalyze({linksOnly:true}));
+  </script>
+</body>
+</html>
