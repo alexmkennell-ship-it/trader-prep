@@ -12,92 +12,309 @@
 
   <!-- PWA manifest -->
   <link rel="manifest" href="manifest.webmanifest">
+
+  <style>
+    :root { --pad:16px; --radius:12px; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; padding: var(--pad); max-width: 820px; margin: auto; }
+    h1 { margin: 0 0 12px; }
+    .card { border: 1px solid #e6e6e6; border-radius: var(--radius); padding: var(--pad); margin-top: 12px; }
+    button, select, input { font-size: 16px; }
+    button { padding: 10px 14px; border-radius: 10px; border: 1px solid #d0d0d0; background:#fff; }
+    button.primary { background: #111; color: #fff; border-color:#111; }
+    .row { display:flex; gap:10px; align-items:center; flex-wrap: wrap; }
+    .muted { opacity:.7; font-size: 14px; }
+    .pill { display:inline-block; padding:4px 10px; border-radius:999px; border:1px solid #e2e2e2; margin: 4px 6px 0 0; }
+    .ok { color: #0a8; }
+    .warn { color:#b65; }
+    .bad { color:#c22; }
+    .spinner { display:inline-block; width:18px; height:18px; border:3px solid #ddd; border-top-color:#111; border-radius:50%; animation:spin 1s linear infinite; vertical-align: -3px; }
+    @keyframes spin{to{transform: rotate(360deg)}}
+    details summary { cursor: pointer; }
+    ul { padding-left:18px; }
+  </style>
 </head>
-<body style="font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; padding:16px; max-width:700px; margin:auto;">
+<body>
   <h1>I'm getting ready to trade!</h1>
 
-  <button id="start" style="font-size:18px;padding:12px 16px;">Start</button>
-
-  <div id="step2" style="display:none; margin-top:16px;">
-    <label for="tickers">Which tickers/markets do you want to focus on?</label>
-    <input id="tickers" placeholder="e.g. ES, NQ, AAPL" style="display:block;width:100%;padding:10px;margin-top:8px;">
-    <button id="go" style="margin-top:12px;padding:10px 14px;">Show my prep</button>
+  <!-- SETTINGS -->
+  <div class="card">
+    <div class="row">
+      <strong>Settings</strong>
+      <span class="muted">(optional API keys for auto-summary)</span>
+    </div>
+    <div style="margin-top:10px" class="row">
+      <label for="gnews">GNews API Key</label>
+      <input id="gnews" placeholder="gnews.io token" style="flex:1; padding:10px; border-radius:10px; border:1px solid #ddd">
+    </div>
+    <div style="margin-top:10px" class="row">
+      <label for="alpha">Alpha Vantage Key</label>
+      <input id="alpha" placeholder="alphavantage.co key" style="flex:1; padding:10px; border-radius:10px; border:1px solid #ddd">
+    </div>
+    <div style="margin-top:10px" class="row">
+      <button id="saveKeys">Save Keys</button>
+      <span id="saveMsg" class="muted"></span>
+    </div>
+    <details style="margin-top:8px">
+      <summary class="muted">Where to get keys?</summary>
+      <div class="muted" style="margin-top:6px">
+        • <b>News</b>: gnews.io → free token (client-side friendly).<br>
+        • <b>Prices</b>: alphavantage.co → free key (map futures → ETF for daily move).
+      </div>
+    </details>
   </div>
 
-  <div id="output" style="display:none; margin-top:20px;">
-    <h2>Trader Prep</h2>
-    <p><strong>Now:</strong> <span id="now"></span></p>
-    <p><strong>Focus:</strong> <span id="focus"></span></p>
+  <!-- STEP 1: PICK MARKETS -->
+  <div class="card">
+    <strong>Choose your markets</strong>
+    <div style="margin-top:10px">
+      <label for="futures">Futures/markets</label><br>
+      <select id="futures" multiple size="8" style="width:100%; padding:8px; border-radius:10px; border:1px solid #ddd">
+        <option value="ES">ES – S&P 500</option>
+        <option value="NQ">NQ – Nasdaq 100</option>
+        <option value="YM">YM – Dow</option>
+        <option value="RTY">RTY – Russell 2000</option>
+        <option value="CL">CL – Crude Oil</option>
+        <option value="GC">GC – Gold</option>
+        <option value="ZN">ZN – 10-Yr Note</option>
+        <option value="6E">6E – EUR/USD</option>
+      </select>
+      <div class="muted" style="margin-top:6px">Tip: tap multiple items to select several. On iPhone, use “Select” then tap choices.</div>
+    </div>
 
-    <h3>What to check</h3>
-    <ol>
-      <li>Overnight movement since last close (index futures / key names).</li>
-      <li>Economic calendar (today’s releases, Fed speakers).</li>
-      <li>Company news for selected tickers.</li>
-      <li>Macro headlines (geopolitics, energy, big tech policy).</li>
-      <li>Your rules: risk, stops, targets, time windows.</li>
-    </ol>
+    <div class="row" style="margin-top:12px">
+      <button id="start" class="primary">Analyze</button>
+      <button id="quick" title="Just show links (no APIs)">Quick links only</button>
+    </div>
+  </div>
 
-    <h3>Quick Links</h3>
+  <!-- OUTPUT -->
+  <div id="output" class="card" style="display:none">
+    <div class="row">
+      <strong>Trader Prep</strong>
+      <span class="muted">Now: <span id="now"></span></span>
+    </div>
+    <div style="margin-top:6px">
+      <div>Focus: <span id="focus"></span></div>
+      <div id="keyStatus" class="muted"></div>
+    </div>
+
+    <div id="summary" style="margin-top:12px"></div>
+
+    <h3 style="margin-top:16px">Quick Links</h3>
     <ul id="links"></ul>
 
-    <p style="margin-top:20px;font-size:14px;opacity:.8">
-      Tip: Add this to your Home Screen to use it like an app. Works offline after first load.
-    </p>
+    <details style="margin-top:12px">
+      <summary>What to check</summary>
+      <ol style="margin-top:8px">
+        <li>Overnight movement since last close (index futures / key names).</li>
+        <li>Economic calendar (today’s releases, Fed speakers).</li>
+        <li>Company or sector news for selected markets.</li>
+        <li>Macro headlines (geopolitics, energy, big tech policy).</li>
+        <li>Review your rules (risk, stops, targets, window).</li>
+      </ol>
+    </details>
   </div>
 
   <script>
-    // Register service worker for PWA/offline (non-blocking if missing)
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').catch(()=>{});
-    }
+    // --- Simple PWA registration ---
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
 
-    // Elements
+    // --- Elements ---
     const startBtn = document.getElementById('start');
-    const step2 = document.getElementById('step2');
-    const goBtn = document.getElementById('go');
+    const quickBtn = document.getElementById('quick');
+    const futuresSel = document.getElementById('futures');
     const output = document.getElementById('output');
     const nowEl = document.getElementById('now');
     const focusEl = document.getElementById('focus');
     const linksEl = document.getElementById('links');
+    const summaryEl = document.getElementById('summary');
+    const keyStatusEl = document.getElementById('keyStatus');
+    const gnewsEl = document.getElementById('gnews');
+    const alphaEl = document.getElementById('alpha');
+    const saveBtn = document.getElementById('saveKeys');
+    const saveMsg = document.getElementById('saveMsg');
 
-    // For mobile debugging if needed
-    function log(msg){ try{ console.log(msg);}catch(e){} }
+    // --- Persist API keys locally on device ---
+    function loadKeys(){
+      gnewsEl.value = localStorage.getItem('GNEWS_KEY') || '';
+      alphaEl.value = localStorage.getItem('ALPHA_KEY') || '';
+    }
+    function saveKeys(){
+      localStorage.setItem('GNEWS_KEY', gnewsEl.value.trim());
+      localStorage.setItem('ALPHA_KEY', alphaEl.value.trim());
+      saveMsg.textContent = 'Saved ✓';
+      setTimeout(()=>saveMsg.textContent='', 1500);
+    }
+    loadKeys();
+    saveBtn.addEventListener('click', saveKeys);
 
-    // Show ticker input
-    startBtn.addEventListener('click', () => {
-      log('Start clicked');
-      step2.style.display = 'block';
-      startBtn.style.display = 'none';
-    });
-
-    // Build the prep panel
-    goBtn.addEventListener('click', () => {
-      const focus = document.getElementById('tickers').value.trim() || 'ES, NQ';
+    // --- Helpers ---
+    function getSelectedFutures(){
+      return Array.from(futuresSel.selectedOptions).map(o=>o.value);
+    }
+    function showOutput(markets){
       nowEl.textContent = new Date().toLocaleString();
-      focusEl.textContent = focus;
-
-      const q = encodeURIComponent(focus);
+      focusEl.textContent = markets.join(', ');
+      output.style.display = 'block';
+    }
+    function makeLinks(markets){
+      const q = encodeURIComponent(markets.join(' ') || 'ES NQ');
       const items = [
         ['Index Futures Snapshot', 'https://www.google.com/search?q=index+futures'],
         ['Economic Calendar (today)', 'https://www.google.com/search?q=today+economic+calendar'],
-        [`News for ${focus}`, `https://news.google.com/search?q=${q}`],
-        ['Fed news', 'https://news.google.com/search?q=Federal%20Reserve'],
-        ['Macro headlines', 'https://news.google.com/']
+        ['Macro headlines', 'https://news.google.com/'],
+        [`News for ${markets.join(', ')}`, `https://news.google.com/search?q=${q}`]
       ];
       linksEl.innerHTML = '';
-      items.forEach(([label, url]) => {
+      for (const [label,url] of items){
         const li = document.createElement('li');
         const a = document.createElement('a');
-        a.href = url;
-        a.textContent = label;
-        a.target = '_blank';
-        li.appendChild(a);
-        linksEl.appendChild(li);
-      });
+        a.href = url; a.textContent = label; a.target = '_blank';
+        li.appendChild(a); linksEl.appendChild(li);
+      }
+    }
 
-      output.style.display = 'block';
-    });
+    // Map futures → ETFs for “last day” summary via Alpha Vantage
+    const FUTURES_TO_ETF = {
+      ES: 'SPY',
+      NQ: 'QQQ',
+      YM: 'DIA',
+      RTY: 'IWM',
+      CL: 'USO',
+      GC: 'GLD',
+      ZN: 'IEF',
+      '6E': 'FXE'
+    };
+
+    // Basic keyword sentiment scoring for headlines
+    const POS = ['beat','surge','strong','record','optim','rally','up','gain','bull','expand','growth'];
+    const NEG = ['miss','fall','weak','cut','warn','down','bear','slump','contract','decline','risk','halt','ban','tariff'];
+    function headlineScore(t){
+      const s = t.toLowerCase();
+      let score = 0;
+      POS.forEach(w=>{ if(s.includes(w)) score+=1; });
+      NEG.forEach(w=>{ if(s.includes(w)) score-=1; });
+      return score;
+    }
+    function overallLabel(score){
+      if(score >= 2) return ['Bullish tilt', 'ok'];
+      if(score <= -2) return ['Bearish tilt', 'bad'];
+      return ['Mixed/Neutral', 'warn'];
+    }
+
+    // Fetch helper with timeout
+    async function fetchJson(url, timeoutMs=12000){
+      const ctrl = new AbortController();
+      const t = setTimeout(()=>ctrl.abort(), timeoutMs);
+      try{
+        const r = await fetch(url, {signal: ctrl.signal});
+        clearTimeout(t);
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        return await r.json();
+      } catch(e){
+        clearTimeout(t);
+        throw e;
+      }
+    }
+
+    // News via GNews (client-key friendly). If no key, skip gracefully.
+    async function getNewsHeadlines(markets, gnewsKey){
+      if(!gnewsKey) return {ok:false, reason:'No GNews key'};
+      const query = encodeURIComponent(markets.join(' OR '));
+      const url = `https://gnews.io/api/v4/search?q=${query}&lang=en&country=us&max=25&expand=content&token=${gnewsKey}`;
+      const data = await fetchJson(url);
+      const headlines = (data.articles||[]).map(a=>a.title || '').filter(Boolean);
+      return {ok:true, headlines};
+    }
+
+    // Previous trading day move via Alpha Vantage (ETF mapping)
+    async function getLastDayMove(markets, alphaKey){
+      if(!alphaKey) return {ok:false, reason:'No Alpha Vantage key'};
+      const first = FUTURES_TO_ETF[markets[0]] || 'SPY';
+      const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${first}&apikey=${alphaKey}`;
+      const data = await fetchJson(url);
+      const series = data['Time Series (Daily)'] || {};
+      const days = Object.keys(series).sort().reverse();
+      if(days.length < 2) return {ok:false, reason:'Not enough data'};
+      const d0 = series[days[0]], d1 = series[days[1]];
+      const c0 = parseFloat(d0['4. close']), c1 = parseFloat(d1['4. close']);
+      if(!(c0>0 && c1>0)) return {ok:false, reason:'Bad data'};
+      const pct = ((c0 - c1) / c1) * 100;
+      return {ok:true, etf:first, latest: days[0], prior: days[1], pct};
+    }
+
+    async function buildSummary(markets){
+      summaryEl.innerHTML = `<span class="spinner"></span> Analyzing headlines & yesterday's action...`;
+      const gkey = (localStorage.getItem('GNEWS_KEY')||'').trim();
+      const akey = (localStorage.getItem('ALPHA_KEY')||'').trim();
+
+      keyStatusEl.textContent = (!gkey || !akey)
+        ? 'Note: add API keys in Settings for automatic summaries.'
+        : 'Using saved API keys.';
+
+      // Parallel fetch
+      let newsRes = {ok:false}, dayRes = {ok:false};
+      try { newsRes = await getNewsHeadlines(markets, gkey); } catch(e){ newsRes = {ok:false, reason: String(e)}; }
+      try { dayRes  = await getLastDayMove(markets, akey); } catch(e){ dayRes = {ok:false, reason: String(e)}; }
+
+      // Headline sentiment
+      let sentimentBlock = '';
+      if(newsRes.ok){
+        const score = newsRes.headlines.reduce((acc,t)=>acc+headlineScore(t),0);
+        const [label, cls] = overallLabel(score);
+        sentimentBlock = `<div class="pill ${cls}">News sentiment: ${label}</div>`;
+      } else {
+        sentimentBlock = `<div class="muted">News sentiment unavailable (${newsRes.reason||'missing key'})</div>`;
+      }
+
+      // Last day move
+      let lastDayBlock = '';
+      if(dayRes.ok){
+        const dir = dayRes.pct >= 0 ? '▲' : '▼';
+        const cls = dayRes.pct >= 0 ? 'ok' : 'bad';
+        lastDayBlock = `<div class="pill ${cls}">Prev day (${dayRes.etf}): ${dir} ${dayRes.pct.toFixed(2)}% (close ${dayRes.latest})</div>`;
+      } else {
+        lastDayBlock = `<div class="muted">Last day summary unavailable (${dayRes.reason||'missing key'})</div>`;
+      }
+
+      // Overall call
+      let overall = '';
+      if(newsRes.ok){
+        const score = newsRes.headlines.reduce((acc,t)=>acc+headlineScore(t),0);
+        if(score >= 2) overall = `According to current news, <b>${markets.join(', ')}</b> lean <b>bullish</b> as of now.`;
+        else if(score <= -2) overall = `According to current news, <b>${markets.join(', ')}</b> lean <b>bearish</b> as of now.`;
+        else overall = `According to current news, <b>${markets.join(', ')}</b> look <b>mixed/neutral</b> right now.`;
+      } else {
+        overall = `Add API keys in <b>Settings</b> to get an automatic “bullish / bearish / neutral” call.`;
+      }
+
+      // Show headlines sample if we have them
+      let samples = '';
+      if(newsRes.ok){
+        const top = newsRes.headlines.slice(0,5).map(h=>`<li>${h}</li>`).join('');
+        samples = `<details style="margin-top:8px"><summary>Top headlines used</summary><ul>${top}</ul></details>`;
+      }
+
+      summaryEl.innerHTML = `
+        <div>${sentimentBlock} ${lastDayBlock}</div>
+        <p style="margin-top:10px">${overall}</p>
+        ${samples}
+      `;
+    }
+
+    function startAnalyze({linksOnly=false}={}){
+      const sel = getSelectedFutures();
+      const markets = sel.length ? sel : ['ES','NQ'];
+      showOutput(markets);
+      makeLinks(markets);
+      if(!linksOnly){ buildSummary(markets); } else {
+        summaryEl.innerHTML = `<span class="muted">Quick-links mode: add API keys in Settings and tap Analyze for automatic summaries.</span>`;
+      }
+      window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
+    }
+
+    startBtn.addEventListener('click', ()=> startAnalyze({linksOnly:false}));
+    quickBtn.addEventListener('click', ()=> startAnalyze({linksOnly:true}));
   </script>
 </body>
 </html>
