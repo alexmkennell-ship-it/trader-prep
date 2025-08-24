@@ -10,6 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="apple-touch-icon" href="icon-192.png">
 
+  <!-- PWA manifest -->
   <link rel="manifest" href="manifest.webmanifest">
 </head>
 <body style="font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; padding:16px; max-width:700px; margin:auto;">
@@ -32,8 +33,8 @@
     <ol>
       <li>Overnight movement since last close (index futures / key names).</li>
       <li>Economic calendar (today’s releases, Fed speakers).</li>
-      <li>Company-specific news for selected tickers.</li>
-      <li>Macro headlines (geopolitics, energy, large M&A, big tech policy).</li>
+      <li>Company news for selected tickers.</li>
+      <li>Macro headlines (geopolitics, energy, big tech policy).</li>
       <li>Your rules: risk, stops, targets, time windows.</li>
     </ol>
 
@@ -41,29 +42,37 @@
     <ul id="links"></ul>
 
     <p style="margin-top:20px;font-size:14px;opacity:.8">
-      Tip: Add to Home Screen to use like an app (works offline after first load).
+      Tip: Add this to your Home Screen to use it like an app. Works offline after first load.
     </p>
   </div>
 
   <script>
+    // Register service worker for PWA/offline (non-blocking if missing)
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js');
+      navigator.serviceWorker.register('./sw.js').catch(()=>{});
     }
 
-    const start = document.getElementById('start');
+    // Elements
+    const startBtn = document.getElementById('start');
     const step2 = document.getElementById('step2');
-    const go = document.getElementById('go');
+    const goBtn = document.getElementById('go');
     const output = document.getElementById('output');
     const nowEl = document.getElementById('now');
     const focusEl = document.getElementById('focus');
     const linksEl = document.getElementById('links');
 
-    start.addEventListener('click', () => {
+    // For mobile debugging if needed
+    function log(msg){ try{ console.log(msg);}catch(e){} }
+
+    // Show ticker input
+    startBtn.addEventListener('click', () => {
+      log('Start clicked');
       step2.style.display = 'block';
-      start.style.display = 'none';
+      startBtn.style.display = 'none';
     });
 
-    go.addEventListener('click', () => {
+    // Build the prep panel
+    goBtn.addEventListener('click', () => {
       const focus = document.getElementById('tickers').value.trim() || 'ES, NQ';
       nowEl.textContent = new Date().toLocaleString();
       focusEl.textContent = focus;
@@ -81,4 +90,14 @@
         const li = document.createElement('li');
         const a = document.createElement('a');
         a.href = url;
-        a.textContent =
+        a.textContent = label;
+        a.target = '_blank';
+        li.appendChild(a);
+        linksEl.appendChild(li);
+      });
+
+      output.style.display = 'block';
+    });
+  </script>
+</body>
+</html>
