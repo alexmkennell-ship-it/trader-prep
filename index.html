@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trader Prep</title>
+
+  <!-- iOS PWA support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <link rel="manifest" href="manifest.webmanifest">
+</head>
+<body style="font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; padding:16px; max-width:700px; margin:auto;">
+  <h1>I'm getting ready to trade!</h1>
+
+  <button id="start" style="font-size:18px;padding:12px 16px;">Start</button>
+
+  <div id="step2" style="display:none; margin-top:16px;">
+    <label for="tickers">Which tickers/markets do you want to focus on?</label>
+    <input id="tickers" placeholder="e.g. ES, NQ, AAPL" style="display:block;width:100%;padding:10px;margin-top:8px;">
+    <button id="go" style="margin-top:12px;padding:10px 14px;">Show my prep</button>
+  </div>
+
+  <div id="output" style="display:none; margin-top:20px;">
+    <h2>Trader Prep</h2>
+    <p><strong>Now:</strong> <span id="now"></span></p>
+    <p><strong>Focus:</strong> <span id="focus"></span></p>
+
+    <h3>What to check</h3>
+    <ol>
+      <li>Overnight movement since last close (index futures / key names).</li>
+      <li>Economic calendar (today’s releases, Fed speakers).</li>
+      <li>Company-specific news for selected tickers.</li>
+      <li>Macro headlines (geopolitics, energy, large M&A, big tech policy).</li>
+      <li>Your rules: risk, stops, targets, time windows.</li>
+    </ol>
+
+    <h3>Quick Links</h3>
+    <ul id="links"></ul>
+
+    <p style="margin-top:20px;font-size:14px;opacity:.8">
+      Tip: Add to Home Screen to use like an app (works offline after first load).
+    </p>
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+
+    const start = document.getElementById('start');
+    const step2 = document.getElementById('step2');
+    const go = document.getElementById('go');
+    const output = document.getElementById('output');
+    const nowEl = document.getElementById('now');
+    const focusEl = document.getElementById('focus');
+    const linksEl = document.getElementById('links');
+
+    start.addEventListener('click', () => {
+      step2.style.display = 'block';
+      start.style.display = 'none';
+    });
+
+    go.addEventListener('click', () => {
+      const focus = document.getElementById('tickers').value.trim() || 'ES, NQ';
+      nowEl.textContent = new Date().toLocaleString();
+      focusEl.textContent = focus;
+
+      const q = encodeURIComponent(focus);
+      const items = [
+        ['Index Futures Snapshot', 'https://www.google.com/search?q=index+futures'],
+        ['Economic Calendar (today)', 'https://www.google.com/search?q=today+economic+calendar'],
+        [`News for ${focus}`, `https://news.google.com/search?q=${q}`],
+        ['Fed news', 'https://news.google.com/search?q=Federal%20Reserve'],
+        ['Macro headlines', 'https://news.google.com/']
+      ];
+      linksEl.innerHTML = '';
+      items.forEach(([label, url]) => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = url;
+        a.textContent =
