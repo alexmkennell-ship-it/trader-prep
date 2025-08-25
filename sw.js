@@ -1,5 +1,5 @@
 // sw.js — network-first for HTML, cache-first for static assets
-const CACHE = 'trader-prep-v30'; // bump this anytime you ship
+const CACHE = 'trader-prep-v21'; // ← bump this when you ship
 const ASSETS = [
   './',
   './index.html',
@@ -8,46 +8,66 @@ const ASSETS = [
   './icon-512.png'
 ];
 
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
-  self.skipWaiting();
+// Install: pre-cache core assets
+self.addEventListener('install', evt => {
+  evt.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  self.skipWaiting(); // take over ASAP
 });
 
-self.addEventListener('activate', e => {
-  e.waitUntil(
+// Activate: clean old caches
+self.addEventListener('activate', evt => {
+  evt.waitUntil(
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
 
-// Helper: is this a navigation request for HTML?
+// Helper: treat navigations and HTML requests as "HTML"
 function isHTMLRequest(req) {
-  return req.mode === 'navigate' ||
-         (req.headers.get('accept') || '').includes('text/html');
+  if (req.mode === 'navigate') return true;
+  const accept = req.headers.get('accept') || '';
+  return accept.includes('text/html');
 }
 
-self.addEventListener('fetch', e => {
-  const req = e.request;
+// Fetch handler
+self.addEventListener('fetch', evt => {
+  const req = evt.request;
+  if (req.method !== 'GET') return; // don’t mess with POST/PUT/etc.
 
-  // Network-first for HTML (index and navigations)
+  // NETWORK-FIRST for HTML (index & navigations)
   if (isHTMLRequest(req)) {
-    e.respondWith(
-      fetch(req).then(r => {
-        const copy = r.clone();
-        caches.open(CACHE).then(c => c.put(req, copy));
-        return r;
-      }).catch(() => caches.match(req).then(r => r || caches.match('./index.html')))
+    evt.respondWith(
+      fetch(req)
+        .then(res => {
+          const copy = res.clone();
+          caches.open(CACHE).then(c => c.put(req, copy)).catch(()=>{});
+          return res;
+        })
+        .catch(() =>
+          caches.match(req).then(r => r || caches.match('./index.html'))
+        )
     );
     return;
   }
 
-  // Cache-first for everything else (icons, manifest, etc.)
-  e.respondWith(
-    caches.match(req).then(r => r || fetch(req).then(resp => {
-      const copy = resp.clone();
-      caches.open(CACHE).then(c => c.put(req, copy));
-      return resp;
-    }))
+  // CACHE-FIRST for everything else (icons, manifest, images, CSS, JS)
+  evt.respondWith(
+    caches.match(req).then(cached => {
+      if (cached) return cached;
+      return fetch(req).then(res => {
+        // Only cache valid, same-origin (or opaque) GET responses
+        const copy = res.clone();
+        caches.open(CACHE).then(c => c.put(req, copy)).catch(()=>{});
+        return res;
+      }).catch(() => cached); // if fetch fails, fall back (if any)
+    })
   );
+});
+
+// Optional: allow page to tell the SW to activate immediately
+self.addEventListener('message', evt => {
+  if (evt.data && evt.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
