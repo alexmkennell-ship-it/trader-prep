@@ -771,7 +771,14 @@
 
       // Default selected timeframe highlight already set to 15m in HTML; ensure synced
       setTfActive(15);
-    });
+      // Auto-refresh Trend every 30 seconds (only if Trend tab is visible)
+  setInterval(()=>{
+    if (trendOut.style.display !== 'none') {
+      const m = getSelectedFutures();
+      buildTrend(m.length ? m : ['ES']);
+    }
+  }, 30000);
+});
   </script>
 </body>
 </html>
