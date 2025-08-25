@@ -1,5 +1,5 @@
 // sw.js — network-first for HTML, cache-first for static assets
-const CACHE = 'trader-prep-v20'; // bump this anytime you ship
+const CACHE = 'trader-prep-v30'; // bump this anytime you ship
 const ASSETS = [
   './',
   './index.html',
