@@ -17,14 +17,13 @@
 
   <style>
     :root {
-      /* Topstep-ish palette */
       --bg: #1b191b;
       --panel: #2a292f;
       --panel-2: #242328;
       --line: #35343a;
       --fg: #f1f2f4;
       --muted: #a7adbb;
-      --accent: #7c5cff;
+      --accent: #7c5cff;   /* purple */
       --ok: #6abd74;
       --bad: #e05d5d;
       --warn: #d3a54a;
@@ -51,12 +50,12 @@
       border-radius:10px; background:#2f2e36; border:1px solid var(--line);
     }
     .brand h1{font-size:16px; margin:0; letter-spacing:.3px;}
-    .navicons{display:flex; gap:14px; align-items:center;}
-    .navicons .iconbtn{
+    .navicons{display:flex; gap:10px; align-items:center;}
+    .iconbtn{
       width:36px;height:36px; display:grid; place-items:center; border-radius:10px;
       border:1px solid var(--line); background:#26252b; cursor:pointer; color:#cfd3dc;
     }
-    .navicons .iconbtn.active{background:var(--accent); color:#090909; border-color:transparent;}
+    .iconbtn.active{background:var(--accent); color:#090909; border-color:transparent;}
 
     /* Stat strip */
     .statstrip{
@@ -106,6 +105,11 @@
     @media (max-width:900px){ .grid{grid-template-columns:1fr;} }
     canvas{ width:100%; max-width:700px; height:160px; border-radius:10px; background:#24252b; margin-top:10px; }
 
+    /* Trend timeframe segmented buttons */
+    .seg{display:flex; gap:8px; flex-wrap:wrap;}
+    .segbtn{padding:8px 12px; border:1px solid var(--line); background:#26252b; border-radius:10px; cursor:pointer;}
+    .segbtn.active{background:var(--accent); color:#0b0b10; border-color:transparent;}
+
     .spinner{display:inline-block; width:18px; height:18px; border:3px solid #45434c; border-top-color:#ddd; border-radius:50%; animation:spin 1s linear infinite; vertical-align:-3px;}
     @keyframes spin{to{transform:rotate(360deg)}}
   </style>
@@ -120,21 +124,27 @@
     <nav class="navicons">
       <div class="iconbtn active" id="nav-prep" title="Prep"><i class="fa-solid fa-bars-staggered"></i></div>
       <div class="iconbtn" id="nav-trend" title="Trend"><i class="fa-solid fa-wave-square"></i></div>
+      <div class="iconbtn" id="nav-pnl" title="Profit Log"><i class="fa-solid fa-dollar-sign"></i></div>
       <div class="iconbtn" id="nav-settings" title="Settings"><i class="fa-solid fa-gear"></i></div>
     </nav>
   </header>
 
   <!-- STATS STRIP: AK/BG with color-by-P&L -->
   <div class="statstrip">
-    <div class="chip" id="chipAKWrap"><span class="muted">AK$ (today):</span> <strong id="chipAK">$0.00</strong></div>
-    <div class="chip" id="chipBGWrap"><span class="muted">BG$ (today):</span> <strong id="chipBG">$0.00</strong></div>
+    <div class="chip" id="chipAKWrap">
+      <span class="muted">AK$ (today):</span> <strong id="chipAK">$0.00</strong>
+      <span class="muted" style="margin-left:8px">/ all:</span> <strong id="chipAKAll">$0.00</strong>
+    </div>
+    <div class="chip" id="chipBGWrap">
+      <span class="muted">BG$ (today):</span> <strong id="chipBG">$0.00</strong>
+      <span class="muted" style="margin-left:8px">/ all:</span> <strong id="chipBGAll">$0.00</strong>
+    </div>
     <div class="chip ok" id="conn1"><i class="fa-solid fa-signal"></i> API OK</div>
     <div class="chip ok" id="conn2"><i class="fa-solid fa-chart-line"></i> Data OK</div>
   </div>
 
   <div class="wrap">
-
-    <!-- SETTINGS -->
+    <!-- SETTINGS (API keys only) -->
     <div class="card" id="panel-settings" style="display:none">
       <div class="row"><strong>Settings</strong><span class="muted">(Keys optional; proxy fallback built-in)</span></div>
       <div class="row" style="margin-top:10px">
@@ -149,8 +159,10 @@
         <button id="saveKeys" class="primary"><i class="fa-regular fa-floppy-disk"></i>&nbsp;Save Keys</button>
         <span id="saveMsg" class="muted"></span>
       </div>
+    </div>
 
-      <hr style="border:none;border-top:1px solid var(--line); margin:12px 0">
+    <!-- PROFIT LOG (separate panel) -->
+    <div class="card" id="panel-pnl" style="display:none">
       <div class="row"><strong>Daily P&L Log</strong><span class="muted">(updates AK$/BG$ chips for today)</span></div>
       <div class="row" style="margin-top:10px">
         <label class="muted" style="min-width:170px">Who</label>
@@ -171,6 +183,13 @@
         <button id="logPnl" class="primary"><i class="fa-solid fa-plus"></i>&nbsp;Log Profit</button>
         <span id="pnlMsg" class="muted"></span>
       </div>
+      <details style="margin-top:12px">
+        <summary>Today’s entries</summary>
+        <div id="pnlTodayTable" class="muted" style="margin-top:8px">—</div>
+        <div class="actions" style="margin-top:8px">
+          <button id="undoLast"><i class="fa-solid fa-rotate-left"></i>&nbsp;Undo last entry</button>
+        </div>
+      </details>
     </div>
 
     <!-- MARKETS -->
@@ -202,9 +221,11 @@
         </div>
         <div>
           <div class="muted">Trend timeframe</div>
-          <div class="actions" style="margin-top:6px">
-            <button class="bundle" data-tf="60">Last 60m</button>
-            <button class="bundle" data-tf="15">Last 15m</button>
+          <div class="seg" style="margin-top:6px">
+            <button class="segbtn" data-tf="5">5m</button>
+            <button class="segbtn active" data-tf="15">15m</button>
+            <button class="segbtn" data-tf="30">30m</button>
+            <button class="segbtn" data-tf="60">60m</button>
           </div>
           <div class="muted" style="margin-top:6px">Trend uses 1-minute Yahoo bars (via your proxy), mapped futures → ETFs.</div>
         </div>
@@ -212,7 +233,7 @@
 
       <div class="actions" style="margin-top:12px">
         <button id="start" class="primary"><i class="fa-solid fa-bolt"></i>&nbsp;Analyze (Prep)</button>
-        <button id="runTrend"><i class="fa-solid fa-wave-square"></i>&nbsp;Analyze (Trend)</button>
+        <button id="runTrend" class="primary"><i class="fa-solid fa-wave-square"></i>&nbsp;Analyze (Trend)</button>
         <button id="quick"><i class="fa-regular fa-bookmark"></i>&nbsp;Quick links only</button>
         <button id="openSettings" style="margin-left:auto"><i class="fa-solid fa-gear"></i></button>
       </div>
@@ -234,11 +255,12 @@
     <div id="trendOut" class="card" style="display:none">
       <div class="row">
         <strong>Current Trend</strong>
-        <span class="muted">Window: <span id="trendWin">60m</span></span>
+        <span class="muted">Window: <span id="trendWin">15m</span></span>
       </div>
       <div class="muted">Primary: <span id="trendSym"></span> (mapped ETF) • <span id="trendTime"></span></div>
       <div id="trendSummary" style="margin-top:12px"></div>
       <canvas id="trendChart"></canvas>
+      <div id="trendAdvice" style="margin-top:12px"></div>
       <details style="margin-top:10px">
         <summary>How we decide “busy”</summary>
         <div class="muted" style="margin-top:6px">
@@ -257,24 +279,30 @@
     ------------------------------------------------------------------- */
     const PROXY_RAW = 'https://script.google.com/macros/s/AKfycbztzwYcRxD3mQ2MgD99ubT3-nW-nQJiU-thNoUrdRuMkrTIF1LilnEyCbysHP6Z7HYf/exec?url=';
 
-    // ===== PnL API (new) =====
-    const PNL_API   = 'https://script.google.com/macros/s/AKfycbwd3osQnOh2Xpk1xEhA0Nq76LfOqK_HB-O40IaegbrFagF_PPmlc17i8a9IMFSN6bE/exec?url='; // <-- paste your PnL /exec
-    const PNL_TOKEN = 'CHANGE_ME_32CHAR'; // must match TOKEN in your PnL Apps Script
+    // ===== PnL API =====
+    const PNL_API   = 'https://script.google.com/macros/s/AKfycbwd3osQnOh2Xpk1xEhA0Nq76LfOqK_HB-O40IaegbrFagF_PPmlc17i8a9IMFSN6bE/exec';
+    const PNL_TOKEN = 'CHANGE_ME_32CHAR';
 
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 
-    // Nav toggles
+    // Panels/nav
     const panelSettings = document.getElementById('panel-settings');
-    const navPrep=document.getElementById('nav-prep'), navTrend=document.getElementById('nav-trend'), navSettings=document.getElementById('nav-settings');
+    const panelPnL = document.getElementById('panel-pnl');
+    const navPrep=document.getElementById('nav-prep'), navTrend=document.getElementById('nav-trend'), navSettings=document.getElementById('nav-settings'), navPnL=document.getElementById('nav-pnl');
+
+    function hidePanels(){ panelSettings.style.display='none'; panelPnL.style.display='none'; }
     function setNav(active){
-      [navPrep,navTrend,navSettings].forEach(n=>n.classList.toggle('active', n.id===active));
-      panelSettings.style.display = active==='nav-settings' ? 'block' : 'none';
+      [navPrep,navTrend,navSettings,navPnL].forEach(n=>n.classList.toggle('active', n.id===active));
+      hidePanels();
+      if(active==='nav-settings'){ panelSettings.style.display='block'; }
+      if(active==='nav-pnl'){ panelPnL.style.display='block'; }
       if(active==='nav-prep'){ setTab('prep'); }
       if(active==='nav-trend'){ setTab('trend'); }
     }
     navPrep.onclick=()=>setNav('nav-prep');
     navTrend.onclick=()=>setNav('nav-trend');
     navSettings.onclick=()=>setNav('nav-settings');
+    navPnL.onclick=()=>setNav('nav-pnl');
     document.getElementById('openSettings').onclick=()=>setNav('nav-settings');
 
     // Tabs
@@ -294,10 +322,14 @@
     const keyStatusEl=document.getElementById('keyStatus'), gnewsEl=document.getElementById('gnews'), alphaEl=document.getElementById('alpha');
     const saveBtn=document.getElementById('saveKeys'), saveMsg=document.getElementById('saveMsg'), linksEl=document.getElementById('links');
     const trendWinEl=document.getElementById('trendWin'), trendSymEl=document.getElementById('trendSym'), trendTimeEl=document.getElementById('trendTime'), trendSummaryEl=document.getElementById('trendSummary');
+    const trendAdviceEl=document.getElementById('trendAdvice');
     const trendCanvas=document.getElementById('trendChart');
     const chipAK=document.getElementById('chipAK'), chipBG=document.getElementById('chipBG');
+    const chipAKAll=document.getElementById('chipAKAll'), chipBGAll=document.getElementById('chipBGAll');
     const chipAKWrap=document.getElementById('chipAKWrap'), chipBGWrap=document.getElementById('chipBGWrap');
-    let trendMinutes=60;
+
+    // Default trend timeframe = 15m
+    let trendMinutes=15;
 
     // Keys
     function loadKeys(){ gnewsEl.value=localStorage.getItem('GNEWS_KEY')||''; alphaEl.value=localStorage.getItem('ALPHA_KEY')||''; }
@@ -305,17 +337,28 @@
     loadKeys(); saveBtn.addEventListener('click',saveKeys);
 
     // Bundles & timeframe
+    function getSelectedFutures(){ return Array.from(futuresSel.selectedOptions).map(o=>o.value); }
     document.querySelectorAll('.bundle[data-bundle]').forEach(b=>{
       b.addEventListener('click', ()=>{
         const arr=b.dataset.bundle.split(',');
         for(const o of futuresSel.options) o.selected=arr.includes(o.value);
       });
     });
-    document.querySelectorAll('.bundle[data-tf]').forEach(b=>{
-      b.addEventListener('click', ()=>{ trendMinutes=parseInt(b.dataset.tf,10); trendWinEl.textContent=trendMinutes+'m'; });
+
+    // Segmented timeframe buttons (5/15/30/60)
+    const segBtns = document.querySelectorAll('.segbtn[data-tf]');
+    function setTfActive(mins){
+      segBtns.forEach(btn=>btn.classList.toggle('active', parseInt(btn.dataset.tf,10)===mins));
+      trendMinutes = mins;
+      trendWinEl.textContent = mins+'m';
+    }
+    segBtns.forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const mins = parseInt(btn.dataset.tf,10);
+        setTfActive(mins);
+      });
     });
 
-    function getSelectedFutures(){ return Array.from(futuresSel.selectedOptions).map(o=>o.value); }
     function showPrepHeader(markets){ nowEl.textContent=new Date().toLocaleString(); focusEl.textContent=markets.join(', '); }
     function makeLinks(markets){
       const q=encodeURIComponent(markets.join(' ')||'ES NQ');
@@ -544,11 +587,14 @@
       // slope (least squares)
       let sx=0,sy=0,sxx=0,sxy=0; for(let i=0;i<closes.length;i++){ sx+=i; sy+=closes[i]; sxx+=i*i; sxy+=i*closes[i]; }
       const n=closes.length, denom=(n*sxx - sx*sx)||1; const slope=(n*sxy - sx*sy)/denom; const slopePctPerHour=(slope/first)*60*100;
+
+      // labels
       let direction='Sideways', dirClass='warn';
       if(pct>=0.2 || slopePctPerHour>=0.5){ direction='Uptrend'; dirClass='ok'; }
       else if(pct<=-0.2 || slopePctPerHour<=-0.5){ direction='Downtrend'; dirClass='bad'; }
       const busy = (std>=BUSY_VOL_STD) || (volRatio>=BUSY_VOL_RATIO);
       const busyLabel=busy?'Busy':'Calmer', busyClass=busy?'ok':'warn';
+
       return {ok:true,pct,delta,std,volRatio,slopePctPerHour,direction,dirClass,busyLabel,busyClass,closes,bars:windowBars};
     }
     function drawTrendChart(canvas,bars){
@@ -561,10 +607,23 @@
       prices.forEach((p,i)=>{const x=pad+step*i; const y=h-pad-((p-min)/range)*(h-pad*2); if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);});
       ctx.stroke();
     }
+
+    function tradeSuggestion(info){
+      // Simple rules: Uptrend & Busy => Buy, Downtrend & Busy => Sell, else Wait
+      if (!info?.ok) return {text:'—', action:'Wait'};
+      if (info.direction==='Uptrend' && info.busyLabel==='Busy') return {text:'Recommend: <b>Buy</b> (uptrend + active tape)', action:'Buy'};
+      if (info.direction==='Downtrend' && info.busyLabel==='Busy') return {text:'Recommend: <b>Sell</b> (downtrend + active tape)', action:'Sell'};
+      // softer: if slight up/down but calm, still suggest cautious
+      if (info.direction==='Uptrend') return {text:'Recommend: <b>Buy (cautious)</b> (uptrend, calmer tape)', action:'Buy'};
+      if (info.direction==='Downtrend') return {text:'Recommend: <b>Sell (cautious)</b> (downtrend, calmer tape)', action:'Sell'};
+      return {text:'Recommend: <b>Wait</b> (sideways / mixed)', action:'Wait'};
+    }
+
     async function buildTrend(markets){
       const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
       trendSymEl.textContent=etf; trendTimeEl.textContent=new Date().toLocaleString();
       trendSummaryEl.innerHTML='<span class="spinner"></span> Loading 1-minute bars...';
+      trendAdviceEl.innerHTML='';
       try{
         const all=await fetchIntraday(etf);
         const win=selectWindow(all, trendMinutes);
@@ -577,6 +636,17 @@
         const volStr=`σ(1m) ${(info.std*100).toFixed(3)}% • Vol ratio ${info.volRatio.toFixed(2)}×`;
         trendSummaryEl.innerHTML = `${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} • ${slopeStr} • ${volStr}</div>`;
         drawTrendChart(trendCanvas, win);
+
+        // Advice + disclaimer
+        const advice = tradeSuggestion(info);
+        trendAdviceEl.innerHTML = `
+          <div class="pill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941">
+            <i class="fa-solid fa-lightbulb"></i>&nbsp; ${advice.text}
+          </div>
+          <div class="muted" style="margin-top:6px;font-size:12px">
+            Disclaimer: This summary is generated solely from current market data in this app and is for informational purposes only. It is not financial advice.
+          </div>
+        `;
       }catch(e){
         trendSummaryEl.innerHTML=`<span class="muted">Trend fetch failed (${String(e.message||e)})</span>`;
         drawTrendChart(trendCanvas,[]);
@@ -599,14 +669,19 @@
         if (!r.ok) throw new Error('HTTP '+r.status);
         const j = await r.json();
         if (!j.ok) throw new Error(j.error || 'bad');
+
         const ak = Number(j.today?.AK || 0), bg = Number(j.today?.BG || 0);
+        const aka = Number(j.all?.AK || 0), bga = Number(j.all?.BG || 0);
+
         chipAK.textContent = `$${ak.toFixed(2)}`;
         chipBG.textContent = `$${bg.toFixed(2)}`;
+        chipAKAll.textContent = `$${aka.toFixed(2)}`;
+        chipBGAll.textContent = `$${bga.toFixed(2)}`;
         setChipColor(chipAKWrap, ak);
         setChipColor(chipBGWrap, bg);
       } catch (e) {
-        chipAK.textContent = 'N/A';
-        chipBG.textContent = 'N/A';
+        chipAK.textContent = 'N/A'; chipBG.textContent = 'N/A';
+        chipAKAll.textContent='N/A'; chipBGAll.textContent='N/A';
         chipAKWrap.classList.add('warn'); chipBGWrap.classList.add('warn');
       }
     }
@@ -620,34 +695,27 @@
       return j;
     }
 
-    // wire the Log button
-    document.addEventListener('DOMContentLoaded', () => {
-      pnlGetTotals(); // initial load
-      // optionally refresh every few minutes (comment out if you don't want polling)
-      setInterval(pnlGetTotals, 120000);
-
-      const btn = document.getElementById('logPnl');
-      const msg = document.getElementById('pnlMsg');
-      if (btn) {
-        btn.addEventListener('click', async () => {
-          try {
-            const who = (document.querySelector('input[name="who"]:checked') || {}).value || 'AK';
-            const amt = (document.getElementById('pnlAmount') || {}).value || '';
-            const note= (document.getElementById('pnlNote') || {}).value || '';
-            if (!amt || isNaN(Number(amt))) { msg.textContent = 'Enter a number (e.g. 125 or -75)'; return; }
-            msg.textContent = 'Saving...';
-            await pnlPostLog({ user: who, amount: amt, note });
-            msg.textContent = 'Saved ✓';
-            document.getElementById('pnlAmount').value = '';
-            document.getElementById('pnlNote').value = '';
-            await pnlGetTotals(); // refresh chips
-            setTimeout(()=> msg.textContent = '', 1200);
-          } catch (e) {
-            msg.textContent = 'Error: ' + (e.message || e);
-          }
-        });
-      }
-    });
+    let _todayLogCache = []; // session-side log view
+    async function pnlFetchTodayList(){
+      const box = document.getElementById('pnlTodayTable');
+      if (!_todayLogCache.length) { box.textContent = 'No entries logged this session.'; return; }
+      const rows = _todayLogCache.map(r => `<tr>
+        <td>${r.user}</td>
+        <td style="text-align:right">${Number(r.amount).toFixed(2)}</td>
+        <td>${r.note||''}</td>
+        <td class="muted">${new Date(r.time).toLocaleTimeString()}</td>
+      </tr>`).join('');
+      box.innerHTML = `<table style="width:100%;border-collapse:collapse">
+        <thead><tr><th style="text-align:left">User</th><th style="text-align:right">Amt</th><th style="text-align:left">Note</th><th style="text-align:left">Time</th></tr></thead>
+        <tbody>${rows}</tbody></table>`;
+    }
+    async function pnlUndoLast(){
+      if (!_todayLogCache.length) return;
+      const last = _todayLogCache.pop();
+      await pnlPostLog({ user: last.user, amount: -Number(last.amount), note: `UNDO: ${last.note||''}` });
+      await pnlGetTotals();
+      await pnlFetchTodayList();
+    }
 
     // ====== PREP FLOW ======
     function makeLinks(markets){
@@ -666,9 +734,44 @@
     }
 
     // Events
-    document.getElementById('start').addEventListener('click', ()=>{ setTab('prep'); startAnalyze({linksOnly:false}); });
-    document.getElementById('quick').addEventListener('click', ()=>{ setTab('prep'); startAnalyze({linksOnly:true}); });
-    document.getElementById('runTrend').addEventListener('click', ()=>{ setTab('trend'); const m=getSelectedFutures(); buildTrend(m.length?m:['ES']); });
+    document.getElementById('start').addEventListener('click', ()=>{ setNav('nav-prep'); setTab('prep'); startAnalyze({linksOnly:false}); });
+    document.getElementById('quick').addEventListener('click', ()=>{ setNav('nav-prep'); setTab('prep'); startAnalyze({linksOnly:true}); });
+    document.getElementById('runTrend').addEventListener('click', ()=>{ setNav('nav-trend'); setTab('trend'); const m=getSelectedFutures(); buildTrend(m.length?m:['ES']); });
+
+    // PnL events
+    document.addEventListener('DOMContentLoaded', () => {
+      pnlGetTotals();
+      setInterval(pnlGetTotals, 120000);
+
+      const btn = document.getElementById('logPnl');
+      const msg = document.getElementById('pnlMsg');
+      if (btn) {
+        btn.addEventListener('click', async () => {
+          try {
+            const who = (document.querySelector('input[name="who"]:checked') || {}).value || 'AK';
+            const amt = (document.getElementById('pnlAmount') || {}).value || '';
+            const note= (document.getElementById('pnlNote') || {}).value || '';
+            if (!amt || isNaN(Number(amt))) { msg.textContent = 'Enter a number (e.g. 125 or -75)'; return; }
+            msg.textContent = 'Saving...';
+            await pnlPostLog({ user: who, amount: amt, note });
+            msg.textContent = 'Saved ✓';
+            document.getElementById('pnlAmount').value = '';
+            document.getElementById('pnlNote').value = '';
+            _todayLogCache.push({ user: who, amount: amt, note, time: Date.now() });
+            await pnlGetTotals();
+            await pnlFetchTodayList();
+            setTimeout(()=> msg.textContent = '', 1200);
+          } catch (e) {
+            msg.textContent = 'Error: ' + (e.message || e);
+          }
+        });
+      }
+      const undoBtn = document.getElementById('undoLast');
+      if (undoBtn) undoBtn.addEventListener('click', async ()=>{ try{ await pnlUndoLast(); }catch(e){} });
+
+      // Default selected timeframe highlight already set to 15m in HTML; ensure synced
+      setTfActive(15);
+    });
   </script>
 </body>
 </html>
