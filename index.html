@@ -257,47 +257,62 @@
       }
     }
 
-    // LAST DAY: prefer Alpha with key; else proxy → Stooq CSV (with retry)
-    async function getLastDayMove(markets){
-      const akey=(localStorage.getItem('ALPHA_KEY')||'').trim();
-      const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
+   // LAST DAY: prefer Alpha with key; else proxy → Stooq CSV (dual domain + retry)
+async function getLastDayMove(markets){
+  const akey=(localStorage.getItem('ALPHA_KEY')||'').trim();
+  const FUTURES_TO_ETF = { ES:'SPY', NQ:'QQQ', YM:'DIA', RTY:'IWM', CL:'USO', GC:'GLD', ZN:'IEF', '6E':'FXE' };
+  const ETF_TO_STOOQ = { SPY:'spy.us', QQQ:'qqq.us', DIA:'dia.us', IWM:'iwm.us', USO:'uso.us', GLD:'gld.us', IEF:'ief.us', FXE:'fxe.us' };
 
-      if(akey){
-        try{
-          const url=`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${etf}&apikey=${akey}`;
-          const data=await fetchJson(url);
-          const series=data['Time Series (Daily)']||{};
-          const days=Object.keys(series).sort().reverse();
-          if(days.length>=2){
-            const d0=series[days[0]], d1=series[days[1]];
-            const c0=parseFloat(d0['4. close']), c1=parseFloat(d1['4. close']);
-            const pct=((c0-c1)/c1)*100;
-            // also prep sparkline from last ~10 closes
-            const tail = days.slice(0, 10).reverse().map(d=>parseFloat(series[d]['4. close']));
-            return {ok:true, etf, latest:days[0], prior:days[1], pct, closes:tail, source:'alpha'};
-          }
-        }catch(e){}
+  const etf = FUTURES_TO_ETF[markets[0]||'ES'] || 'SPY';
+
+  // If user added an Alpha Vantage key, prefer it
+  if(akey){
+    try{
+      const url=`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${etf}&apikey=${akey}`;
+      const data=await fetchJson(url);
+      const series=data['Time Series (Daily)']||{};
+      const days=Object.keys(series).sort().reverse();
+      if(days.length>=2){
+        const d0=series[days[0]], d1=series[days[1]];
+        const c0=parseFloat(d0['4. close']), c1=parseFloat(d1['4. close']);
+        const pct=((c0-c1)/c1)*100;
+        const tail = days.slice(0, 10).reverse().map(d=>parseFloat(series[d]['4. close']));
+        return {ok:true, etf, latest:days[0], prior:days[1], pct, closes:tail, source:'alpha'};
       }
-      const stooqSym = ETF_TO_STOOQ[etf] || 'spy.us';
-      const url = `https://stooq.com/q/d/l/?s=${encodeURIComponent(stooqSym)}&i=d`;
-      try {
-        const csv = await fetchTextRetry(PROXY_RAW + encodeURIComponent(url));
-        const rows = csv.trim().split('\n');
-        if(rows.length>=3){
-          const last=rows[rows.length-1].split(',');
-          const prev=rows[rows.length-2].split(',');
-          const latestDate=last[0], priorDate=prev[0];
-          const c0=parseFloat(last[4]); const c1=parseFloat(prev[4]);
-          const pct=((c0-c1)/c1)*100;
-          const tailRows = rows.slice(-11); // header + 10 points
-          const closes = tailRows.slice(1).map(r=>parseFloat(r.split(',')[4]));
-          return {ok:true, etf, latest:latestDate, prior:priorDate, pct, closes, source:'stooq-proxy'};
-        }
-      } catch(e){
-        return {ok:false, reason:String(e.message||e)};
-      }
-      return {ok:false, reason:'No data'};
-    }
+    }catch(e){ /* fall through to stooq */ }
+  }
+
+  // Keyless fallback: Stooq CSV via your proxy
+  const sym = ETF_TO_STOOQ[etf] || 'spy.us';
+  const srcs = [
+    `https://stooq.com/q/d/l/?s=${encodeURIComponent(sym)}&i=d&t=${Date.now()}`,
+    `https://stooq.pl/q/d/l/?s=${encodeURIComponent(sym)}&i=d&t=${Date.now()}`
+  ];
+
+  // helper: try one URL with retry
+  async function tryCsv(u){
+    // fetchTextRetry already in your file; if not, just use fetchText
+    const csv = await fetchTextRetry(PROXY_RAW + encodeURIComponent(u), 2);
+    const rows = csv.trim().split('\n');
+    if(rows.length < 3) throw new Error('no rows');
+    const last=rows[rows.length-1].split(',');
+    const prev=rows[rows.length-2].split(',');
+    const latestDate=last[0], priorDate=prev[0];
+    const c0=parseFloat(last[4]); const c1=parseFloat(prev[4]);
+    if(!isFinite(c0) || !isFinite(c1)) throw new Error('bad close');
+    const pct=((c0-c1)/c1)*100;
+    const tailRows = rows.slice(-11); // header + 10 points
+    const closes = tailRows.slice(1).map(r=>parseFloat(r.split(',')[4])).filter(v=>isFinite(v));
+    return {ok:true, etf, latest:latestDate, prior:priorDate, pct, closes, source: u.includes('.pl') ? 'stooq-proxy(pl)' : 'stooq-proxy(com)'};
+  }
+
+  // try .com then .pl
+  let lastErr=null;
+  for(const u of srcs){
+    try { return await tryCsv(u); } catch(e){ lastErr = e; }
+  }
+  return {ok:false, reason:String(lastErr?.message||lastErr||'fetch failed')};
+}
 
     function sentimentFrom(headlines){
       const total=headlines.reduce((a,t)=>a+headlineScore(t),0);
