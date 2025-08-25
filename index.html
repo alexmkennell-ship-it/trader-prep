@@ -31,7 +31,7 @@
     }
     html, body { background: var(--bg); color: var(--fg); }
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; padding: var(--pad); max-width: 860px; margin: auto; }
-    h1 { margin: 0 0 12px; font-size: 28px; letter-spacing: .2px; }
+    h1 { margin: 0 0 12px; font-size: 28px; }
     .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--pad); margin-top: 14px; box-shadow: var(--shadow); }
     .row { display:flex; gap:10px; align-items:center; flex-wrap: wrap; }
     .muted { color: var(--muted); font-size: 14px; }
@@ -39,19 +39,15 @@
     input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: transparent; color: var(--fg); }
     button { padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--fg); }
     button.primary { background: var(--btn); color: var(--btn-fg); border-color: transparent; }
-    button.ghost { background: transparent; }
     .actions { display:flex; gap:10px; flex-wrap: wrap; }
     .pill { display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; background: var(--pill); border: 1px solid var(--line); font-size: 14px; }
     .ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); }
     .spinner { display:inline-block; width:18px; height:18px; border:3px solid #ddd; border-top-color:#111; border-radius:50%; animation:spin 1s linear infinite; vertical-align: -3px; }
     @keyframes spin{to{transform: rotate(360deg)}}
     details summary { cursor: pointer; }
-    ul { padding-left:18px; }
     .bundles { display:flex; flex-wrap: wrap; gap:8px; margin-top:8px; }
     .bundle { padding:6px 10px; border-radius:10px; border:1px solid var(--line); background:transparent; font-size:14px; }
-    .statusline { margin-top:6px; }
-    .sparkwrap { margin-top: 8px; }
-    canvas { width: 100%; max-width: 420px; height: 80px; border-radius: 10px; background: var(--pill); }
+    canvas { width: 100%; max-width: 420px; height: 80px; border-radius: 10px; background: var(--pill); margin-top:8px; }
   </style>
 </head>
 <body>
@@ -59,10 +55,7 @@
 
   <!-- SETTINGS -->
   <div class="card">
-    <div class="row">
-      <strong>Settings</strong>
-      <span class="muted">(optional API keys; proxy used when keys are missing)</span>
-    </div>
+    <div class="row"><strong>Settings</strong><span class="muted">(API keys optional; proxy fallback built-in)</span></div>
     <div style="margin-top:10px" class="row">
       <label for="gnews" class="muted" style="min-width:140px">GNews API Key</label>
       <input id="gnews" placeholder="gnews.io token">
@@ -85,9 +78,7 @@
       <button class="bundle" data-bundle="CL,GC">Energy & Gold</button>
       <button class="bundle" data-bundle="ZN,6E">Rates / FX</button>
     </div>
-
     <div style="margin-top:10px">
-      <label for="futures" class="muted">Futures/markets</label><br>
       <select id="futures" multiple size="8">
         <option value="ES">ES – S&P 500</option>
         <option value="NQ">NQ – Nasdaq 100</option>
@@ -98,12 +89,10 @@
         <option value="ZN">ZN – 10-Yr Note</option>
         <option value="6E">6E – EUR/USD</option>
       </select>
-      <div class="muted" style="margin-top:6px">Tip: tap multiple items to select several. On iPhone, use “Select” then tap choices.</div>
     </div>
-
     <div class="actions" style="margin-top:12px">
       <button id="start" class="primary">Analyze</button>
-      <button id="quick" class="ghost" title="Just show links">Quick links only</button>
+      <button id="quick">Quick links only</button>
     </div>
   </div>
 
@@ -113,25 +102,10 @@
       <strong>Trader Prep</strong>
       <span class="muted">Now: <span id="now"></span></span>
     </div>
-    <div class="statusline muted">
-      Focus: <span id="focus"></span> • <span id="keyStatus"></span>
-    </div>
-
+    <div class="muted">Focus: <span id="focus"></span> • <span id="keyStatus"></span></div>
     <div id="summary" style="margin-top:12px"></div>
-
     <h3 style="margin-top:16px">Quick Links</h3>
     <ul id="links"></ul>
-
-    <details style="margin-top:12px">
-      <summary>What to check</summary>
-      <ol style="margin-top:8px">
-        <li>Overnight movement since last close (index futures / key names).</li>
-        <li>Economic calendar (today’s releases, Fed speakers).</li>
-        <li>Company or sector news for selected markets.</li>
-        <li>Macro headlines (geopolitics, energy, big tech policy).</li>
-        <li>Review your rules (risk, stops, targets, window).</li>
-      </ol>
-    </details>
   </div>
 
   <script>
@@ -141,237 +115,167 @@
     ------------------------------------------------------------------- */
     const PROXY_RAW = 'https://script.google.com/macros/s/AKfycbxDf_PepLPuzTHlPjLujkwIF00d4g3P9FhiYRPSLpTmefsQ0Zq-GuVmtI32vZ6Z1bUv/exec?url=';
 
-    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('./sw.js').catch(()=>{}); }
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 
     // Elements
-    const startBtn = document.getElementById('start');
-    const quickBtn = document.getElementById('quick');
-    const futuresSel = document.getElementById('futures');
-    const output = document.getElementById('output');
-    const nowEl = document.getElementById('now');
-    const focusEl = document.getElementById('focus');
-    const linksEl = document.getElementById('links');
-    const summaryEl = document.getElementById('summary');
-    const keyStatusEl = document.getElementById('keyStatus');
-    const gnewsEl = document.getElementById('gnews');
-    const alphaEl = document.getElementById('alpha');
-    const saveBtn = document.getElementById('saveKeys');
-    const saveMsg = document.getElementById('saveMsg');
+    const startBtn=document.getElementById('start'), quickBtn=document.getElementById('quick');
+    const futuresSel=document.getElementById('futures'), output=document.getElementById('output');
+    const nowEl=document.getElementById('now'), focusEl=document.getElementById('focus'), summaryEl=document.getElementById('summary');
+    const keyStatusEl=document.getElementById('keyStatus'), gnewsEl=document.getElementById('gnews'), alphaEl=document.getElementById('alpha');
+    const saveBtn=document.getElementById('saveKeys'), saveMsg=document.getElementById('saveMsg'), linksEl=document.getElementById('links');
 
-    // Save/Load keys + markets
-    function loadKeys(){ gnewsEl.value = localStorage.getItem('GNEWS_KEY') || ''; alphaEl.value = localStorage.getItem('ALPHA_KEY') || ''; }
-    function saveKeys(){ localStorage.setItem('GNEWS_KEY', gnewsEl.value.trim()); localStorage.setItem('ALPHA_KEY', alphaEl.value.trim()); saveMsg.textContent='Saved ✓'; setTimeout(()=>saveMsg.textContent='',1500); }
-    loadKeys(); saveBtn.addEventListener('click', saveKeys);
+    // Keys
+    function loadKeys(){ gnewsEl.value=localStorage.getItem('GNEWS_KEY')||''; alphaEl.value=localStorage.getItem('ALPHA_KEY')||''; }
+    function saveKeys(){ localStorage.setItem('GNEWS_KEY',gnewsEl.value.trim()); localStorage.setItem('ALPHA_KEY',alphaEl.value.trim()); saveMsg.textContent='Saved ✓'; setTimeout(()=>saveMsg.textContent='',1500);}
+    loadKeys(); saveBtn.addEventListener('click',saveKeys);
 
-    function getSelectedFutures(){ return Array.from(futuresSel.selectedOptions).map(o=>o.value); }
-    function setSelectedFutures(list){
-      Array.from(futuresSel.options).forEach(o=> o.selected = list.includes(o.value));
-      localStorage.setItem('FUT_SEL', list.join(','));
-    }
-    // restore previous selection
-    (function(){ const prev = (localStorage.getItem('FUT_SEL')||'').split(',').filter(Boolean); if(prev.length) setSelectedFutures(prev); })();
-
-    // Bundle buttons
+    // Bundles
     document.querySelectorAll('.bundle').forEach(b=>{
       b.addEventListener('click', ()=>{
-        const arr = b.dataset.bundle.split(','); setSelectedFutures(arr);
+        const arr = b.dataset.bundle.split(',');
+        for (const o of futuresSel.options) o.selected = arr.includes(o.value);
       });
     });
 
-    function showOutput(markets){
-      nowEl.textContent = new Date().toLocaleString();
-      focusEl.textContent = markets.join(', ');
-      keyStatusEl.textContent = '';
-      output.style.display = 'block';
-    }
+    function getSelectedFutures(){ return Array.from(futuresSel.selectedOptions).map(o=>o.value); }
+    function showOutput(markets){ nowEl.textContent=new Date().toLocaleString(); focusEl.textContent=markets.join(', '); output.style.display='block'; }
     function makeLinks(markets){
-      const q = encodeURIComponent(markets.join(' ') || 'ES NQ');
-      const items = [
-        ['Index Futures Snapshot', 'https://www.google.com/search?q=index+futures'],
-        ['Economic Calendar (today)', 'https://www.google.com/search?q=today+economic+calendar'],
-        ['Macro headlines', 'https://news.google.com/'],
-        [`News for ${markets.join(', ')}`, `https://news.google.com/search?q=${q}`]
-      ];
-      linksEl.innerHTML = '';
-      for (const [label,url] of items){
-        const li=document.createElement('li'); const a=document.createElement('a');
-        a.href=url; a.textContent=label; a.target='_blank'; li.appendChild(a); linksEl.appendChild(li);
-      }
+      const q=encodeURIComponent(markets.join(' ')||'ES NQ');
+      linksEl.innerHTML = `
+        <li><a target="_blank" href="https://www.google.com/search?q=index+futures">Index Futures Snapshot</a></li>
+        <li><a target="_blank" href="https://www.google.com/search?q=today+economic+calendar">Economic Calendar</a></li>
+        <li><a target="_blank" href="https://news.google.com/">Macro headlines</a></li>
+        <li><a target="_blank" href="https://news.google.com/search?q=${q}">News for ${markets.join(', ')}</a></li>`;
     }
 
-    const FUTURES_TO_ETF = { ES:'SPY', NQ:'QQQ', YM:'DIA', RTY:'IWM', CL:'USO', GC:'GLD', ZN:'IEF', '6E':'FXE' };
-    const ETF_TO_STOOQ = { SPY:'spy.us', QQQ:'qqq.us', DIA:'dia.us', IWM:'iwm.us', USO:'uso.us', GLD:'gld.us', IEF:'ief.us', FXE:'fxe.us' };
+    const FUTURES_TO_ETF={ES:'SPY',NQ:'QQQ',YM:'DIA',RTY:'IWM',CL:'USO',GC:'GLD',ZN:'IEF','6E':'FXE'};
+    const ETF_TO_STOOQ={SPY:'spy.us',QQQ:'qqq.us',DIA:'dia.us',IWM:'iwm.us',USO:'uso.us',GLD:'gld.us',IEF:'ief.us',FXE:'fxe.us'};
 
-    const POS = ['beat','surge','strong','record','optim','rally','up','gain','bull','expand','growth'];
-    const NEG = ['miss','fall','weak','cut','warn','down','bear','slump','contract','decline','risk','halt','ban','tariff'];
-    function headlineScore(t){ const s=t.toLowerCase(); let n=0; POS.forEach(w=>{if(s.includes(w))n++;}); NEG.forEach(w=>{if(s.includes(w))n--;}); return n; }
-    function overallLabel(score){ if(score>=2) return ['Bullish tilt','ok']; if(score<=-2) return ['Bearish tilt','bad']; return ['Mixed/Neutral','warn']; }
+    const POS=['beat','surge','strong','record','optim','rally','up','gain','bull','expand','growth'];
+    const NEG=['miss','fall','weak','cut','warn','down','bear','slump','contract','decline','risk','halt','ban','tariff'];
+    function headlineScore(t){const s=t.toLowerCase();let n=0;POS.forEach(w=>{if(s.includes(w))n++;});NEG.forEach(w=>{if(s.includes(w))n--;});return n;}
+    function overallLabel(score){if(score>=2)return['Bullish','ok'];if(score<=-2)return['Bearish','bad'];return['Neutral','warn'];}
 
-    // Fetch helpers with timeout + retry
-    async function fetchTextOnce(u, timeoutMs = 9000){
-      const ctrl = new AbortController(); const t = setTimeout(()=>ctrl.abort('timeout'), timeoutMs);
-      try {
-        const r = await fetch(u, { signal: ctrl.signal, cache: 'no-store' });
-        if(!r.ok) throw new Error('HTTP '+r.status);
-        return await r.text();
-      } finally { clearTimeout(t); }
-    }
-    async function fetchTextRetry(u, tries = 2){
-      let lastErr = null;
-      for (let i=0;i<tries;i++){
-        try { return await fetchTextOnce(u, i===0 ? 9000 : 12000); }
-        catch(e){ lastErr = e; await new Promise(r=>setTimeout(r, 400)); }
-      }
-      throw lastErr || new Error('fetch failed');
-    }
-    async function fetchJson(u, timeoutMs = 12000){
-      const ctrl = new AbortController(); const t = setTimeout(()=>ctrl.abort('timeout'), timeoutMs);
-      try { const r = await fetch(u, { signal: ctrl.signal, cache: 'no-store' });
-            if(!r.ok) throw new Error('HTTP '+r.status);
-            return await r.json();
-      } finally { clearTimeout(t); }
-    }
+    // Fetch helpers
+    async function fetchJsonOnce(u,t=9000){const c=new AbortController();const to=setTimeout(()=>c.abort('timeout'),t);try{const r=await fetch(u,{signal:c.signal,cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json();}finally{clearTimeout(to);}}
+    async function fetchJsonRetry(u,tries=2){let e=null;for(let i=0;i<tries;i++){try{return await fetchJsonOnce(u,i?12000:9000);}catch(x){e=x;await new Promise(r=>setTimeout(r,300));}}throw e;}
+    async function fetchTextOnce(u,t=9000){const c=new AbortController();const to=setTimeout(()=>c.abort('timeout'),t);try{const r=await fetch(u,{signal:c.signal,cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.text();}finally{clearTimeout(to);}}
+    async function fetchTextRetry(u,tries=2){let e=null;for(let i=0;i<tries;i++){try{return await fetchTextOnce(u,i?12000:9000);}catch(x){e=x;await new Promise(r=>setTimeout(r,300));}}throw e;}
 
-    // NEWS: prefer GNews with key; else proxy → Google News RSS
+    // Headlines
     async function getHeadlines(markets){
       const gkey=(localStorage.getItem('GNEWS_KEY')||'').trim();
       if(gkey){
         try{
           const q=encodeURIComponent(markets.join(' OR '));
-          const url=`https://gnews.io/api/v4/search?q=${q}&lang=en&country=us&max=25&expand=content&token=${gkey}`;
-          const data=await fetchJson(url);
+          const url=`https://gnews.io/api/v4/search?q=${q}&lang=en&country=us&max=20&token=${gkey}`;
+          const data=await fetchJsonRetry(url,2);
           const headlines=(data.articles||[]).map(a=>a.title||'').filter(Boolean);
-          return {source:'gnews', ok:true, headlines};
+          return {ok:true,source:'gnews',headlines};
         }catch(e){}
       }
-      const q = encodeURIComponent(markets.join(' '));
-      const rss = `https://news.google.com/rss/search?q=${q}&hl=en-US&gl=US&ceid=US:en&t=${Date.now()}`;
-const xml = await fetchTextRetry(PROXY_RAW + encodeURIComponent(rss));
-        const doc = new DOMParser().parseFromString(xml, 'text/xml');
-        const items = Array.from(doc.querySelectorAll('item > title'));
-        const headlines = items.map(n=>n.textContent||'').filter(Boolean);
-        return {source:'rss-proxy', ok: headlines.length>0, headlines};
-      } catch(e){
-        return {source:'rss-proxy', ok:false, reason:String(e.message||e)};
-      }
+      const q=encodeURIComponent(markets.join(' '));
+      const rss=`https://news.google.com/rss/search?q=${q}&hl=en-US&gl=US&ceid=US:en&t=${Date.now()}`;
+      try{
+        const xml=await fetchTextRetry(PROXY_RAW+encodeURIComponent(rss),2);
+        const doc=new DOMParser().parseFromString(xml,'text/xml');
+        const items=Array.from(doc.querySelectorAll('item>title'));
+        const heads=items.map(n=>n.textContent||'').filter(Boolean);
+        return {ok:heads.length>0,source:'rss-proxy',headlines:heads};
+      }catch(e){ return {ok:false,source:'rss-proxy',reason:String(e)}; }
     }
 
-   // LAST DAY: prefer Alpha with key; else proxy → Stooq CSV (dual domain + retry)
-async function getLastDayMove(markets){
-  const akey=(localStorage.getItem('ALPHA_KEY')||'').trim();
-  const FUTURES_TO_ETF = { ES:'SPY', NQ:'QQQ', YM:'DIA', RTY:'IWM', CL:'USO', GC:'GLD', ZN:'IEF', '6E':'FXE' };
-  const ETF_TO_STOOQ = { SPY:'spy.us', QQQ:'qqq.us', DIA:'dia.us', IWM:'iwm.us', USO:'uso.us', GLD:'gld.us', IEF:'ief.us', FXE:'fxe.us' };
+    // Last day: Alpha (key) → Yahoo (proxy) → Stooq (proxy)
+    async function getLastDayMove(markets){
+      const akey=(localStorage.getItem('ALPHA_KEY')||'').trim();
+      const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
 
-  const etf = FUTURES_TO_ETF[markets[0]||'ES'] || 'SPY';
-
-  // If user added an Alpha Vantage key, prefer it
-  if(akey){
-    try{
-      const url=`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${etf}&apikey=${akey}`;
-      const data=await fetchJson(url);
-      const series=data['Time Series (Daily)']||{};
-      const days=Object.keys(series).sort().reverse();
-      if(days.length>=2){
-        const d0=series[days[0]], d1=series[days[1]];
-        const c0=parseFloat(d0['4. close']), c1=parseFloat(d1['4. close']);
-        const pct=((c0-c1)/c1)*100;
-        const tail = days.slice(0, 10).reverse().map(d=>parseFloat(series[d]['4. close']));
-        return {ok:true, etf, latest:days[0], prior:days[1], pct, closes:tail, source:'alpha'};
+      // 1) Alpha
+      if(akey){
+        try{
+          const url=`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${etf}&apikey=${akey}`;
+          const data=await fetchJsonRetry(url,2);
+          const s=data['Time Series (Daily)']||{};
+          const d=Object.keys(s).sort().reverse();
+          if(d.length>=2){
+            const c0=parseFloat(s[d[0]]['4. close']), c1=parseFloat(s[d[1]]['4. close']);
+            const pct=((c0-c1)/c1)*100;
+            const closes=d.slice(0,10).reverse().map(k=>parseFloat(s[k]['4. close'])).filter(n=>isFinite(n));
+            return {ok:true,etf,latest:d[0],prior:d[1],pct,closes,source:'alpha'};
+          }
+        }catch(e){}
       }
-    }catch(e){ /* fall through to stooq */ }
-  }
 
-  // Keyless fallback: Stooq CSV via your proxy
-  const sym = ETF_TO_STOOQ[etf] || 'spy.us';
-  const srcs = [
-    `https://stooq.com/q/d/l/?s=${encodeURIComponent(sym)}&i=d&t=${Date.now()}`,
-    `https://stooq.pl/q/d/l/?s=${encodeURIComponent(sym)}&i=d&t=${Date.now()}`
-  ];
+      // 2) Yahoo (keyless) via proxy
+      try{
+        const yUrl=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(etf)}?range=15d&interval=1d&t=${Date.now()}`;
+        const yData=await fetchJsonRetry(PROXY_RAW+encodeURIComponent(yUrl),2);
+        const r=yData?.chart?.result?.[0];
+        const closes=r?.indicators?.quote?.[0]?.close?.filter(v=>v!=null) || [];
+        if(closes.length>=2){
+          const c0=closes.at(-1), c1=closes.at(-2);
+          const pct=((c0-c1)/c1)*100;
+          const ts=r.timestamp||[];
+          const toDate=t=>{const d=new Date(t*1000);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+          const latest=ts.length?toDate(ts.at(-1)):'', prior=ts.length>1?toDate(ts.at(-2)):'';
+          return {ok:true,etf,latest,prior,pct,closes:closes.slice(-10),source:'yahoo-proxy'};
+        }
+      }catch(e){}
 
-  // helper: try one URL with retry
-  async function tryCsv(u){
-    // fetchTextRetry already in your file; if not, just use fetchText
-    const csv = await fetchTextRetry(PROXY_RAW + encodeURIComponent(u), 2);
-    const rows = csv.trim().split('\n');
-    if(rows.length < 3) throw new Error('no rows');
-    const last=rows[rows.length-1].split(',');
-    const prev=rows[rows.length-2].split(',');
-    const latestDate=last[0], priorDate=prev[0];
-    const c0=parseFloat(last[4]); const c1=parseFloat(prev[4]);
-    if(!isFinite(c0) || !isFinite(c1)) throw new Error('bad close');
-    const pct=((c0-c1)/c1)*100;
-    const tailRows = rows.slice(-11); // header + 10 points
-    const closes = tailRows.slice(1).map(r=>parseFloat(r.split(',')[4])).filter(v=>isFinite(v));
-    return {ok:true, etf, latest:latestDate, prior:priorDate, pct, closes, source: u.includes('.pl') ? 'stooq-proxy(pl)' : 'stooq-proxy(com)'};
-  }
-
-  // try .com then .pl
-  let lastErr=null;
-  for(const u of srcs){
-    try { return await tryCsv(u); } catch(e){ lastErr = e; }
-  }
-  return {ok:false, reason:String(lastErr?.message||lastErr||'fetch failed')};
-}
-
-    function sentimentFrom(headlines){
-      const total=headlines.reduce((a,t)=>a+headlineScore(t),0);
-      const [label,cls]=overallLabel(total);
-      return {label,cls,total};
+      // 3) Stooq CSV (dual domain) via proxy
+      const sym=ETF_TO_STOOQ[etf]||'spy.us';
+      const srcs=[
+        `https://stooq.com/q/d/l/?s=${encodeURIComponent(sym)}&i=d&t=${Date.now()}`,
+        `https://stooq.pl/q/d/l/?s=${encodeURIComponent(sym)}&i=d&t=${Date.now()}`
+      ];
+      let lastErr=null;
+      for(const u of srcs){
+        try{
+          const csv=await fetchTextRetry(PROXY_RAW+encodeURIComponent(u),2);
+          const rows=csv.trim().split('\n');
+          if(rows.length>=3){
+            const last=rows.at(-1).split(','), prev=rows.at(-2).split(',');
+            const c0=parseFloat(last[4]), c1=parseFloat(prev[4]);
+            if(!isFinite(c0)||!isFinite(c1)) throw new Error('bad close');
+            const pct=((c0-c1)/c1)*100;
+            const closes=rows.slice(-11).slice(1).map(r=>parseFloat(r.split(',')[4])).filter(v=>isFinite(v));
+            return {ok:true,etf,latest:last[0],prior:prev[0],pct,closes,source:u.includes('.pl')?'stooq-proxy(pl)':'stooq-proxy(com)'};
+          }
+        }catch(e){ lastErr=e; }
+      }
+      return {ok:false,reason:String(lastErr||'fetch failed')};
     }
 
-    function drawSparkline(container, values){
-      if(!values || values.length < 2) return;
-      // create canvas
-      const wrap = document.createElement('div'); wrap.className = 'sparkwrap';
-      const c = document.createElement('canvas'); c.width = 420; c.height = 80; wrap.appendChild(c);
-      container.appendChild(wrap);
-      const ctx = c.getContext('2d');
-      const w=c.width, h=c.height, pad=8;
-      const min=Math.min(...values), max=Math.max(...values);
-      const range = (max - min) || 1;
-      const step=(w - pad*2) / (values.length - 1);
+    function sentimentFrom(headlines){const total=headlines.reduce((a,t)=>a+headlineScore(t),0);const [label,cls]=overallLabel(total);return {label,cls,total};}
 
-      // path
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--fg').trim() || '#111';
+    function drawSparkline(container,values){
+      if(!values||values.length<2) return;
+      const c=document.createElement('canvas'); c.width=420; c.height=80; container.appendChild(c);
+      const ctx=c.getContext('2d'); const w=c.width,h=c.height,p=8;
+      const min=Math.min(...values), max=Math.max(...values), range=(max-min)||1, step=(w-p*2)/(values.length-1);
+      ctx.lineWidth=2; ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--fg').trim() || '#111';
       ctx.beginPath();
-      values.forEach((v,i)=>{
-        const x = pad + step*i;
-        const y = h - pad - ((v - min)/range) * (h - pad*2);
-        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-      });
+      values.forEach((v,i)=>{const x=p+step*i, y=h-p-((v-min)/range)*(h-p*2); if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);});
       ctx.stroke();
-
-      // last point
-      const lastX = pad + step*(values.length-1);
-      const lastY = h - pad - ((values.at(-1) - min)/range) * (h - pad*2);
-      ctx.fillStyle = 'rgba(0,0,0,.4)';
-      ctx.beginPath(); ctx.arc(lastX,lastY,3,0,Math.PI*2); ctx.fill();
     }
 
     async function buildSummary(markets){
-      summaryEl.innerHTML = `<span class="spinner"></span> Analyzing headlines & previous trading day...`;
+      summaryEl.innerHTML='<span class="spinner"></span> Analyzing...';
       const gkey=(localStorage.getItem('GNEWS_KEY')||'').trim();
       const akey=(localStorage.getItem('ALPHA_KEY')||'').trim();
-      keyStatusEl.textContent = (!gkey || !akey)
-        ? 'Using proxy for any missing services.'
-        : 'Using saved API keys where available.';
+      keyStatusEl.textContent = (!gkey || !akey) ? 'Using proxy for any missing services.' : 'Using saved API keys where available.';
 
-      let newsRes = { ok:false, reason:'timeout' };
-      let dayRes  = { ok:false, reason:'timeout' };
-      try { newsRes = await getHeadlines(markets); } catch(e){ newsRes={ok:false,reason:String(e.message||e)}; }
-      try { dayRes = await getLastDayMove(markets); } catch(e){ dayRes={ok:false,reason:String(e.message||e)}; }
+      let newsRes={ok:false,reason:'timeout'}, dayRes={ok:false,reason:'timeout'};
+      try{ newsRes=await getHeadlines(markets); }catch(e){ newsRes={ok:false,reason:String(e)}; }
+      try{ dayRes=await getLastDayMove(markets); }catch(e){ dayRes={ok:false,reason:String(e)}; }
 
-      // Build UI
-      const parts = [];
+      const parts=[];
 
-      // Headlines / sentiment
+      // Headlines
       if(newsRes.ok && newsRes.headlines?.length){
         const senti=sentimentFrom(newsRes.headlines);
+        const overall = senti.total>=2 ? 'lean <b>bullish</b>' : (senti.total<=-2 ? 'lean <b>bearish</b>' : 'look <b>mixed/neutral</b>');
         parts.push(`<div class="pill ${senti.cls}">News sentiment (${newsRes.source}): <strong>${senti.label}</strong></div>`);
-        const overall =
-          senti.total>=2 ? 'lean <b>bullish</b>' :
-          senti.total<=-2 ? 'lean <b>bearish</b>' : 'look <b>mixed/neutral</b>';
         parts.push(`<p style="margin-top:8px">According to current news, <b>${markets.join(', ')}</b> ${overall} as of now.</p>`);
         const top = newsRes.headlines.slice(0,5).map(h=>`<li>${h}</li>`).join('');
         parts.push(`<details style="margin-top:6px"><summary>Top headlines</summary><ul>${top}</ul></details>`);
@@ -381,34 +285,36 @@ async function getLastDayMove(markets){
 
       // Last day
       if(dayRes.ok){
-        const dir=dayRes.pct>=0?'▲':'▼';
-        const cls=dayRes.pct>=0?'ok':'bad';
-        parts.push(`<div style="margin-top:8px" class="pill ${cls}">Prev day (${dayRes.etf}, ${dayRes.source}): ${dir} ${dayRes.pct.toFixed(2)}% (close ${dayRes.latest})</div>`);
+        const dir=dayRes.pct>=0?'▲':'▼', cls=dayRes.pct>=0?'ok':'bad';
+        // weekend hint (Fri→Mon)
+        let weekendHint='';
+        try{
+          const dL=new Date(dayRes.latest).getDay(), dP=new Date(dayRes.prior).getDay();
+          if(dL===1 && dP===5) weekendHint=' (Fri → Mon)';
+        }catch(_){}
+        parts.push(`<div class="pill ${cls}" style="margin-top:8px">Prev day (${dayRes.etf}, ${dayRes.source}): ${dir} ${dayRes.pct.toFixed(2)}% (close ${dayRes.latest}${weekendHint})</div>`);
       } else {
         parts.push(`<div class="muted" style="margin-top:8px">Last day summary unavailable${dayRes.reason? ' ('+dayRes.reason+')':''}</div>`);
       }
 
       summaryEl.innerHTML = parts.join('');
 
-      // Sparkline if we have closes
-      if(dayRes.ok && dayRes.closes?.length){
-        drawSparkline(summaryEl, dayRes.closes);
-      }
+      if(dayRes.ok && dayRes.closes?.length) drawSparkline(summaryEl, dayRes.closes);
     }
 
     function startAnalyze({linksOnly=false}={}){
-      const sel = getSelectedFutures();
-      const markets = sel.length ? sel : ['ES','NQ'];
-      setSelectedFutures(markets); // persist choice
+      const sel=getSelectedFutures();
+      const markets=sel.length?sel:['ES','NQ'];
       showOutput(markets);
       makeLinks(markets);
-      if(!linksOnly){ buildSummary(markets); }
-      else { summaryEl.innerHTML = `<span class="muted">Quick-links mode. Tap Analyze for auto-summary.</span>`; }
+      if(!linksOnly) buildSummary(markets);
+      else summaryEl.innerHTML = `<span class="muted">Quick-links mode. Tap Analyze for auto-summary.</span>`;
       window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
     }
 
-    startBtn.addEventListener('click', ()=> startAnalyze({linksOnly:false}));
-    quickBtn.addEventListener('click', ()=> startAnalyze({linksOnly:true}));
+    // Events
+    document.getElementById('start').addEventListener('click', ()=> startAnalyze({linksOnly:false}));
+    document.getElementById('quick').addEventListener('click', ()=> startAnalyze({linksOnly:true}));
   </script>
 </body>
 </html>
