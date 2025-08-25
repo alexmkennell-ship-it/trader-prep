@@ -245,9 +245,8 @@
         }catch(e){}
       }
       const q = encodeURIComponent(markets.join(' '));
-      const rss = `https://news.google.com/rss/search?q=${q}&hl=en-US&gl=US&ceid=US:en`;
-      try {
-        const xml = await fetchTextRetry(PROXY_RAW + encodeURIComponent(rss));
+      const rss = `https://news.google.com/rss/search?q=${q}&hl=en-US&gl=US&ceid=US:en&t=${Date.now()}`;
+const xml = await fetchTextRetry(PROXY_RAW + encodeURIComponent(rss));
         const doc = new DOMParser().parseFromString(xml, 'text/xml');
         const items = Array.from(doc.querySelectorAll('item > title'));
         const headlines = items.map(n=>n.textContent||'').filter(Boolean);
