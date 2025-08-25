@@ -5,29 +5,53 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Trader Prep</title>
 
+  <!-- PWA bits -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
 
   <style>
-    :root { --pad:16px; --radius:12px; }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; padding: var(--pad); max-width: 820px; margin: auto; }
-    h1 { margin: 0 0 12px; }
-    .card { border: 1px solid #e6e6e6; border-radius: var(--radius); padding: var(--pad); margin-top: 12px; }
-    button, select, input { font-size: 16px; }
-    button { padding: 10px 14px; border-radius: 10px; border: 1px solid #d0d0d0; background:#fff; }
-    button.primary { background: #111; color: #fff; border-color:#111; }
+    :root {
+      --pad: 16px; --radius: 14px;
+      --bg: #fafafa; --fg: #111; --muted: #666;
+      --card: #fff; --line: #eaeaea;
+      --btn: #111; --btn-fg: #fff;
+      --ok: #0aa37f; --warn: #b78036; --bad: #d54848;
+      --pill: #eef2f6;
+      --shadow: 0 6px 20px rgba(0,0,0,.06);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0e1013; --fg: #f5f6f7; --muted:#98a2b3;
+        --card: #141821; --line:#1f2530;
+        --btn: #e7e9ee; --btn-fg:#0f1115;
+        --pill: #1f2632; --shadow: 0 6px 20px rgba(0,0,0,.35);
+      }
+    }
+    html, body { background: var(--bg); color: var(--fg); }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; padding: var(--pad); max-width: 860px; margin: auto; }
+    h1 { margin: 0 0 12px; font-size: 28px; letter-spacing: .2px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--pad); margin-top: 14px; box-shadow: var(--shadow); }
     .row { display:flex; gap:10px; align-items:center; flex-wrap: wrap; }
-    .muted { opacity:.7; font-size: 14px; }
-    .pill { display:inline-block; padding:4px 10px; border-radius:999px; border:1px solid #e2e2e2; margin: 4px 6px 0 0; }
-    .ok { color: #0a8; }
-    .warn { color:#b65; }
-    .bad { color:#c22; }
+    .muted { color: var(--muted); font-size: 14px; }
+    button, select, input { font-size: 16px; }
+    input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: transparent; color: var(--fg); }
+    button { padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--fg); }
+    button.primary { background: var(--btn); color: var(--btn-fg); border-color: transparent; }
+    button.ghost { background: transparent; }
+    .actions { display:flex; gap:10px; flex-wrap: wrap; }
+    .pill { display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; background: var(--pill); border: 1px solid var(--line); font-size: 14px; }
+    .ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); }
     .spinner { display:inline-block; width:18px; height:18px; border:3px solid #ddd; border-top-color:#111; border-radius:50%; animation:spin 1s linear infinite; vertical-align: -3px; }
     @keyframes spin{to{transform: rotate(360deg)}}
     details summary { cursor: pointer; }
     ul { padding-left:18px; }
+    .bundles { display:flex; flex-wrap: wrap; gap:8px; margin-top:8px; }
+    .bundle { padding:6px 10px; border-radius:10px; border:1px solid var(--line); background:transparent; font-size:14px; }
+    .statusline { margin-top:6px; }
+    .sparkwrap { margin-top: 8px; }
+    canvas { width: 100%; max-width: 420px; height: 80px; border-radius: 10px; background: var(--pill); }
   </style>
 </head>
 <body>
@@ -35,27 +59,36 @@
 
   <!-- SETTINGS -->
   <div class="card">
-    <div class="row"><strong>Settings</strong><span class="muted">(optional API keys; proxy used when keys are missing)</span></div>
-    <div style="margin-top:10px" class="row">
-      <label for="gnews">GNews API Key</label>
-      <input id="gnews" placeholder="gnews.io token" style="flex:1; padding:10px; border-radius:10px; border:1px solid #ddd">
+    <div class="row">
+      <strong>Settings</strong>
+      <span class="muted">(optional API keys; proxy used when keys are missing)</span>
     </div>
     <div style="margin-top:10px" class="row">
-      <label for="alpha">Alpha Vantage Key</label>
-      <input id="alpha" placeholder="alphavantage.co key" style="flex:1; padding:10px; border-radius:10px; border:1px solid #ddd">
+      <label for="gnews" class="muted" style="min-width:140px">GNews API Key</label>
+      <input id="gnews" placeholder="gnews.io token">
     </div>
     <div style="margin-top:10px" class="row">
+      <label for="alpha" class="muted" style="min-width:140px">Alpha Vantage Key</label>
+      <input id="alpha" placeholder="alphavantage.co key">
+    </div>
+    <div style="margin-top:10px" class="row actions">
       <button id="saveKeys">Save Keys</button>
       <span id="saveMsg" class="muted"></span>
     </div>
   </div>
 
-  <!-- STEP 1: PICK MARKETS -->
+  <!-- MARKETS -->
   <div class="card">
     <strong>Choose your markets</strong>
+    <div class="bundles">
+      <button class="bundle" data-bundle="ES,NQ,YM,RTY">US Indices</button>
+      <button class="bundle" data-bundle="CL,GC">Energy & Gold</button>
+      <button class="bundle" data-bundle="ZN,6E">Rates / FX</button>
+    </div>
+
     <div style="margin-top:10px">
-      <label for="futures">Futures/markets</label><br>
-      <select id="futures" multiple size="8" style="width:100%; padding:8px; border-radius:10px; border:1px solid #ddd">
+      <label for="futures" class="muted">Futures/markets</label><br>
+      <select id="futures" multiple size="8">
         <option value="ES">ES – S&P 500</option>
         <option value="NQ">NQ – Nasdaq 100</option>
         <option value="YM">YM – Dow</option>
@@ -68,9 +101,9 @@
       <div class="muted" style="margin-top:6px">Tip: tap multiple items to select several. On iPhone, use “Select” then tap choices.</div>
     </div>
 
-    <div class="row" style="margin-top:12px">
+    <div class="actions" style="margin-top:12px">
       <button id="start" class="primary">Analyze</button>
-      <button id="quick" title="Just show links">Quick links only</button>
+      <button id="quick" class="ghost" title="Just show links">Quick links only</button>
     </div>
   </div>
 
@@ -80,9 +113,8 @@
       <strong>Trader Prep</strong>
       <span class="muted">Now: <span id="now"></span></span>
     </div>
-    <div style="margin-top:6px">
-      <div>Focus: <span id="focus"></span></div>
-      <div id="keyStatus" class="muted"></div>
+    <div class="statusline muted">
+      Focus: <span id="focus"></span> • <span id="keyStatus"></span>
     </div>
 
     <div id="summary" style="margin-top:12px"></div>
@@ -104,7 +136,7 @@
 
   <script>
     /* ---------------------------- IMPORTANT ----------------------------
-       Replace this with YOUR Apps Script Web App URL (must end in /exec?url=)
+       Replace with YOUR Google Apps Script Web App URL (must end in /exec?url=)
        Example: 'https://script.google.com/macros/s/AKfycbxYOURID/exec?url='
     ------------------------------------------------------------------- */
     const PROXY_RAW = 'https://script.google.com/macros/s/AKfycbxDf_PepLPuzTHlPjLujkwIF00d4g3P9FhiYRPSLpTmefsQ0Zq-GuVmtI32vZ6Z1bUv/exec?url=';
@@ -126,14 +158,32 @@
     const saveBtn = document.getElementById('saveKeys');
     const saveMsg = document.getElementById('saveMsg');
 
-    // Keys
+    // Save/Load keys + markets
     function loadKeys(){ gnewsEl.value = localStorage.getItem('GNEWS_KEY') || ''; alphaEl.value = localStorage.getItem('ALPHA_KEY') || ''; }
     function saveKeys(){ localStorage.setItem('GNEWS_KEY', gnewsEl.value.trim()); localStorage.setItem('ALPHA_KEY', alphaEl.value.trim()); saveMsg.textContent='Saved ✓'; setTimeout(()=>saveMsg.textContent='',1500); }
     loadKeys(); saveBtn.addEventListener('click', saveKeys);
 
-    // Helpers
     function getSelectedFutures(){ return Array.from(futuresSel.selectedOptions).map(o=>o.value); }
-    function showOutput(markets){ nowEl.textContent = new Date().toLocaleString(); focusEl.textContent = markets.join(', '); output.style.display = 'block'; }
+    function setSelectedFutures(list){
+      Array.from(futuresSel.options).forEach(o=> o.selected = list.includes(o.value));
+      localStorage.setItem('FUT_SEL', list.join(','));
+    }
+    // restore previous selection
+    (function(){ const prev = (localStorage.getItem('FUT_SEL')||'').split(',').filter(Boolean); if(prev.length) setSelectedFutures(prev); })();
+
+    // Bundle buttons
+    document.querySelectorAll('.bundle').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const arr = b.dataset.bundle.split(','); setSelectedFutures(arr);
+      });
+    });
+
+    function showOutput(markets){
+      nowEl.textContent = new Date().toLocaleString();
+      focusEl.textContent = markets.join(', ');
+      keyStatusEl.textContent = '';
+      output.style.display = 'block';
+    }
     function makeLinks(markets){
       const q = encodeURIComponent(markets.join(' ') || 'ES NQ');
       const items = [
@@ -157,23 +207,32 @@
     function headlineScore(t){ const s=t.toLowerCase(); let n=0; POS.forEach(w=>{if(s.includes(w))n++;}); NEG.forEach(w=>{if(s.includes(w))n--;}); return n; }
     function overallLabel(score){ if(score>=2) return ['Bullish tilt','ok']; if(score<=-2) return ['Bearish tilt','bad']; return ['Mixed/Neutral','warn']; }
 
-    // Fetch with timeout
+    // Fetch helpers with timeout + retry
+    async function fetchTextOnce(u, timeoutMs = 9000){
+      const ctrl = new AbortController(); const t = setTimeout(()=>ctrl.abort('timeout'), timeoutMs);
+      try {
+        const r = await fetch(u, { signal: ctrl.signal, cache: 'no-store' });
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        return await r.text();
+      } finally { clearTimeout(t); }
+    }
+    async function fetchTextRetry(u, tries = 2){
+      let lastErr = null;
+      for (let i=0;i<tries;i++){
+        try { return await fetchTextOnce(u, i===0 ? 9000 : 12000); }
+        catch(e){ lastErr = e; await new Promise(r=>setTimeout(r, 400)); }
+      }
+      throw lastErr || new Error('fetch failed');
+    }
     async function fetchJson(u, timeoutMs = 12000){
-      const ctrl = new AbortController(); const t = setTimeout(()=>ctrl.abort(), timeoutMs);
+      const ctrl = new AbortController(); const t = setTimeout(()=>ctrl.abort('timeout'), timeoutMs);
       try { const r = await fetch(u, { signal: ctrl.signal, cache: 'no-store' });
             if(!r.ok) throw new Error('HTTP '+r.status);
             return await r.json();
       } finally { clearTimeout(t); }
     }
-    async function fetchText(u, timeoutMs = 12000){
-      const ctrl = new AbortController(); const t = setTimeout(()=>ctrl.abort(), timeoutMs);
-      try { const r = await fetch(u, { signal: ctrl.signal, cache: 'no-store' });
-            if(!r.ok) throw new Error('HTTP '+r.status);
-            return await r.text();
-      } finally { clearTimeout(t); }
-    }
 
-    // NEWS
+    // NEWS: prefer GNews with key; else proxy → Google News RSS
     async function getHeadlines(markets){
       const gkey=(localStorage.getItem('GNEWS_KEY')||'').trim();
       if(gkey){
@@ -188,7 +247,7 @@
       const q = encodeURIComponent(markets.join(' '));
       const rss = `https://news.google.com/rss/search?q=${q}&hl=en-US&gl=US&ceid=US:en`;
       try {
-        const xml = await fetchText(PROXY_RAW + encodeURIComponent(rss));
+        const xml = await fetchTextRetry(PROXY_RAW + encodeURIComponent(rss));
         const doc = new DOMParser().parseFromString(xml, 'text/xml');
         const items = Array.from(doc.querySelectorAll('item > title'));
         const headlines = items.map(n=>n.textContent||'').filter(Boolean);
@@ -198,7 +257,7 @@
       }
     }
 
-    // LAST DAY
+    // LAST DAY: prefer Alpha with key; else proxy → Stooq CSV (with retry)
     async function getLastDayMove(markets){
       const akey=(localStorage.getItem('ALPHA_KEY')||'').trim();
       const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
@@ -213,14 +272,16 @@
             const d0=series[days[0]], d1=series[days[1]];
             const c0=parseFloat(d0['4. close']), c1=parseFloat(d1['4. close']);
             const pct=((c0-c1)/c1)*100;
-            return {ok:true, etf, latest:days[0], prior:days[1], pct, source:'alpha'};
+            // also prep sparkline from last ~10 closes
+            const tail = days.slice(0, 10).reverse().map(d=>parseFloat(series[d]['4. close']));
+            return {ok:true, etf, latest:days[0], prior:days[1], pct, closes:tail, source:'alpha'};
           }
         }catch(e){}
       }
       const stooqSym = ETF_TO_STOOQ[etf] || 'spy.us';
       const url = `https://stooq.com/q/d/l/?s=${encodeURIComponent(stooqSym)}&i=d`;
       try {
-        const csv = await fetchText(PROXY_RAW + encodeURIComponent(url));
+        const csv = await fetchTextRetry(PROXY_RAW + encodeURIComponent(url));
         const rows = csv.trim().split('\n');
         if(rows.length>=3){
           const last=rows[rows.length-1].split(',');
@@ -228,7 +289,9 @@
           const latestDate=last[0], priorDate=prev[0];
           const c0=parseFloat(last[4]); const c1=parseFloat(prev[4]);
           const pct=((c0-c1)/c1)*100;
-          return {ok:true, etf, latest:latestDate, prior:priorDate, pct, source:'stooq-proxy'};
+          const tailRows = rows.slice(-11); // header + 10 points
+          const closes = tailRows.slice(1).map(r=>parseFloat(r.split(',')[4]));
+          return {ok:true, etf, latest:latestDate, prior:priorDate, pct, closes, source:'stooq-proxy'};
         }
       } catch(e){
         return {ok:false, reason:String(e.message||e)};
@@ -242,12 +305,42 @@
       return {label,cls,total};
     }
 
+    function drawSparkline(container, values){
+      if(!values || values.length < 2) return;
+      // create canvas
+      const wrap = document.createElement('div'); wrap.className = 'sparkwrap';
+      const c = document.createElement('canvas'); c.width = 420; c.height = 80; wrap.appendChild(c);
+      container.appendChild(wrap);
+      const ctx = c.getContext('2d');
+      const w=c.width, h=c.height, pad=8;
+      const min=Math.min(...values), max=Math.max(...values);
+      const range = (max - min) || 1;
+      const step=(w - pad*2) / (values.length - 1);
+
+      // path
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--fg').trim() || '#111';
+      ctx.beginPath();
+      values.forEach((v,i)=>{
+        const x = pad + step*i;
+        const y = h - pad - ((v - min)/range) * (h - pad*2);
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+
+      // last point
+      const lastX = pad + step*(values.length-1);
+      const lastY = h - pad - ((values.at(-1) - min)/range) * (h - pad*2);
+      ctx.fillStyle = 'rgba(0,0,0,.4)';
+      ctx.beginPath(); ctx.arc(lastX,lastY,3,0,Math.PI*2); ctx.fill();
+    }
+
     async function buildSummary(markets){
       summaryEl.innerHTML = `<span class="spinner"></span> Analyzing headlines & previous trading day...`;
       const gkey=(localStorage.getItem('GNEWS_KEY')||'').trim();
       const akey=(localStorage.getItem('ALPHA_KEY')||'').trim();
       keyStatusEl.textContent = (!gkey || !akey)
-        ? 'Using proxy for missing services.'
+        ? 'Using proxy for any missing services.'
         : 'Using saved API keys where available.';
 
       let newsRes = { ok:false, reason:'timeout' };
@@ -255,39 +348,44 @@
       try { newsRes = await getHeadlines(markets); } catch(e){ newsRes={ok:false,reason:String(e.message||e)}; }
       try { dayRes = await getLastDayMove(markets); } catch(e){ dayRes={ok:false,reason:String(e.message||e)}; }
 
-      let sentiBlock='', overall='', samples='';
-      if(newsRes.ok && newsRes.headlines.length){
+      // Build UI
+      const parts = [];
+
+      // Headlines / sentiment
+      if(newsRes.ok && newsRes.headlines?.length){
         const senti=sentimentFrom(newsRes.headlines);
-        sentiBlock = `<div class="pill ${senti.cls}">News sentiment (${newsRes.source}): ${senti.label}</div>`;
-        if(senti.total>=2) overall=`According to current news, <b>${markets.join(', ')}</b> lean <b>bullish</b> as of now.`;
-        else if(senti.total<=-2) overall=`According to current news, <b>${markets.join(', ')}</b> lean <b>bearish</b> as of now.`;
-        else overall=`According to current news, <b>${markets.join(', ')}</b> look <b>mixed/neutral</b> right now.`;
-        const top=newsRes.headlines.slice(0,5).map(h=>`<li>${h}</li>`).join('');
-        samples=`<details style="margin-top:8px"><summary>Top headlines</summary><ul>${top}</ul></details>`;
+        parts.push(`<div class="pill ${senti.cls}">News sentiment (${newsRes.source}): <strong>${senti.label}</strong></div>`);
+        const overall =
+          senti.total>=2 ? 'lean <b>bullish</b>' :
+          senti.total<=-2 ? 'lean <b>bearish</b>' : 'look <b>mixed/neutral</b>';
+        parts.push(`<p style="margin-top:8px">According to current news, <b>${markets.join(', ')}</b> ${overall} as of now.</p>`);
+        const top = newsRes.headlines.slice(0,5).map(h=>`<li>${h}</li>`).join('');
+        parts.push(`<details style="margin-top:6px"><summary>Top headlines</summary><ul>${top}</ul></details>`);
       } else {
-        sentiBlock = `<div class="muted">News sentiment unavailable${newsRes.reason?' ('+newsRes.reason+')':''}</div>`;
-        overall = `Headlines unavailable.`;
+        parts.push(`<div class="muted">News sentiment unavailable${newsRes.reason? ' ('+newsRes.reason+')':''}</div>`);
       }
 
-      let lastDayBlock='';
+      // Last day
       if(dayRes.ok){
         const dir=dayRes.pct>=0?'▲':'▼';
         const cls=dayRes.pct>=0?'ok':'bad';
-        lastDayBlock = `<div class="pill ${cls}">Prev day (${dayRes.etf}, ${dayRes.source}): ${dir} ${dayRes.pct.toFixed(2)}% (close ${dayRes.latest})</div>`;
+        parts.push(`<div style="margin-top:8px" class="pill ${cls}">Prev day (${dayRes.etf}, ${dayRes.source}): ${dir} ${dayRes.pct.toFixed(2)}% (close ${dayRes.latest})</div>`);
       } else {
-        lastDayBlock = `<div class="muted">Last day summary unavailable${dayRes.reason?' ('+dayRes.reason+')':''}</div>`;
+        parts.push(`<div class="muted" style="margin-top:8px">Last day summary unavailable${dayRes.reason? ' ('+dayRes.reason+')':''}</div>`);
       }
 
-      summaryEl.innerHTML = `
-        <div>${sentiBlock} ${lastDayBlock}</div>
-        <p style="margin-top:10px">${overall}</p>
-        ${samples}
-      `;
+      summaryEl.innerHTML = parts.join('');
+
+      // Sparkline if we have closes
+      if(dayRes.ok && dayRes.closes?.length){
+        drawSparkline(summaryEl, dayRes.closes);
+      }
     }
 
     function startAnalyze({linksOnly=false}={}){
-      const sel=getSelectedFutures();
-      const markets=sel.length?sel:['ES','NQ'];
+      const sel = getSelectedFutures();
+      const markets = sel.length ? sel : ['ES','NQ'];
+      setSelectedFutures(markets); // persist choice
       showOutput(markets);
       makeLinks(markets);
       if(!linksOnly){ buildSummary(markets); }
