@@ -1,5 +1,5 @@
 // Offline cache (bump when you change files)
-const CACHE = 'trader-prep-v7';
+const CACHE = 'trader-prep-v8';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './sw.js'];
 
 self.addEventListener('install', e => {
