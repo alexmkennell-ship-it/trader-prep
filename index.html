@@ -37,7 +37,7 @@
     body{font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif; margin:0; padding:0;}
     a{color:inherit;}
 
-    /* Header (mirrors the compact icon bar feel) */
+    /* Header */
     .topbar{
       position:sticky; top:0; z-index:50;
       display:flex; align-items:center; justify-content:space-between;
@@ -58,7 +58,7 @@
     }
     .navicons .iconbtn.active{background:var(--accent); color:#090909; border-color:transparent;}
 
-    /* Stats strip (BAL / MLL / RP&L / UP&L flavor) */
+    /* Stat strip */
     .statstrip{
       display:flex; gap:10px; align-items:center; padding:10px 14px; flex-wrap:wrap;
       border-bottom:1px solid var(--line); background:#1e1d22;
@@ -66,6 +66,7 @@
     .chip{
       display:flex; gap:8px; align-items:center; padding:6px 10px;
       background:#2a2930; border:1px solid var(--line); border-radius:10px; font-size:12px;
+      transition: background .2s, color .2s, border-color .2s;
     }
     .chip.ok{background:#213224; color:var(--ok); border-color:#2a4930;}
     .chip.warn{background:#332d1f; color:var(--warn); border-color:#5a4726;}
@@ -123,12 +124,10 @@
     </nav>
   </header>
 
-  <!-- STATS STRIP (visual flavor only) -->
+  <!-- STATS STRIP: AK/BG with color-by-P&L -->
   <div class="statstrip">
-    <div class="chip"><span class="muted">BAL:</span> <strong>$50,000.00</strong></div>
-    <div class="chip"><span class="muted">MLL:</span> <strong>$48,000.00</strong></div>
-    <div class="chip ok"><span class="muted">RP&L:</span> <strong>$0.00</strong></div>
-    <div class="chip ok"><span class="muted">UP&L:</span> <strong>$0.00</strong></div>
+    <div class="chip" id="chipAKWrap"><span class="muted">AK$ (today):</span> <strong id="chipAK">$0.00</strong></div>
+    <div class="chip" id="chipBGWrap"><span class="muted">BG$ (today):</span> <strong id="chipBG">$0.00</strong></div>
     <div class="chip ok" id="conn1"><i class="fa-solid fa-signal"></i> API OK</div>
     <div class="chip ok" id="conn2"><i class="fa-solid fa-chart-line"></i> Data OK</div>
   </div>
@@ -149,6 +148,28 @@
       <div class="actions" style="margin-top:10px">
         <button id="saveKeys" class="primary"><i class="fa-regular fa-floppy-disk"></i>&nbsp;Save Keys</button>
         <span id="saveMsg" class="muted"></span>
+      </div>
+
+      <hr style="border:none;border-top:1px solid var(--line); margin:12px 0">
+      <div class="row"><strong>Daily P&L Log</strong><span class="muted">(updates AK$/BG$ chips for today)</span></div>
+      <div class="row" style="margin-top:10px">
+        <label class="muted" style="min-width:170px">Who</label>
+        <div class="actions">
+          <label><input type="radio" name="who" value="AK" checked> AK</label>
+          <label style="margin-left:10px"><input type="radio" name="who" value="BG"> BG</label>
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <label class="muted" style="min-width:170px">Amount ($)</label>
+        <input id="pnlAmount" placeholder="e.g. 125.50 or -75">
+      </div>
+      <div class="row" style="margin-top:10px">
+        <label class="muted" style="min-width:170px">Note (optional)</label>
+        <input id="pnlNote" placeholder="scalp NQ open, etc.">
+      </div>
+      <div class="actions" style="margin-top:10px">
+        <button id="logPnl" class="primary"><i class="fa-solid fa-plus"></i>&nbsp;Log Profit</button>
+        <span id="pnlMsg" class="muted"></span>
       </div>
     </div>
 
@@ -230,10 +251,15 @@
 
   <script>
     /* ---------------------------- IMPORTANT ----------------------------
-       Replace with YOUR Google Apps Script Web App URL (must end in /exec?url=)
-       Example: 'https://script.google.com/macros/s/AKfycbxYOURID/exec?url='
+       1) Replace with YOUR Google Apps Script Web App URL (must end in /exec?url=)
+          Example: 'https://script.google.com/macros/s/AKfycbxYOURID/exec?url='
+       2) Set PNL_API (your PnL Apps Script /exec) and PNL_TOKEN (same token as in that script)
     ------------------------------------------------------------------- */
     const PROXY_RAW = 'https://script.google.com/macros/s/AKfycbztzwYcRxD3mQ2MgD99ubT3-nW-nQJiU-thNoUrdRuMkrTIF1LilnEyCbysHP6Z7HYf/exec?url=';
+
+    // ===== PnL API (new) =====
+    const PNL_API   = 'https://script.google.com/macros/s/AKfycbwd3osQnOh2Xpk1xEhA0Nq76LfOqK_HB-O40IaegbrFagF_PPmlc17i8a9IMFSN6bE/exec?url='; // <-- paste your PnL /exec
+    const PNL_TOKEN = 'CHANGE_ME_32CHAR'; // must match TOKEN in your PnL Apps Script
 
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 
@@ -242,8 +268,7 @@
     const navPrep=document.getElementById('nav-prep'), navTrend=document.getElementById('nav-trend'), navSettings=document.getElementById('nav-settings');
     function setNav(active){
       [navPrep,navTrend,navSettings].forEach(n=>n.classList.toggle('active', n.id===active));
-      if(active==='nav-settings'){ panelSettings.style.display='block'; }
-      else { panelSettings.style.display='none'; }
+      panelSettings.style.display = active==='nav-settings' ? 'block' : 'none';
       if(active==='nav-prep'){ setTab('prep'); }
       if(active==='nav-trend'){ setTab('trend'); }
     }
@@ -270,6 +295,8 @@
     const saveBtn=document.getElementById('saveKeys'), saveMsg=document.getElementById('saveMsg'), linksEl=document.getElementById('links');
     const trendWinEl=document.getElementById('trendWin'), trendSymEl=document.getElementById('trendSym'), trendTimeEl=document.getElementById('trendTime'), trendSummaryEl=document.getElementById('trendSummary');
     const trendCanvas=document.getElementById('trendChart');
+    const chipAK=document.getElementById('chipAK'), chipBG=document.getElementById('chipBG');
+    const chipAKWrap=document.getElementById('chipAKWrap'), chipBGWrap=document.getElementById('chipBGWrap');
     let trendMinutes=60;
 
     // Keys
@@ -556,7 +583,73 @@
       }
     }
 
-    // PREP FLOW
+    // ====== PnL wiring ======
+    function setChipColor(elWrap, amount){
+      elWrap.classList.remove('ok','bad','warn');
+      const a = Number(amount)||0;
+      if (a > 0.005) elWrap.classList.add('ok');
+      else if (a < -0.005) elWrap.classList.add('bad');
+      else elWrap.classList.add('warn');
+    }
+
+    async function pnlGetTotals() {
+      if (!PNL_API || !PNL_TOKEN) { chipAK.textContent='N/A'; chipBG.textContent='N/A'; return; }
+      try {
+        const r = await fetch(`${PNL_API}?token=${encodeURIComponent(PNL_TOKEN)}`, { cache: 'no-store' });
+        if (!r.ok) throw new Error('HTTP '+r.status);
+        const j = await r.json();
+        if (!j.ok) throw new Error(j.error || 'bad');
+        const ak = Number(j.today?.AK || 0), bg = Number(j.today?.BG || 0);
+        chipAK.textContent = `$${ak.toFixed(2)}`;
+        chipBG.textContent = `$${bg.toFixed(2)}`;
+        setChipColor(chipAKWrap, ak);
+        setChipColor(chipBGWrap, bg);
+      } catch (e) {
+        chipAK.textContent = 'N/A';
+        chipBG.textContent = 'N/A';
+        chipAKWrap.classList.add('warn'); chipBGWrap.classList.add('warn');
+      }
+    }
+
+    async function pnlPostLog({ user, amount, note }) {
+      const body = JSON.stringify({ token: PNL_TOKEN, user, amount: Number(amount), note });
+      const r = await fetch(PNL_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
+      if (!r.ok) throw new Error('HTTP '+r.status);
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error || 'bad');
+      return j;
+    }
+
+    // wire the Log button
+    document.addEventListener('DOMContentLoaded', () => {
+      pnlGetTotals(); // initial load
+      // optionally refresh every few minutes (comment out if you don't want polling)
+      setInterval(pnlGetTotals, 120000);
+
+      const btn = document.getElementById('logPnl');
+      const msg = document.getElementById('pnlMsg');
+      if (btn) {
+        btn.addEventListener('click', async () => {
+          try {
+            const who = (document.querySelector('input[name="who"]:checked') || {}).value || 'AK';
+            const amt = (document.getElementById('pnlAmount') || {}).value || '';
+            const note= (document.getElementById('pnlNote') || {}).value || '';
+            if (!amt || isNaN(Number(amt))) { msg.textContent = 'Enter a number (e.g. 125 or -75)'; return; }
+            msg.textContent = 'Saving...';
+            await pnlPostLog({ user: who, amount: amt, note });
+            msg.textContent = 'Saved ✓';
+            document.getElementById('pnlAmount').value = '';
+            document.getElementById('pnlNote').value = '';
+            await pnlGetTotals(); // refresh chips
+            setTimeout(()=> msg.textContent = '', 1200);
+          } catch (e) {
+            msg.textContent = 'Error: ' + (e.message || e);
+          }
+        });
+      }
+    });
+
+    // ====== PREP FLOW ======
     function makeLinks(markets){
       const q=encodeURIComponent(markets.join(' ')||'ES NQ');
       linksEl.innerHTML=`
@@ -565,10 +658,10 @@
         <li><a target="_blank" href="https://news.google.com/">Macro headlines</a></li>
         <li><a target="_blank" href="https://news.google.com/search?q=${q}">News for ${markets.join(', ')}</a></li>`;
     }
-    function startAnalyze({linksOnly=false}={}){
+    async function startAnalyze({linksOnly=false}={}){
       const sel=getSelectedFutures(); const markets=sel.length?sel:['ES','NQ'];
       showPrepHeader(markets); makeLinks(markets);
-      if(!linksOnly) buildSummary(markets); else summaryEl.innerHTML=`<span class="muted">Quick-links mode. Tap Analyze for auto-summary.</span>`;
+      if(!linksOnly) await buildSummary(markets); else summaryEl.innerHTML=`<span class="muted">Quick-links mode. Tap Analyze for auto-summary.</span>`;
       window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'});
     }
 
