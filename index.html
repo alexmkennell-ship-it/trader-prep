@@ -2,110 +2,230 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no"/>
+  <meta name="theme-color" content="#000000"/>
+  <meta name="color-scheme" content="dark"/>
   <title>Trader Prep</title>
 
-  <!-- PWA bits -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <link rel="apple-touch-icon" href="icon-192.png">
+  <!-- Icons (CDN, free) -->
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" referrerpolicy="no-referrer"/>
+
+  <!-- PWA bits (optional) -->
   <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
 
   <style>
     :root {
-      --pad: 16px; --radius: 14px;
-      --bg: #fafafa; --fg: #111; --muted: #666;
-      --card: #fff; --line: #eaeaea;
-      --btn: #111; --btn-fg: #fff;
-      --ok: #0aa37f; --warn: #b78036; --bad: #d54848;
-      --pill: #eef2f6;
-      --shadow: 0 6px 20px rgba(0,0,0,.06);
+      /* Topstep-ish palette */
+      --bg: #1b191b;
+      --panel: #2a292f;
+      --panel-2: #242328;
+      --line: #35343a;
+      --fg: #f1f2f4;
+      --muted: #a7adbb;
+      --accent: #7c5cff;
+      --ok: #6abd74;
+      --bad: #e05d5d;
+      --warn: #d3a54a;
+      --pill: #24252b;
+      --shadow: 0 6px 18px rgba(0,0,0,.35);
+      --radius: 14px;
+      --pad: 16px;
     }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #0e1013; --fg: #f5f6f7; --muted:#98a2b3;
-        --card: #141821; --line:#1f2530;
-        --btn: #e7e9ee; --btn-fg:#0f1115;
-        --pill: #1f2632; --shadow: 0 6px 20px rgba(0,0,0,.35);
-      }
+    html,body {background:var(--bg);color:var(--fg);}
+    body{font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif; margin:0; padding:0;}
+    a{color:inherit;}
+
+    /* Header (mirrors the compact icon bar feel) */
+    .topbar{
+      position:sticky; top:0; z-index:50;
+      display:flex; align-items:center; justify-content:space-between;
+      background:linear-gradient(180deg, #201f25 0%, #1a191f 100%);
+      border-bottom:1px solid var(--line);
+      padding:10px 14px;
     }
-    html, body { background: var(--bg); color: var(--fg); }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; padding: var(--pad); max-width: 860px; margin: auto; }
-    h1 { margin: 0 0 12px; font-size: 28px; }
-    .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: var(--pad); margin-top: 14px; box-shadow: var(--shadow); }
-    .row { display:flex; gap:10px; align-items:center; flex-wrap: wrap; }
-    .muted { color: var(--muted); font-size: 14px; }
-    button, select, input { font-size: 16px; }
-    input, select { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: transparent; color: var(--fg); }
-    button { padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--fg); }
-    button.primary { background: var(--btn); color: var(--btn-fg); border-color: transparent; }
-    .actions { display:flex; gap:10px; flex-wrap: wrap; }
-    .pill { display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; background: var(--pill); border: 1px solid var(--line); font-size: 14px; }
-    .ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); }
-    .spinner { display:inline-block; width:18px; height:18px; border:3px solid #ddd; border-top-color:#111; border-radius:50%; animation:spin 1s linear infinite; vertical-align: -3px; }
-    @keyframes spin{to{transform: rotate(360deg)}}
-    details summary { cursor: pointer; }
-    .bundles { display:flex; flex-wrap: wrap; gap:8px; margin-top:8px; }
-    .bundle { padding:6px 10px; border-radius:10px; border:1px solid var(--line); background:transparent; font-size:14px; }
-    canvas { width: 100%; max-width: 420px; height: 80px; border-radius: 10px; background: var(--pill); margin-top:8px; }
+    .brand{display:flex; gap:10px; align-items:center;}
+    .brand .logo{
+      width:34px; height:34px; display:grid; place-items:center;
+      border-radius:10px; background:#2f2e36; border:1px solid var(--line);
+    }
+    .brand h1{font-size:16px; margin:0; letter-spacing:.3px;}
+    .navicons{display:flex; gap:14px; align-items:center;}
+    .navicons .iconbtn{
+      width:36px;height:36px; display:grid; place-items:center; border-radius:10px;
+      border:1px solid var(--line); background:#26252b; cursor:pointer; color:#cfd3dc;
+    }
+    .navicons .iconbtn.active{background:var(--accent); color:#090909; border-color:transparent;}
+
+    /* Stats strip (BAL / MLL / RP&L / UP&L flavor) */
+    .statstrip{
+      display:flex; gap:10px; align-items:center; padding:10px 14px; flex-wrap:wrap;
+      border-bottom:1px solid var(--line); background:#1e1d22;
+    }
+    .chip{
+      display:flex; gap:8px; align-items:center; padding:6px 10px;
+      background:#2a2930; border:1px solid var(--line); border-radius:10px; font-size:12px;
+    }
+    .chip.ok{background:#213224; color:var(--ok); border-color:#2a4930;}
+    .chip.warn{background:#332d1f; color:var(--warn); border-color:#5a4726;}
+    .chip.bad{background:#372325; color:var(--bad); border-color:#5d3439;}
+
+    /* Layout */
+    .wrap{max-width:1100px; margin:0 auto; padding:14px;}
+    .card{
+      background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+      padding:var(--pad); box-shadow:var(--shadow); margin:14px 0;
+    }
+    .muted{color:var(--muted);}
+    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+    .actions{display:flex; gap:10px; flex-wrap:wrap;}
+    button,select,input{font-size:15px;}
+    select,input{
+      background:var(--panel-2); color:var(--fg);
+      border:1px solid var(--line); border-radius:12px; padding:10px 12px; width:100%;
+    }
+    button{
+      padding:10px 14px; border-radius:12px; border:1px solid var(--line);
+      background:var(--panel-2); color:var(--fg); cursor:pointer;
+    }
+    .primary{background:var(--accent); color:#0b0b10; border-color:transparent; font-weight:600;}
+    .tabs{display:flex; gap:10px; margin:8px 0 2px;}
+    .tabbtn{border-radius:10px; border:1px solid var(--line); background:#26252b; padding:8px 12px; cursor:pointer;}
+    .tabbtn.active{background:var(--accent); color:#0b0b10; border-color:transparent;}
+    .pill{
+      display:inline-flex; gap:8px; align-items:center; padding:6px 12px; border-radius:999px;
+      background:var(--pill); border:1px solid var(--line); font-size:13px;
+    }
+    .ok{color:var(--ok);} .warn{color:var(--warn);} .bad{color:var(--bad);}
+    details summary{cursor:pointer;}
+    .bundles{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;}
+    .bundle{padding:6px 10px; border-radius:10px; border:1px solid var(--line); background:#26252b; font-size:14px; cursor:pointer;}
+    .grid{display:grid; grid-template-columns: 1fr 1fr; gap:12px;}
+    @media (max-width:900px){ .grid{grid-template-columns:1fr;} }
+    canvas{ width:100%; max-width:700px; height:160px; border-radius:10px; background:#24252b; margin-top:10px; }
+
+    .spinner{display:inline-block; width:18px; height:18px; border:3px solid #45434c; border-top-color:#ddd; border-radius:50%; animation:spin 1s linear infinite; vertical-align:-3px;}
+    @keyframes spin{to{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
-  <h1>I'm getting ready to trade!</h1>
+  <!-- HEADER -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo"><i class="fa-solid fa-chart-simple"></i></div>
+      <h1>Trader Prep</h1>
+    </div>
+    <nav class="navicons">
+      <div class="iconbtn active" id="nav-prep" title="Prep"><i class="fa-solid fa-bars-staggered"></i></div>
+      <div class="iconbtn" id="nav-trend" title="Trend"><i class="fa-solid fa-wave-square"></i></div>
+      <div class="iconbtn" id="nav-settings" title="Settings"><i class="fa-solid fa-gear"></i></div>
+    </nav>
+  </header>
 
-  <!-- SETTINGS -->
-  <div class="card">
-    <div class="row"><strong>Settings</strong><span class="muted">(API keys optional; proxy fallback built-in)</span></div>
-    <div style="margin-top:10px" class="row">
-      <label for="gnews" class="muted" style="min-width:140px">GNews API Key</label>
-      <input id="gnews" placeholder="gnews.io token">
-    </div>
-    <div style="margin-top:10px" class="row">
-      <label for="alpha" class="muted" style="min-width:140px">Alpha Vantage Key</label>
-      <input id="alpha" placeholder="alphavantage.co key">
-    </div>
-    <div style="margin-top:10px" class="row actions">
-      <button id="saveKeys">Save Keys</button>
-      <span id="saveMsg" class="muted"></span>
-    </div>
+  <!-- STATS STRIP (visual flavor only) -->
+  <div class="statstrip">
+    <div class="chip"><span class="muted">BAL:</span> <strong>$50,000.00</strong></div>
+    <div class="chip"><span class="muted">MLL:</span> <strong>$48,000.00</strong></div>
+    <div class="chip ok"><span class="muted">RP&L:</span> <strong>$0.00</strong></div>
+    <div class="chip ok"><span class="muted">UP&L:</span> <strong>$0.00</strong></div>
+    <div class="chip ok" id="conn1"><i class="fa-solid fa-signal"></i> API OK</div>
+    <div class="chip ok" id="conn2"><i class="fa-solid fa-chart-line"></i> Data OK</div>
   </div>
 
-  <!-- MARKETS -->
-  <div class="card">
-    <strong>Choose your markets</strong>
-    <div class="bundles">
-      <button class="bundle" data-bundle="ES,NQ,YM,RTY">US Indices</button>
-      <button class="bundle" data-bundle="CL,GC">Energy & Gold</button>
-      <button class="bundle" data-bundle="ZN,6E">Rates / FX</button>
-    </div>
-    <div style="margin-top:10px">
-      <select id="futures" multiple size="8">
-        <option value="ES">ES – S&P 500</option>
-        <option value="NQ">NQ – Nasdaq 100</option>
-        <option value="YM">YM – Dow</option>
-        <option value="RTY">RTY – Russell 2000</option>
-        <option value="CL">CL – Crude Oil</option>
-        <option value="GC">GC – Gold</option>
-        <option value="ZN">ZN – 10-Yr Note</option>
-        <option value="6E">6E – EUR/USD</option>
-      </select>
-    </div>
-    <div class="actions" style="margin-top:12px">
-      <button id="start" class="primary">Analyze</button>
-      <button id="quick">Quick links only</button>
-    </div>
-  </div>
+  <div class="wrap">
 
-  <!-- OUTPUT -->
-  <div id="output" class="card" style="display:none">
-    <div class="row">
-      <strong>Trader Prep</strong>
-      <span class="muted">Now: <span id="now"></span></span>
+    <!-- SETTINGS -->
+    <div class="card" id="panel-settings" style="display:none">
+      <div class="row"><strong>Settings</strong><span class="muted">(Keys optional; proxy fallback built-in)</span></div>
+      <div class="row" style="margin-top:10px">
+        <label class="muted" style="min-width:170px">GNews API Key</label>
+        <input id="gnews" placeholder="gnews.io token">
+      </div>
+      <div class="row" style="margin-top:10px">
+        <label class="muted" style="min-width:170px">Alpha Vantage Key</label>
+        <input id="alpha" placeholder="alphavantage.co key">
+      </div>
+      <div class="actions" style="margin-top:10px">
+        <button id="saveKeys" class="primary"><i class="fa-regular fa-floppy-disk"></i>&nbsp;Save Keys</button>
+        <span id="saveMsg" class="muted"></span>
+      </div>
     </div>
-    <div class="muted">Focus: <span id="focus"></span> • <span id="keyStatus"></span></div>
-    <div id="summary" style="margin-top:12px"></div>
-    <h3 style="margin-top:16px">Quick Links</h3>
-    <ul id="links"></ul>
+
+    <!-- MARKETS -->
+    <div class="card">
+      <div class="tabs">
+        <button class="tabbtn active" id="tab-prep">Prep</button>
+        <button class="tabbtn" id="tab-trend">Trend</button>
+      </div>
+      <strong>Choose your markets</strong>
+      <div class="bundles">
+        <button class="bundle" data-bundle="ES,NQ,YM,RTY">US Indices</button>
+        <button class="bundle" data-bundle="CL,GC">Energy & Gold</button>
+        <button class="bundle" data-bundle="ZN,6E">Rates / FX</button>
+      </div>
+
+      <div class="grid" style="margin-top:10px">
+        <div>
+          <label class="muted">Futures/markets</label>
+          <select id="futures" multiple size="8">
+            <option value="ES">ES – S&P 500</option>
+            <option value="NQ">NQ – Nasdaq 100</option>
+            <option value="YM">YM – Dow</option>
+            <option value="RTY">RTY – Russell 2000</option>
+            <option value="CL">CL – Crude Oil</option>
+            <option value="GC">GC – Gold</option>
+            <option value="ZN">ZN – 10-Yr Note</option>
+            <option value="6E">6E – EUR/USD</option>
+          </select>
+        </div>
+        <div>
+          <div class="muted">Trend timeframe</div>
+          <div class="actions" style="margin-top:6px">
+            <button class="bundle" data-tf="60">Last 60m</button>
+            <button class="bundle" data-tf="15">Last 15m</button>
+          </div>
+          <div class="muted" style="margin-top:6px">Trend uses 1-minute Yahoo bars (via your proxy), mapped futures → ETFs.</div>
+        </div>
+      </div>
+
+      <div class="actions" style="margin-top:12px">
+        <button id="start" class="primary"><i class="fa-solid fa-bolt"></i>&nbsp;Analyze (Prep)</button>
+        <button id="runTrend"><i class="fa-solid fa-wave-square"></i>&nbsp;Analyze (Trend)</button>
+        <button id="quick"><i class="fa-regular fa-bookmark"></i>&nbsp;Quick links only</button>
+        <button id="openSettings" style="margin-left:auto"><i class="fa-solid fa-gear"></i></button>
+      </div>
+    </div>
+
+    <!-- PREP OUTPUT -->
+    <div id="prepOut" class="card">
+      <div class="row">
+        <strong>Trader Prep</strong>
+        <span class="muted">Now: <span id="now"></span></span>
+      </div>
+      <div class="muted">Focus: <span id="focus"></span> • <span id="keyStatus"></span></div>
+      <div id="summary" style="margin-top:12px"></div>
+      <h3 style="margin-top:16px">Quick Links</h3>
+      <ul id="links"></ul>
+    </div>
+
+    <!-- TREND OUTPUT -->
+    <div id="trendOut" class="card" style="display:none">
+      <div class="row">
+        <strong>Current Trend</strong>
+        <span class="muted">Window: <span id="trendWin">60m</span></span>
+      </div>
+      <div class="muted">Primary: <span id="trendSym"></span> (mapped ETF) • <span id="trendTime"></span></div>
+      <div id="trendSummary" style="margin-top:12px"></div>
+      <canvas id="trendChart"></canvas>
+      <details style="margin-top:10px">
+        <summary>How we decide “busy”</summary>
+        <div class="muted" style="margin-top:6px">
+          We compute 1-minute returns and flag as <b>Busy</b> when realized vol in the window is elevated
+          (≥ ~0.06% std-dev) or average volume is above the window’s median (≥ 1.2×). Tweak: <code>BUSY_VOL_STD</code>, <code>BUSY_VOL_RATIO</code>.
+        </div>
+      </details>
+    </div>
   </div>
 
   <script>
@@ -113,41 +233,73 @@
        Replace with YOUR Google Apps Script Web App URL (must end in /exec?url=)
        Example: 'https://script.google.com/macros/s/AKfycbxYOURID/exec?url='
     ------------------------------------------------------------------- */
-    const PROXY_RAW = 'https://script.google.com/macros/s/AKfycbztzwYcRxD3mQ2MgD99ubT3-nW-nQJiU-thNoUrdRuMkrTIF1LilnEyCbysHP6Z7HYf/exec?url=';
+    const PROXY_RAW = 'https://script.google.com/macros/s/AKfycbxYOURID/exec?url=';
 
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 
+    // Nav toggles
+    const panelSettings = document.getElementById('panel-settings');
+    const navPrep=document.getElementById('nav-prep'), navTrend=document.getElementById('nav-trend'), navSettings=document.getElementById('nav-settings');
+    function setNav(active){
+      [navPrep,navTrend,navSettings].forEach(n=>n.classList.toggle('active', n.id===active));
+      if(active==='nav-settings'){ panelSettings.style.display='block'; }
+      else { panelSettings.style.display='none'; }
+      if(active==='nav-prep'){ setTab('prep'); }
+      if(active==='nav-trend'){ setTab('trend'); }
+    }
+    navPrep.onclick=()=>setNav('nav-prep');
+    navTrend.onclick=()=>setNav('nav-trend');
+    navSettings.onclick=()=>setNav('nav-settings');
+    document.getElementById('openSettings').onclick=()=>setNav('nav-settings');
+
+    // Tabs
+    const tabPrep=document.getElementById('tab-prep'), tabTrend=document.getElementById('tab-trend');
+    const prepOut=document.getElementById('prepOut'), trendOut=document.getElementById('trendOut');
+    function setTab(which){
+      tabPrep.classList.toggle('active', which==='prep');
+      tabTrend.classList.toggle('active', which!=='prep');
+      prepOut.style.display = which==='prep' ? '' : 'none';
+      trendOut.style.display = which==='prep' ? 'none' : '';
+    }
+
     // Elements
-    const startBtn=document.getElementById('start'), quickBtn=document.getElementById('quick');
-    const futuresSel=document.getElementById('futures'), output=document.getElementById('output');
+    const startBtn=document.getElementById('start'), quickBtn=document.getElementById('quick'), runTrendBtn=document.getElementById('runTrend');
+    const futuresSel=document.getElementById('futures');
     const nowEl=document.getElementById('now'), focusEl=document.getElementById('focus'), summaryEl=document.getElementById('summary');
     const keyStatusEl=document.getElementById('keyStatus'), gnewsEl=document.getElementById('gnews'), alphaEl=document.getElementById('alpha');
     const saveBtn=document.getElementById('saveKeys'), saveMsg=document.getElementById('saveMsg'), linksEl=document.getElementById('links');
+    const trendWinEl=document.getElementById('trendWin'), trendSymEl=document.getElementById('trendSym'), trendTimeEl=document.getElementById('trendTime'), trendSummaryEl=document.getElementById('trendSummary');
+    const trendCanvas=document.getElementById('trendChart');
+    let trendMinutes=60;
 
     // Keys
     function loadKeys(){ gnewsEl.value=localStorage.getItem('GNEWS_KEY')||''; alphaEl.value=localStorage.getItem('ALPHA_KEY')||''; }
     function saveKeys(){ localStorage.setItem('GNEWS_KEY',gnewsEl.value.trim()); localStorage.setItem('ALPHA_KEY',alphaEl.value.trim()); saveMsg.textContent='Saved ✓'; setTimeout(()=>saveMsg.textContent='',1500);}
     loadKeys(); saveBtn.addEventListener('click',saveKeys);
 
-    // Bundles
-    document.querySelectorAll('.bundle').forEach(b=>{
+    // Bundles & timeframe
+    document.querySelectorAll('.bundle[data-bundle]').forEach(b=>{
       b.addEventListener('click', ()=>{
-        const arr = b.dataset.bundle.split(',');
-        for (const o of futuresSel.options) o.selected = arr.includes(o.value);
+        const arr=b.dataset.bundle.split(',');
+        for(const o of futuresSel.options) o.selected=arr.includes(o.value);
       });
+    });
+    document.querySelectorAll('.bundle[data-tf]').forEach(b=>{
+      b.addEventListener('click', ()=>{ trendMinutes=parseInt(b.dataset.tf,10); trendWinEl.textContent=trendMinutes+'m'; });
     });
 
     function getSelectedFutures(){ return Array.from(futuresSel.selectedOptions).map(o=>o.value); }
-    function showOutput(markets){ nowEl.textContent=new Date().toLocaleString(); focusEl.textContent=markets.join(', '); output.style.display='block'; }
+    function showPrepHeader(markets){ nowEl.textContent=new Date().toLocaleString(); focusEl.textContent=markets.join(', '); }
     function makeLinks(markets){
       const q=encodeURIComponent(markets.join(' ')||'ES NQ');
-      linksEl.innerHTML = `
+      linksEl.innerHTML=`
         <li><a target="_blank" href="https://www.google.com/search?q=index+futures">Index Futures Snapshot</a></li>
         <li><a target="_blank" href="https://www.google.com/search?q=today+economic+calendar">Economic Calendar</a></li>
         <li><a target="_blank" href="https://news.google.com/">Macro headlines</a></li>
         <li><a target="_blank" href="https://news.google.com/search?q=${q}">News for ${markets.join(', ')}</a></li>`;
     }
 
+    // Maps & helpers
     const FUTURES_TO_ETF={ES:'SPY',NQ:'QQQ',YM:'DIA',RTY:'IWM',CL:'USO',GC:'GLD',ZN:'IEF','6E':'FXE'};
     const ETF_TO_STOOQ={SPY:'spy.us',QQQ:'qqq.us',DIA:'dia.us',IWM:'iwm.us',USO:'uso.us',GLD:'gld.us',IEF:'ief.us',FXE:'fxe.us'};
 
@@ -156,8 +308,7 @@
     function headlineScore(t){const s=t.toLowerCase();let n=0;POS.forEach(w=>{if(s.includes(w))n++;});NEG.forEach(w=>{if(s.includes(w))n--;});return n;}
     function overallLabel(score){if(score>=2)return['Bullish','ok'];if(score<=-2)return['Bearish','bad'];return['Neutral','warn'];}
 
-    // —— WHY logic ——
-    const CAUSE_RULES = [
+    const CAUSE_RULES=[
       {key:'fed',label:'Fed/Rate outlook',pat:/(fed|powell|fomc|rate cut|rate hike|yield|treasury|dot plot|t-bill|t-note|t-bond)/i,w:2},
       {key:'cpi',label:'Inflation (CPI/PCE)',pat:/(cpi|pce|inflation|core inflation|ppi)/i,w:2},
       {key:'jobs',label:'Labor data',pat:/(nonfarm|nfp|payrolls|unemployment|jobless|initial claims|jolts)/i,w:2},
@@ -171,44 +322,26 @@
       {key:'crypto',label:'Crypto',pat:/(bitcoin|btc|ethereum|eth|crypto|spot etf)/i,w:1},
       {key:'reg',label:'Regulation/Policy',pat:/(regulat(e|ion)|antitrust|probe|ftc|doj|ec|ban|export controls?)/i,w:1}
     ];
-    const WHY_PCT = 0.35; // show “Why?” when |move| ≥ 0.35%
+    const WHY_PCT=0.35;
 
-    function topCausesFromHeadlines(headlines, max=3){
+    function topCausesFromHeadlines(headlines,max=3){
       const scores=new Map(); const examples={};
       for(const h of (headlines||[])){
-        for(const rule of CAUSE_RULES){
-          if(rule.pat.test(h)){
-            scores.set(rule.key,(scores.get(rule.key)||0)+rule.w);
-            if(!examples[rule.key]) examples[rule.key]=h;
-          }
+        for(const r of CAUSE_RULES){
+          if(r.pat.test(h)){ scores.set(r.key,(scores.get(r.key)||0)+r.w); if(!examples[r.key]) examples[r.key]=h; }
         }
       }
-      return Array.from(scores.entries())
-        .sort((a,b)=>b[1]-a[1]).slice(0,max)
-        .map(([key,score])=>({ key, score, label: CAUSE_RULES.find(r=>r.key===key).label, sample: examples[key]}));
+      return Array.from(scores.entries()).sort((a,b)=>b[1]-a[1]).slice(0,max)
+        .map(([key,score])=>({key,score,label:CAUSE_RULES.find(rr=>rr.key===key).label,sample:examples[key]}));
     }
-    function moveDescriptor(pct){
-      const ap=Math.abs(pct);
-      if(ap>=2) return 'surging';
-      if(ap>=1) return 'up solidly';
-      if(ap>=0.5) return 'firm';
-      if(ap>=0.2) return 'slightly higher';
-      return 'little changed';
-    }
-    function buildWhyNarrative({markets, dayRes, headlines}){
+    function moveDescriptor(pct){const ap=Math.abs(pct); if(ap>=2)return'surging'; if(ap>=1)return'up solidly'; if(ap>=0.5)return'firm'; if(ap>=0.2)return'slightly higher'; return'little changed';}
+    function buildWhyNarrative({dayRes,headlines}){
       const parts=[];
-      if(dayRes?.ok){
-        const dir=dayRes.pct>=0?'higher':'lower';
-        const tone=moveDescriptor(dayRes.pct);
-        parts.push(`Markets are ${tone} (${dayRes.pct.toFixed(2)}% ${dir} for ${dayRes.etf} at the last close).`);
-      }
+      if(dayRes?.ok){const dir=dayRes.pct>=0?'higher':'lower', tone=moveDescriptor(dayRes.pct);
+        parts.push(`Markets are ${tone} (${dayRes.pct.toFixed(2)}% ${dir} for ${dayRes.etf} at the last close).`);}
       const causes=topCausesFromHeadlines(headlines,3);
-      if(causes.length){
-        parts.push(`Likely drivers: ${causes.map(c=>c.label).join(', ')}.`);
-        const sample=causes[0].sample; if(sample) parts.push(`e.g., “${sample.replace(/"/g,'')}”.`);
-      } else {
-        parts.push(`No dominant driver detected in headlines; tone appears mixed.`);
-      }
+      if(causes.length){parts.push(`Likely drivers: ${causes.map(c=>c.label).join(', ')}.`); const s=causes[0].sample; if(s) parts.push(`e.g., “${s.replace(/"/g,'')}”.`);}
+      else parts.push(`No dominant driver detected; tone appears mixed.`);
       return parts.join(' ');
     }
 
@@ -218,7 +351,7 @@
     async function fetchTextOnce(u,t=9000){const c=new AbortController();const to=setTimeout(()=>c.abort('timeout'),t);try{const r=await fetch(u,{signal:c.signal,cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.text();}finally{clearTimeout(to);}}
     async function fetchTextRetry(u,tries=2){let e=null;for(let i=0;i<tries;i++){try{return await fetchTextOnce(u,i?12000:9000);}catch(x){e=x;await new Promise(r=>setTimeout(r,300));}}throw e;}
 
-    // Headlines
+    // Headlines (GNews if key; else Google News RSS via proxy)
     async function getHeadlines(markets){
       const gkey=(localStorage.getItem('GNEWS_KEY')||'').trim();
       if(gkey){
@@ -246,7 +379,6 @@
       const akey=(localStorage.getItem('ALPHA_KEY')||'').trim();
       const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
 
-      // 1) Alpha
       if(akey){
         try{
           const url=`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${etf}&apikey=${akey}`;
@@ -261,13 +393,11 @@
           }
         }catch(e){}
       }
-
-      // 2) Yahoo (keyless) via proxy
       try{
         const yUrl=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(etf)}?range=15d&interval=1d&t=${Date.now()}`;
         const yData=await fetchJsonRetry(PROXY_RAW+encodeURIComponent(yUrl),2);
         const r=yData?.chart?.result?.[0];
-        const closes=r?.indicators?.quote?.[0]?.close?.filter(v=>v!=null) || [];
+        const closes=r?.indicators?.quote?.[0]?.close?.filter(v=>v!=null)||[];
         if(closes.length>=2){
           const c0=closes.at(-1), c1=closes.at(-2);
           const pct=((c0-c1)/c1)*100, delta=c0-c1;
@@ -277,8 +407,6 @@
           return {ok:true,etf,latest,prior,pct,delta,closes:closes.slice(-10),source:'yahoo-proxy'};
         }
       }catch(e){}
-
-      // 3) Stooq CSV (dual domain) via proxy
       const sym=ETF_TO_STOOQ[etf]||'spy.us';
       const srcs=[
         `https://stooq.com/q/d/l/?s=${encodeURIComponent(sym)}&i=d&t=${Date.now()}`,
@@ -303,23 +431,23 @@
     }
 
     function sentimentFrom(headlines){const total=headlines.reduce((a,t)=>a+headlineScore(t),0);const [label,cls]=overallLabel(total);return {label,cls,total};}
-
     function drawSparkline(container,values){
       if(!values||values.length<2) return;
-      const c=document.createElement('canvas'); c.width=420; c.height=80; container.appendChild(c);
+      const c=document.createElement('canvas'); c.width=480; c.height=100; container.appendChild(c);
       const ctx=c.getContext('2d'); const w=c.width,h=c.height,p=8;
       const min=Math.min(...values), max=Math.max(...values), range=(max-min)||1, step=(w-p*2)/(values.length-1);
-      ctx.lineWidth=2; ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--fg').trim() || '#111';
+      ctx.lineWidth=2; ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--fg').trim() || '#eee';
       ctx.beginPath();
       values.forEach((v,i)=>{const x=p+step*i, y=h-p-((v-min)/range)*(h-p*2); if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);});
       ctx.stroke();
     }
 
     async function buildSummary(markets){
-      summaryEl.innerHTML='<span class="spinner"></span> Analyzing...';
+      nowEl.textContent=new Date().toLocaleString();
       const gkey=(localStorage.getItem('GNEWS_KEY')||'').trim();
       const akey=(localStorage.getItem('ALPHA_KEY')||'').trim();
       keyStatusEl.textContent = (!gkey || !akey) ? 'Using proxy for any missing services.' : 'Using saved API keys where available.';
+      summaryEl.innerHTML='<span class="spinner"></span> Analyzing...';
 
       let newsRes={ok:false,reason:'timeout'}, dayRes={ok:false,reason:'timeout'};
       try{ newsRes=await getHeadlines(markets); }catch(e){ newsRes={ok:false,reason:String(e)}; }
@@ -327,59 +455,127 @@
 
       const parts=[];
 
-      // Headlines
       if(newsRes.ok && newsRes.headlines?.length){
         const senti=sentimentFrom(newsRes.headlines);
         const overall = senti.total>=2 ? 'lean <b>bullish</b>' : (senti.total<=-2 ? 'lean <b>bearish</b>' : 'look <b>mixed/neutral</b>');
-        parts.push(`<div class="pill ${senti.cls}">News sentiment (${newsRes.source}): <strong>${senti.label}</strong></div>`);
+        parts.push(`<div class="pill ${senti.cls}"><i class="fa-regular fa-newspaper"></i> News sentiment (${newsRes.source}): <strong>${senti.label}</strong></div>`);
         parts.push(`<p style="margin-top:8px">According to current news, <b>${markets.join(', ')}</b> ${overall} as of now.</p>`);
         const top = newsRes.headlines.slice(0,5).map(h=>`<li>${h}</li>`).join('');
         parts.push(`<details style="margin-top:6px"><summary>Top headlines</summary><ul>${top}</ul></details>`);
       } else {
-        parts.push(`<div class="muted">News sentiment unavailable${newsRes.reason? ' ('+newsRes.reason+')':''}</div>`);
+        parts.push(`<div class="muted"><i class="fa-regular fa-newspaper"></i> News sentiment unavailable${newsRes.reason? ' ('+newsRes.reason+')':''}</div>`);
       }
 
-      // Last day
       if(dayRes.ok){
         const dir=dayRes.pct>=0?'▲':'▼', cls=dayRes.pct>=0?'ok':'bad';
-        // weekend hint (Fri→Mon)
-        let weekendHint='';
-        try{
-          const dL=new Date(dayRes.latest).getDay(), dP=new Date(dayRes.prior).getDay();
-          if(dL===1 && dP===5) weekendHint=' (Fri → Mon)';
-        }catch(_){}
-        parts.push(`<div class="pill ${cls}" style="margin-top:8px">Prev day (${dayRes.etf}, ${dayRes.source}): ${dir} ${dayRes.pct.toFixed(2)}% (close ${dayRes.latest}${weekendHint})</div>`);
+        let weekendHint=''; try{ const dL=new Date(dayRes.latest).getDay(), dP=new Date(dayRes.prior).getDay(); if(dL===1 && dP===5) weekendHint=' (Fri → Mon)'; }catch(_){}
+        parts.push(`<div class="pill ${cls}" style="margin-top:8px"><i class="fa-solid fa-chart-line"></i> Prev day (${dayRes.etf}, ${dayRes.source}): ${dir} ${dayRes.pct.toFixed(2)}% (close ${dayRes.latest}${weekendHint})</div>`);
       } else {
         parts.push(`<div class="muted" style="margin-top:8px">Last day summary unavailable${dayRes.reason? ' ('+dayRes.reason+')':''}</div>`);
       }
 
-      // WHY? (only if move ≥ WHY_PCT)
       try{
         const showWhy = dayRes?.ok && Math.abs(dayRes.pct) >= WHY_PCT;
         if(showWhy){
-          const why = buildWhyNarrative({ markets, dayRes, headlines: (newsRes.ok ? newsRes.headlines : []) });
+          const why = buildWhyNarrative({ dayRes, headlines: (newsRes.ok ? newsRes.headlines : []) });
           parts.push(`<p style="margin-top:10px"><strong>Why?</strong> ${why}</p>`);
         }
       }catch(_){}
 
       summaryEl.innerHTML = parts.join('');
-
       if(dayRes.ok && dayRes.closes?.length) drawSparkline(summaryEl, dayRes.closes);
     }
 
+    // ====== TREND TAB ======
+    const BUSY_VOL_STD=0.0006, BUSY_VOL_RATIO=1.20;
+
+    async function fetchIntraday(etf){
+      const u=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(etf)}?range=1d&interval=1m&includePrePost=true&t=${Date.now()}`;
+      const data=await fetchJsonRetry(PROXY_RAW+encodeURIComponent(u),2);
+      const r=data?.chart?.result?.[0]; const q=r?.indicators?.quote?.[0]; const ts=r?.timestamp||[];
+      const out=[]; for(let i=0;i<ts.length;i++){ const c=q?.close?.[i], v=q?.volume?.[i]; if(c!=null && v!=null){ out.push({t:ts[i]*1000,c,v}); } }
+      return out;
+    }
+    function selectWindow(bars, minutes){
+      if(!bars.length) return [];
+      const cutoff=Date.now()-minutes*60*1000;
+      const recent=bars.filter(b=>b.t>=cutoff);
+      if(recent.length<Math.min(15,minutes)) return bars.slice(-Math.max(15,minutes));
+      return recent;
+    }
+    function statsTrend(windowBars){
+      if(windowBars.length<5) return {ok:false,reason:'not enough bars'};
+      const closes=windowBars.map(b=>b.c), vols=windowBars.map(b=>b.v);
+      const first=closes[0], last=closes.at(-1);
+      const pct=(last-first)/first*100, delta=last-first;
+      const rets=[]; for(let i=1;i<closes.length;i++){ const r=(closes[i]-closes[i-1])/closes[i-1]; if(isFinite(r)) rets.push(r); }
+      const mean=rets.reduce((a,b)=>a+b,0)/Math.max(1,rets.length);
+      const varr=rets.reduce((a,b)=>a+(b-mean)*(b-mean),0)/Math.max(1,rets.length);
+      const std=Math.sqrt(varr);
+      const median=arr=>{const a=[...arr].sort((x,y)=>x-y); const m=Math.floor(a.length/2); return a.length%2?a[m]:(a[m-1]+a[m])/2;};
+      const volMed=median(vols), volAvg=vols.reduce((a,b)=>a+b,0)/vols.length, volRatio=volMed>0?volAvg/volMed:1;
+      // slope (least squares)
+      let sx=0,sy=0,sxx=0,sxy=0; for(let i=0;i<closes.length;i++){ sx+=i; sy+=closes[i]; sxx+=i*i; sxy+=i*closes[i]; }
+      const n=closes.length, denom=(n*sxx - sx*sx)||1; const slope=(n*sxy - sx*sy)/denom; const slopePctPerHour=(slope/first)*60*100;
+      let direction='Sideways', dirClass='warn';
+      if(pct>=0.2 || slopePctPerHour>=0.5){ direction='Uptrend'; dirClass='ok'; }
+      else if(pct<=-0.2 || slopePctPerHour<=-0.5){ direction='Downtrend'; dirClass='bad'; }
+      const busy = (std>=BUSY_VOL_STD) || (volRatio>=BUSY_VOL_RATIO);
+      const busyLabel=busy?'Busy':'Calmer', busyClass=busy?'ok':'warn';
+      return {ok:true,pct,delta,std,volRatio,slopePctPerHour,direction,dirClass,busyLabel,busyClass,closes,bars:windowBars};
+    }
+    function drawTrendChart(canvas,bars){
+      const w=canvas.width=700, h=canvas.height=160; const ctx=canvas.getContext('2d');
+      ctx.clearRect(0,0,w,h); if(!bars||bars.length<2) return;
+      const prices=bars.map(b=>b.c); const min=Math.min(...prices), max=Math.max(...prices), range=(max-min)||1;
+      const pad=8, step=(w-pad*2)/(prices.length-1);
+      ctx.lineWidth=2; ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--fg').trim() || '#eee';
+      ctx.beginPath();
+      prices.forEach((p,i)=>{const x=pad+step*i; const y=h-pad-((p-min)/range)*(h-pad*2); if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);});
+      ctx.stroke();
+    }
+    async function buildTrend(markets){
+      const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
+      trendSymEl.textContent=etf; trendTimeEl.textContent=new Date().toLocaleString();
+      trendSummaryEl.innerHTML='<span class="spinner"></span> Loading 1-minute bars...';
+      try{
+        const all=await fetchIntraday(etf);
+        const win=selectWindow(all, trendMinutes);
+        const info=statsTrend(win);
+        if(!info.ok){ trendSummaryEl.innerHTML=`<span class="muted">Trend unavailable (${info.reason})</span>`; drawTrendChart(trendCanvas,[]); return; }
+        const dirPill=`<span class="pill ${info.dirClass}"><i class="fa-solid fa-arrow-trend-${info.direction==='Downtrend'?'down':'up'}"></i> ${info.direction}</span>`;
+        const busyPill=`<span class="pill ${info.busyClass}"><i class="fa-solid fa-bolt"></i> ${info.busyLabel}</span>`;
+        const pctStr=`${info.pct>=0?'▲':'▼'} ${info.pct.toFixed(2)}%`;
+        const slopeStr=`${info.slopePctPerHour>=0?'+':''}${info.slopePctPerHour.toFixed(2)}%/hr slope`;
+        const volStr=`σ(1m) ${(info.std*100).toFixed(3)}% • Vol ratio ${info.volRatio.toFixed(2)}×`;
+        trendSummaryEl.innerHTML = `${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} • ${slopeStr} • ${volStr}</div>`;
+        drawTrendChart(trendCanvas, win);
+      }catch(e){
+        trendSummaryEl.innerHTML=`<span class="muted">Trend fetch failed (${String(e.message||e)})</span>`;
+        drawTrendChart(trendCanvas,[]);
+      }
+    }
+
+    // PREP FLOW
+    function makeLinks(markets){
+      const q=encodeURIComponent(markets.join(' ')||'ES NQ');
+      linksEl.innerHTML=`
+        <li><a target="_blank" href="https://www.google.com/search?q=index+futures">Index Futures Snapshot</a></li>
+        <li><a target="_blank" href="https://www.google.com/search?q=today+economic+calendar">Economic Calendar</a></li>
+        <li><a target="_blank" href="https://news.google.com/">Macro headlines</a></li>
+        <li><a target="_blank" href="https://news.google.com/search?q=${q}">News for ${markets.join(', ')}</a></li>`;
+    }
     function startAnalyze({linksOnly=false}={}){
-      const sel=getSelectedFutures();
-      const markets=sel.length?sel:['ES','NQ'];
-      showOutput(markets);
-      makeLinks(markets);
-      if(!linksOnly) buildSummary(markets);
-      else summaryEl.innerHTML = `<span class="muted">Quick-links mode. Tap Analyze for auto-summary.</span>`;
-      window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
+      const sel=getSelectedFutures(); const markets=sel.length?sel:['ES','NQ'];
+      showPrepHeader(markets); makeLinks(markets);
+      if(!linksOnly) buildSummary(markets); else summaryEl.innerHTML=`<span class="muted">Quick-links mode. Tap Analyze for auto-summary.</span>`;
+      window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'});
     }
 
     // Events
-    document.getElementById('start').addEventListener('click', ()=> startAnalyze({linksOnly:false}));
-    document.getElementById('quick').addEventListener('click', ()=> startAnalyze({linksOnly:true}));
+    document.getElementById('start').addEventListener('click', ()=>{ setTab('prep'); startAnalyze({linksOnly:false}); });
+    document.getElementById('quick').addEventListener('click', ()=>{ setTab('prep'); startAnalyze({linksOnly:true}); });
+    document.getElementById('runTrend').addEventListener('click', ()=>{ setTab('trend'); const m=getSelectedFutures(); buildTrend(m.length?m:['ES']); });
   </script>
 </body>
 </html>
