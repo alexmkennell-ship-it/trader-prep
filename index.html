@@ -156,6 +156,62 @@
     function headlineScore(t){const s=t.toLowerCase();let n=0;POS.forEach(w=>{if(s.includes(w))n++;});NEG.forEach(w=>{if(s.includes(w))n--;});return n;}
     function overallLabel(score){if(score>=2)return['Bullish','ok'];if(score<=-2)return['Bearish','bad'];return['Neutral','warn'];}
 
+    // —— WHY logic ——
+    const CAUSE_RULES = [
+      {key:'fed',label:'Fed/Rate outlook',pat:/(fed|powell|fomc|rate cut|rate hike|yield|treasury|dot plot|t-bill|t-note|t-bond)/i,w:2},
+      {key:'cpi',label:'Inflation (CPI/PCE)',pat:/(cpi|pce|inflation|core inflation|ppi)/i,w:2},
+      {key:'jobs',label:'Labor data',pat:/(nonfarm|nfp|payrolls|unemployment|jobless|initial claims|jolts)/i,w:2},
+      {key:'gdp',label:'Growth data',pat:/(gdp|growth|pmis?)/i,w:1},
+      {key:'earnings',label:'Earnings',pat:/(earnings|eps|revenue|guidance|beats?|miss(es)?|outlook|forecast)/i,w:2},
+      {key:'mega',label:'Mega-cap tech',pat:/(apple|aapl|microsoft|msft|amazon|amzn|google|alphabet|googl|meta|fb|nvidia|nvda|tsla)/i,w:2},
+      {key:'china',label:'China',pat:/(china|beijing|shanghai|pboc|property crisis|evergrande)/i,w:1},
+      {key:'geopol',label:'Geopolitics',pat:/(war|missile|strike|conflict|israel|ukraine|taiwan|sanction|tariff|houthis?)/i,w:2},
+      {key:'oil',label:'Oil/Energy',pat:/(oil|brent|wti|opec|opec\+|gasoline|refinery|energy prices?)/i,w:1},
+      {key:'banks',label:'Banks/Credit',pat:/(bank(s)?|credit|default|downgrade|upgrade|capital|liquidity|stress test)/i,w:1},
+      {key:'crypto',label:'Crypto',pat:/(bitcoin|btc|ethereum|eth|crypto|spot etf)/i,w:1},
+      {key:'reg',label:'Regulation/Policy',pat:/(regulat(e|ion)|antitrust|probe|ftc|doj|ec|ban|export controls?)/i,w:1}
+    ];
+    const WHY_PCT = 0.35; // show “Why?” when |move| ≥ 0.35%
+
+    function topCausesFromHeadlines(headlines, max=3){
+      const scores=new Map(); const examples={};
+      for(const h of (headlines||[])){
+        for(const rule of CAUSE_RULES){
+          if(rule.pat.test(h)){
+            scores.set(rule.key,(scores.get(rule.key)||0)+rule.w);
+            if(!examples[rule.key]) examples[rule.key]=h;
+          }
+        }
+      }
+      return Array.from(scores.entries())
+        .sort((a,b)=>b[1]-a[1]).slice(0,max)
+        .map(([key,score])=>({ key, score, label: CAUSE_RULES.find(r=>r.key===key).label, sample: examples[key]}));
+    }
+    function moveDescriptor(pct){
+      const ap=Math.abs(pct);
+      if(ap>=2) return 'surging';
+      if(ap>=1) return 'up solidly';
+      if(ap>=0.5) return 'firm';
+      if(ap>=0.2) return 'slightly higher';
+      return 'little changed';
+    }
+    function buildWhyNarrative({markets, dayRes, headlines}){
+      const parts=[];
+      if(dayRes?.ok){
+        const dir=dayRes.pct>=0?'higher':'lower';
+        const tone=moveDescriptor(dayRes.pct);
+        parts.push(`Markets are ${tone} (${dayRes.pct.toFixed(2)}% ${dir} for ${dayRes.etf} at the last close).`);
+      }
+      const causes=topCausesFromHeadlines(headlines,3);
+      if(causes.length){
+        parts.push(`Likely drivers: ${causes.map(c=>c.label).join(', ')}.`);
+        const sample=causes[0].sample; if(sample) parts.push(`e.g., “${sample.replace(/"/g,'')}”.`);
+      } else {
+        parts.push(`No dominant driver detected in headlines; tone appears mixed.`);
+      }
+      return parts.join(' ');
+    }
+
     // Fetch helpers
     async function fetchJsonOnce(u,t=9000){const c=new AbortController();const to=setTimeout(()=>c.abort('timeout'),t);try{const r=await fetch(u,{signal:c.signal,cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json();}finally{clearTimeout(to);}}
     async function fetchJsonRetry(u,tries=2){let e=null;for(let i=0;i<tries;i++){try{return await fetchJsonOnce(u,i?12000:9000);}catch(x){e=x;await new Promise(r=>setTimeout(r,300));}}throw e;}
@@ -199,9 +255,9 @@
           const d=Object.keys(s).sort().reverse();
           if(d.length>=2){
             const c0=parseFloat(s[d[0]]['4. close']), c1=parseFloat(s[d[1]]['4. close']);
-            const pct=((c0-c1)/c1)*100;
+            const pct=((c0-c1)/c1)*100, delta=c0-c1;
             const closes=d.slice(0,10).reverse().map(k=>parseFloat(s[k]['4. close'])).filter(n=>isFinite(n));
-            return {ok:true,etf,latest:d[0],prior:d[1],pct,closes,source:'alpha'};
+            return {ok:true,etf,latest:d[0],prior:d[1],pct,delta,closes,source:'alpha'};
           }
         }catch(e){}
       }
@@ -214,11 +270,11 @@
         const closes=r?.indicators?.quote?.[0]?.close?.filter(v=>v!=null) || [];
         if(closes.length>=2){
           const c0=closes.at(-1), c1=closes.at(-2);
-          const pct=((c0-c1)/c1)*100;
+          const pct=((c0-c1)/c1)*100, delta=c0-c1;
           const ts=r.timestamp||[];
           const toDate=t=>{const d=new Date(t*1000);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
           const latest=ts.length?toDate(ts.at(-1)):'', prior=ts.length>1?toDate(ts.at(-2)):'';
-          return {ok:true,etf,latest,prior,pct,closes:closes.slice(-10),source:'yahoo-proxy'};
+          return {ok:true,etf,latest,prior,pct,delta,closes:closes.slice(-10),source:'yahoo-proxy'};
         }
       }catch(e){}
 
@@ -237,9 +293,9 @@
             const last=rows.at(-1).split(','), prev=rows.at(-2).split(',');
             const c0=parseFloat(last[4]), c1=parseFloat(prev[4]);
             if(!isFinite(c0)||!isFinite(c1)) throw new Error('bad close');
-            const pct=((c0-c1)/c1)*100;
+            const pct=((c0-c1)/c1)*100, delta=c0-c1;
             const closes=rows.slice(-11).slice(1).map(r=>parseFloat(r.split(',')[4])).filter(v=>isFinite(v));
-            return {ok:true,etf,latest:last[0],prior:prev[0],pct,closes,source:u.includes('.pl')?'stooq-proxy(pl)':'stooq-proxy(com)'};
+            return {ok:true,etf,latest:last[0],prior:prev[0],pct,delta,closes,source:u.includes('.pl')?'stooq-proxy(pl)':'stooq-proxy(com)'};
           }
         }catch(e){ lastErr=e; }
       }
@@ -296,6 +352,15 @@
       } else {
         parts.push(`<div class="muted" style="margin-top:8px">Last day summary unavailable${dayRes.reason? ' ('+dayRes.reason+')':''}</div>`);
       }
+
+      // WHY? (only if move ≥ WHY_PCT)
+      try{
+        const showWhy = dayRes?.ok && Math.abs(dayRes.pct) >= WHY_PCT;
+        if(showWhy){
+          const why = buildWhyNarrative({ markets, dayRes, headlines: (newsRes.ok ? newsRes.headlines : []) });
+          parts.push(`<p style="margin-top:10px"><strong>Why?</strong> ${why}</p>`);
+        }
+      }catch(_){}
 
       summaryEl.innerHTML = parts.join('');
 
