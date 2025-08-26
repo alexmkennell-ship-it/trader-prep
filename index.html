@@ -115,10 +115,7 @@
 
     /* Last refreshed flash */
     .flash { animation: flash 0.6s ease; }
-    @keyframes flash {
-      0% { color: var(--ok); }
-      100% { color: var(--muted); }
-    }
+    @keyframes flash { 0% { color: var(--ok); } 100% { color: var(--muted); } }
   </style>
 </head>
 <body>
@@ -204,6 +201,7 @@
       <div class="tabs">
         <button class="tabbtn active" id="tab-prep">Prep</button>
         <button class="tabbtn" id="tab-trend">Trend</button>
+        <button class="tabbtn" id="tab-risk">Risk</button>
       </div>
       <strong>Choose your markets</strong>
       <div class="bundles">
@@ -227,20 +225,21 @@
           </select>
         </div>
         <div>
-          <div class="muted">Trend timeframe</div>
+          <div class="muted">Trend/Risk timeframe</div>
           <div class="seg" style="margin-top:6px">
             <button class="segbtn" data-tf="5">5m</button>
             <button class="segbtn active" data-tf="15">15m</button>
             <button class="segbtn" data-tf="30">30m</button>
             <button class="segbtn" data-tf="60">60m</button>
           </div>
-          <div class="muted" style="margin-top:6px">Trend uses 1-minute Yahoo bars (via your proxy), mapped futures → ETFs.</div>
+          <div class="muted" style="margin-top:6px">Trend/Risk use 1-minute Yahoo bars (via your proxy), mapped futures → ETFs.</div>
         </div>
       </div>
 
       <div class="actions" style="margin-top:12px">
         <button id="start" class="primary"><i class="fa-solid fa-bolt"></i>&nbsp;Analyze (Prep)</button>
         <button id="runTrend" class="primary"><i class="fa-solid fa-wave-square"></i>&nbsp;Analyze (Trend)</button>
+        <button id="runRisk" class="primary"><i class="fa-solid fa-fire-flame-curved"></i>&nbsp;Analyze (Risk)</button>
         <button id="quick"><i class="fa-regular fa-bookmark"></i>&nbsp;Quick links only</button>
         <button id="openSettings" style="margin-left:auto"><i class="fa-solid fa-gear"></i></button>
       </div>
@@ -274,6 +273,36 @@
         <div class="muted" style="margin-top:6px">
           We compute 1-minute returns and flag as <b>Busy</b> when realized vol in the window is elevated
           (≥ ~0.06% std-dev) or average volume is above the window’s median (≥ 1.2×). Tweak: <code>BUSY_VOL_STD</code>, <code>BUSY_VOL_RATIO</code>.
+        </div>
+      </details>
+    </div>
+
+    <!-- RISK OUTPUT -->
+    <div id="riskOut" class="card" style="display:none">
+      <div class="row">
+        <strong>Risk Read</strong>
+        <span class="muted">Window: <span id="riskWin">15m</span></span>
+      </div>
+
+      <!-- Mode toggle -->
+      <div class="seg" id="riskModeSeg" style="margin:6px 0 2px">
+        <button class="segbtn active" data-mode="conservative">Conservative</button>
+        <button class="segbtn" data-mode="aggressive">Aggressive</button>
+      </div>
+
+      <div class="muted">Primary: <span id="riskSym"></span> (mapped ETF) • <span id="riskTime"></span></div>
+      <div id="riskSummary" style="margin-top:12px"></div>
+      <canvas id="riskChart"></canvas>
+      <div id="riskAdvice" style="margin-top:12px"></div>
+      <div class="muted" style="margin-top:6px;font-size:12px">Last refreshed: <span id="riskRef">—</span></div>
+
+      <details style="margin-top:10px">
+        <summary>How “Aggressive” works</summary>
+        <div class="muted" style="margin-top:6px">
+          Aggressive mode looks at the <b>last 3 one-minute candles</b> for directional unanimity and a minimum net move
+          threshold. If the last 3 closes are <b>all higher</b> and the total change ≥ <code>0.05%</code>, it recommends <b>Buy</b>.
+          If <b>all lower</b> with ≤ <code>−0.05%</code>, it recommends <b>Sell</b>. Otherwise it says <b>Wait</b>.
+          Conservative mode uses the broader trend/vol logic you prefer.
         </div>
       </details>
     </div>
@@ -314,29 +343,36 @@
     document.getElementById('openSettings').onclick=()=>setNav('nav-settings');
 
     // Tabs
-    const tabPrep=document.getElementById('tab-prep'), tabTrend=document.getElementById('tab-trend');
-    const prepOut=document.getElementById('prepOut'), trendOut=document.getElementById('trendOut');
+    const tabPrep=document.getElementById('tab-prep'), tabTrend=document.getElementById('tab-trend'), tabRisk=document.getElementById('tab-risk');
+    const prepOut=document.getElementById('prepOut'), trendOut=document.getElementById('trendOut'), riskOut=document.getElementById('riskOut');
     function setTab(which){
       tabPrep.classList.toggle('active', which==='prep');
-      tabTrend.classList.toggle('active', which!=='prep');
-      prepOut.style.display = which==='prep' ? '' : 'none';
-      trendOut.style.display = which==='prep' ? 'none' : '';
+      tabTrend.classList.toggle('active', which==='trend');
+      tabRisk.classList.toggle('active', which==='risk');
+      prepOut.style.display  = which==='prep'  ? '' : 'none';
+      trendOut.style.display = which==='trend' ? '' : 'none';
+      riskOut.style.display  = which==='risk'  ? '' : 'none';
     }
 
     // Elements
-    const startBtn=document.getElementById('start'), quickBtn=document.getElementById('quick'), runTrendBtn=document.getElementById('runTrend');
+    const startBtn=document.getElementById('start'), quickBtn=document.getElementById('quick'), runTrendBtn=document.getElementById('runTrend'), runRiskBtn=document.getElementById('runRisk');
     const futuresSel=document.getElementById('futures');
     const nowEl=document.getElementById('now'), focusEl=document.getElementById('focus'), summaryEl=document.getElementById('summary');
     const keyStatusEl=document.getElementById('keyStatus'), gnewsEl=document.getElementById('gnews'), alphaEl=document.getElementById('alpha');
     const saveBtn=document.getElementById('saveKeys'), saveMsg=document.getElementById('saveMsg'), linksEl=document.getElementById('links');
+
     const trendWinEl=document.getElementById('trendWin'), trendSymEl=document.getElementById('trendSym'), trendTimeEl=document.getElementById('trendTime'), trendSummaryEl=document.getElementById('trendSummary');
-    const trendAdviceEl=document.getElementById('trendAdvice');
-    const trendCanvas=document.getElementById('trendChart');
+    const trendAdviceEl=document.getElementById('trendAdvice'); const trendCanvas=document.getElementById('trendChart');
+
+    const riskWinEl=document.getElementById('riskWin'), riskSymEl=document.getElementById('riskSym'), riskTimeEl=document.getElementById('riskTime'), riskSummaryEl=document.getElementById('riskSummary');
+    const riskAdviceEl=document.getElementById('riskAdvice'); const riskCanvas=document.getElementById('riskChart');
+    const riskModeSeg=document.getElementById('riskModeSeg');
+
     const chipAK=document.getElementById('chipAK'), chipBG=document.getElementById('chipBG');
     const chipAKAll=document.getElementById('chipAKAll'), chipBGAll=document.getElementById('chipBGAll');
     const chipAKWrap=document.getElementById('chipAKWrap'), chipBGWrap=document.getElementById('chipBGWrap');
 
-    // Default trend timeframe = 15m
+    // Default trend/risk timeframe = 15m
     let trendMinutes=15;
 
     // Keys
@@ -359,6 +395,7 @@
       segBtns.forEach(btn=>btn.classList.toggle('active', parseInt(btn.dataset.tf,10)===mins));
       trendMinutes = mins;
       trendWinEl.textContent = mins+'m';
+      riskWinEl.textContent  = mins+'m';
     }
     segBtns.forEach(btn=>{
       btn.addEventListener('click', ()=>{
@@ -656,13 +693,117 @@
 
         // Last refreshed line + flash
         const refEl = document.getElementById('trendRef');
-        if (refEl) {
-          refEl.textContent = new Date().toLocaleTimeString();
-          refEl.classList.remove('flash'); void refEl.offsetWidth; refEl.classList.add('flash');
-        }
+        if (refEl) { refEl.textContent = new Date().toLocaleTimeString(); refEl.classList.remove('flash'); void refEl.offsetWidth; refEl.classList.add('flash'); }
       }catch(e){
         trendSummaryEl.innerHTML=`<span class="muted">Trend fetch failed (${String(e.message||e)})</span>`;
         drawTrendChart(trendCanvas,[]);
+      }
+    }
+
+    // ====== RISK TAB ======
+    let riskMode = 'conservative'; // default
+
+    if (riskModeSeg){
+      riskModeSeg.addEventListener('click', (e)=>{
+        const btn = e.target.closest('.segbtn');
+        if (!btn) return;
+        riskMode = btn.dataset.mode || 'conservative';
+        Array.from(riskModeSeg.querySelectorAll('.segbtn')).forEach(b=>b.classList.toggle('active', b===btn));
+        document.getElementById('riskWin').textContent = `${trendMinutes}m`;
+        const m = getSelectedFutures();
+        buildRisk(m.length?m:['ES']);
+      });
+    }
+
+    function last3Signal(bars){
+      const last3 = (bars||[]).slice(-3);
+      if (last3.length < 3) return {text:'Recommend: <b>Wait</b> (need 3 bars)', action:'Wait'};
+      const c0=last3[0].c, c1=last3[1].c, c2=last3[2].c;
+      const up  = (c1>c0) && (c2>c1);
+      const dn  = (c1<c0) && (c2<c1);
+      const pct = ((c2 - c0)/c0)*100;
+      const THRESH = 0.05; // 0.05% net across 3 minutes
+      if (up && pct >= THRESH)   return {text:`Recommend: <b>Buy</b> (Aggressive: last 3 ↑, +${pct.toFixed(2)}%)`, action:'Buy'};
+      if (dn && pct <= -THRESH)  return {text:`Recommend: <b>Sell</b> (Aggressive: last 3 ↓, ${pct.toFixed(2)}%)`, action:'Sell'};
+      return {text:'Recommend: <b>Wait</b> (Aggressive: mixed/insufficient move)', action:'Wait'};
+    }
+
+    // Lean from the last 5 one-minute candles (Aggressive-only)
+    function fiveMinLean(bars){
+      const last5 = (bars || []).slice(-5);
+      if (last5.length < 2) return null;
+      const first = last5[0].c, last = last5.at(-1).c;
+      const pct = ((last - first) / first) * 100;
+      let ups = 0, downs = 0;
+      for (let i = 1; i < last5.length; i++){
+        const d = last5[i].c - last5[i-1].c;
+        if (d > 0) ups++; else if (d < 0) downs++;
+      }
+      const dir = (pct > 0 || (Math.abs(pct) < 1e-9 && ups >= downs)) ? 'Bullish' : 'Bearish';
+      const cls = dir === 'Bullish' ? 'ok' : 'bad';
+      return { dir, cls, pct, ups, downs };
+    }
+
+    async function buildRisk(markets){
+      const etf = FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
+      riskSymEl.textContent = etf;
+      riskTimeEl.textContent = new Date().toLocaleString();
+      riskSummaryEl.innerHTML = '<span class="spinner"></span> Loading 1-minute bars...';
+      riskAdviceEl.innerHTML = '';
+
+      try{
+        const all = await fetchIntraday(etf);
+        const win = selectWindow(all, trendMinutes); // reuse timeframe
+        const info = statsTrend(win);
+        if(!info.ok){ riskSummaryEl.innerHTML=`<span class="muted">Risk read unavailable (${info.reason})</span>`; drawTrendChart(riskCanvas,[]); return; }
+
+        const dirPill  = `<span class="pill ${info.dirClass}"><i class="fa-solid fa-arrow-trend-${info.direction==='Downtrend'?'down':'up'}"></i> ${info.direction}</span>`;
+        const busyPill = `<span class="pill ${info.busyClass}"><i class="fa-solid fa-bolt"></i> ${info.busyLabel}</span>`;
+        const pctStr   = `${info.pct>=0?'▲':'▼'} ${info.pct.toFixed(2)}%`;
+        const slopeStr = `${info.slopePctPerHour>=0?'+':''}${info.slopePctPerHour.toFixed(2)}%/hr slope`;
+        const volStr   = `σ(1m) ${(info.std*100).toFixed(3)}% • Vol ratio ${info.volRatio.toFixed(2)}×`;
+        riskSummaryEl.innerHTML = `${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} • ${slopeStr} • ${volStr}</div>`;
+        drawTrendChart(riskCanvas, win);
+
+        // Recommendation: conservative vs aggressive
+        let rec;
+        if (riskMode === 'aggressive') {
+          rec = last3Signal(win);
+        } else {
+          rec = tradeSuggestion(info);
+          rec = { text: rec.text.replace('Recommend:', 'Recommend (Conservative):'), action: rec.action };
+        }
+
+        riskAdviceEl.innerHTML = `
+          <div class="pill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941">
+            <i class="fa-solid fa-lightbulb"></i>&nbsp; ${rec.text}
+          </div>
+          <div class="muted" style="margin-top:6px;font-size:12px">
+            Disclaimer: This is an automated summary and not financial advice.
+          </div>
+        `;
+
+        // Aggressive-only: add "last 5 minutes" lean bubble (always Bullish or Bearish)
+        if (riskMode === 'aggressive') {
+          const lean = fiveMinLean(win);
+          if (lean) {
+            const pctStr2 = `${lean.pct >= 0 ? '+' : ''}${lean.pct.toFixed(2)}%`;
+            riskAdviceEl.innerHTML += `
+              <div class="pill ${lean.cls}" style="margin-top:8px">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                &nbsp; According to the last 5 minutes, this trend is leaning <b>${lean.dir}</b> (${pctStr2}).
+              </div>
+            `;
+          }
+        }
+
+        // Last refreshed
+        const refEl = document.getElementById('riskRef');
+        if (refEl) { refEl.textContent = new Date().toLocaleTimeString(); refEl.classList.remove('flash'); void refEl.offsetWidth; refEl.classList.add('flash'); }
+        riskWinEl.textContent = `${trendMinutes}m`;
+      }catch(e){
+        riskSummaryEl.innerHTML=`<span class="muted">Risk fetch failed (${String(e.message||e)})</span>`;
+        drawTrendChart(riskCanvas,[]);
       }
     }
 
@@ -700,17 +841,17 @@
     }
 
     async function pnlPostLog({ user, amount, note }) {
-  const body = new URLSearchParams({
-    token: PNL_TOKEN,
-    user,
-    amount: String(Number(amount)),
-    note: note || ''
-  });
-  const r = await fetch(PNL_API, { method: 'POST', body }); // no headers needed
-  if (!r.ok) throw new Error('HTTP ' + r.status);
-  const j = await r.json();
-  if (!j.ok) throw new Error(j.error || 'bad');
-  return j;
+      const body = new URLSearchParams({
+        token: PNL_TOKEN,
+        user,
+        amount: String(Number(amount)),
+        note: note || ''
+      });
+      const r = await fetch(PNL_API, { method: 'POST', body }); // no headers → simple request
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error || 'bad');
+      return j;
     }
 
     let _todayLogCache = []; // session-side log view
@@ -736,14 +877,6 @@
     }
 
     // ====== PREP FLOW ======
-    function makeLinks(markets){
-      const q=encodeURIComponent(markets.join(' ')||'ES NQ');
-      linksEl.innerHTML=`
-        <li><a target="_blank" href="https://www.google.com/search?q=index+futures">Index Futures Snapshot</a></li>
-        <li><a target="_blank" href="https://www.google.com/search?q=today+economic+calendar">Economic Calendar</a></li>
-        <li><a target="_blank" href="https://news.google.com/">Macro headlines</a></li>
-        <li><a target="_blank" href="https://news.google.com/search?q=${q}">News for ${markets.join(', ')}</a></li>`;
-    }
     async function startAnalyze({linksOnly=false}={}){
       const sel=getSelectedFutures(); const markets=sel.length?sel:['ES','NQ'];
       showPrepHeader(markets); makeLinks(markets);
@@ -755,6 +888,7 @@
     document.getElementById('start').addEventListener('click', ()=>{ setNav('nav-prep'); setTab('prep'); startAnalyze({linksOnly:false}); });
     document.getElementById('quick').addEventListener('click', ()=>{ setNav('nav-prep'); setTab('prep'); startAnalyze({linksOnly:true}); });
     document.getElementById('runTrend').addEventListener('click', ()=>{ setNav('nav-trend'); setTab('trend'); const m=getSelectedFutures(); buildTrend(m.length?m:['ES']); });
+    document.getElementById('runRisk').addEventListener('click', ()=>{ setTab('risk'); const m=getSelectedFutures(); buildRisk(m.length?m:['ES']); });
 
     // PnL events + auto refresh
     document.addEventListener('DOMContentLoaded', () => {
@@ -790,12 +924,11 @@
       // Ensure 15m is highlighted on load
       setTfActive(15);
 
-      // Auto-refresh Trend every 30s when visible
+      // Auto-refresh Trend/Risk every 30s when visible
       setInterval(()=>{
-        if (trendOut.style.display !== 'none') {
-          const m = getSelectedFutures();
-          buildTrend(m.length ? m : ['ES']);
-        }
+        const m = getSelectedFutures();
+        if (trendOut.style.display !== 'none') buildTrend(m.length ? m : ['ES']);
+        if (riskOut.style.display  !== 'none') buildRisk (m.length ? m : ['ES']);
       }, 30000);
     });
   </script>
