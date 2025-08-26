@@ -20,7 +20,7 @@
     :root{
       --bg:#1b191b; --panel:#2a292f; --panel-2:#242328; --line:#35343a;
       --fg:#f1f2f4; --muted:#a7adbb;
-      --accent:#6f5aff;               /* darker signature purple */
+      --accent:#7424ac;               /* darker signature purple */
       --accent-graph:#8a78ff;         /* graph purple (price lines) */
       --ok:#6abd74; --bad:#e05d5d; --warn:#d3a54a; --pill:#24252b;
       --shadow:0 6px 18px rgba(0,0,0,.35); --radius:14px; --pad:16px;
@@ -417,7 +417,7 @@
       // FMV (VWAP) dashed purple
       let cumPV=0, cumVol=0;
       ctx.beginPath();
-      ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#6f5aff';
+      ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#7424ac';
       ctx.setLineDash([5,4]);
       ctx.lineWidth=1.7;
       for(let i=0;i<bars.length;i++){
