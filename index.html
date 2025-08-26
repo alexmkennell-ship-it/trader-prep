@@ -7,124 +7,69 @@
   <meta name="color-scheme" content="dark"/>
   <title>Trader Prep</title>
 
-  <!-- Icons (CDN, free) -->
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" referrerpolicy="no-referrer"/>
-
-  <!-- PWA bits (optional) -->
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icon-192.png">
 
   <style>
     :root {
-      --bg: #1b191b;
-      --panel: #2a292f;
-      --panel-2: #242328;
-      --line: #35343a;
-      --fg: #f1f2f4;
-      --muted: #a7adbb;
-      --accent: #7c5cff;   /* purple */
-      --ok: #6abd74;
-      --bad: #e05d5d;
-      --warn: #d3a54a;
-      --pill: #24252b;
-      --shadow: 0 6px 18px rgba(0,0,0,.35);
-      --radius: 14px;
-      --pad: 16px;
+      --bg:#1b191b; --panel:#2a292f; --panel-2:#242328; --line:#35343a;
+      --fg:#f1f2f4; --muted:#a7adbb; --accent:#7c5cff;
+      --ok:#6abd74; --bad:#e05d5d; --warn:#d3a54a; --pill:#24252b;
+      --shadow:0 6px 18px rgba(0,0,0,.35); --radius:14px; --pad:16px;
     }
-    html,body {background:var(--bg);color:var(--fg);}
-    body{font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif; margin:0; padding:0;}
-    a{color:inherit;}
+    html,body{background:var(--bg);color:var(--fg)}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;margin:0}
+    a{color:inherit}
 
-    /* Header */
-    .topbar{
-      position:sticky; top:0; z-index:50;
-      display:flex; align-items:center; justify-content:space-between;
-      background:linear-gradient(180deg, #201f25 0%, #1a191f 100%);
-      border-bottom:1px solid var(--line);
-      padding:10px 14px;
-    }
-    .brand{display:flex; gap:10px; align-items:center;}
-    .brand .logo{
-      width:34px; height:34px; display:grid; place-items:center;
-      border-radius:10px; background:#2f2e36; border:1px solid var(--line);
-    }
-    .brand h1{font-size:16px; margin:0; letter-spacing:.3px;}
-    .navicons{display:flex; gap:10px; align-items:center;}
-    .iconbtn{
-      width:36px;height:36px; display:grid; place-items:center; border-radius:10px;
-      border:1px solid var(--line); background:#26252b; cursor:pointer; color:#cfd3dc;
-    }
-    .iconbtn.active{background:var(--accent); color:#090909; border-color:transparent;}
+    .topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,#201f25 0%,#1a191f 100%);border-bottom:1px solid var(--line);padding:10px 14px}
+    .brand{display:flex;gap:10px;align-items:center}
+    .brand .logo{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:#2f2e36;border:1px solid var(--line)}
+    .brand h1{font-size:16px;margin:0;letter-spacing:.3px}
+    .navicons{display:flex;gap:10px;align-items:center}
+    .iconbtn{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;border:1px solid var(--line);background:#26252b;cursor:pointer;color:#cfd3dc}
+    .iconbtn.active{background:var(--accent);color:#090909;border-color:transparent}
 
-    /* Stat strip */
-    .statstrip{
-      display:flex; gap:10px; align-items:center; padding:10px 14px; flex-wrap:wrap;
-      border-bottom:1px solid var(--line); background:#1e1d22;
-    }
-    .chip{
-      display:flex; gap:8px; align-items:center; padding:6px 10px;
-      background:#2a2930; border:1px solid var(--line); border-radius:10px; font-size:12px;
-      transition: background .2s, color .2s, border-color .2s;
-    }
-    .chip.ok{background:#213224; color:var(--ok); border-color:#2a4930;}
-    .chip.warn{background:#332d1f; color:var(--warn); border-color:#5a4726;}
-    .chip.bad{background:#372325; color:var(--bad); border-color:#5d3439;}
+    .statstrip{display:flex;gap:10px;align-items:center;padding:10px 14px;flex-wrap:wrap;border-bottom:1px solid var(--line);background:#1e1d22}
+    .chip{display:flex;gap:8px;align-items:center;padding:6px 10px;background:#2a2930;border:1px solid var(--line);border-radius:10px;font-size:12px}
+    .chip.ok{background:#213224;color:var(--ok);border-color:#2a4930}
+    .chip.warn{background:#332d1f;color:var(--warn);border-color:#5a4726}
+    .chip.bad{background:#372325;color:var(--bad);border-color:#5d3439}
 
-    /* Layout */
-    .wrap{max-width:1100px; margin:0 auto; padding:14px;}
-    .card{
-      background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
-      padding:var(--pad); box-shadow:var(--shadow); margin:14px 0;
-    }
-    .muted{color:var(--muted);}
-    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
-    .actions{display:flex; gap:10px; flex-wrap:wrap;}
-    button,select,input{font-size:15px;}
-    select,input{
-      background:var(--panel-2); color:var(--fg);
-      border:1px solid var(--line); border-radius:12px; padding:10px 12px; width:100%;
-    }
-    button{
-      padding:10px 14px; border-radius:12px; border:1px solid var(--line);
-      background:var(--panel-2); color:var(--fg); cursor:pointer;
-    }
-    .primary{background:var(--accent); color:#0b0b10; border-color:transparent; font-weight:600;}
-    .tabs{display:flex; gap:10px; margin:8px 0 2px;}
-    .tabbtn{border-radius:10px; border:1px solid var(--line); background:#26252b; padding:8px 12px; cursor:pointer;}
-    .tabbtn.active{background:var(--accent); color:#0b0b10; border-color:transparent;}
-    .pill{
-      display:inline-flex; gap:8px; align-items:center; padding:6px 12px; border-radius:999px;
-      background:var(--pill); border:1px solid var(--line); font-size:13px;
-    }
-    .ok{color:var(--ok);} .warn{color:var(--warn);} .bad{color:var(--bad);}
-    details summary{cursor:pointer;}
-    .bundles{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;}
-    .bundle{padding:6px 10px; border-radius:10px; border:1px solid var(--line); background:#26252b; font-size:14px; cursor:pointer;}
-    .grid{display:grid; grid-template-columns: 1fr 1fr; gap:12px;}
-    @media (max-width:900px){ .grid{grid-template-columns:1fr;} }
-    canvas{ width:100%; max-width:700px; height:160px; border-radius:10px; background:#24252b; margin-top:10px; }
-
-    /* Trend timeframe segmented buttons */
-    .seg{display:flex; gap:8px; flex-wrap:wrap;}
-    .segbtn{padding:8px 12px; border:1px solid var(--line); background:#26252b; border-radius:10px; cursor:pointer;}
-    .segbtn.active{background:var(--accent); color:#0b0b10; border-color:transparent;}
-
-    .spinner{display:inline-block; width:18px; height:18px; border:3px solid #45434c; border-top-color:#ddd; border-radius:50%; animation:spin 1s linear infinite; vertical-align:-3px;}
+    .wrap{max-width:1100px;margin:0 auto;padding:14px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:var(--pad);box-shadow:var(--shadow);margin:14px 0}
+    .muted{color:var(--muted)}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}
+    button,select,input{font-size:15px}
+    select,input{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%}
+    button{padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg);cursor:pointer}
+    .primary{background:var(--accent);color:#0b0b10;border-color:transparent;font-weight:600}
+    .tabs{display:flex;gap:10px;margin:8px 0 2px}
+    .tabbtn{border-radius:10px;border:1px solid var(--line);background:#26252b;padding:8px 12px;cursor:pointer}
+    .tabbtn.active{background:var(--accent);color:#0b0b10;border-color:transparent}
+    .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 12px;border-radius:999px;background:var(--pill);border:1px solid var(--line);font-size:13px}
+    .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+    details summary{cursor:pointer}
+    .bundles{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+    .bundle{padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:#26252b;font-size:14px;cursor:pointer}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
+    canvas{width:100%;max-width:700px;height:160px;border-radius:10px;background:#24252b;margin-top:10px}
+    .seg{display:flex;gap:8px;flex-wrap:wrap}
+    .segbtn{padding:8px 12px;border:1px solid var(--line);background:#26252b;border-radius:10px;cursor:pointer}
+    .segbtn.active{background:var(--accent);color:#0b0b10;border-color:transparent}
+    .spinner{display:inline-block;width:18px;height:18px;border:3px solid #45434c;border-top-color:#ddd;border-radius:50%;animation:spin 1s linear infinite;vertical-align:-3px}
     @keyframes spin{to{transform:rotate(360deg)}}
-
-    /* Last refreshed flash */
-    .flash { animation: flash 0.6s ease; }
-    @keyframes flash { 0% { color: var(--ok); } 100% { color: var(--muted); } }
+    .flash{animation:flash .6s ease}@keyframes flash{0%{color:var(--ok)}100%{color:var(--muted)}}
+    .sliderrow{display:flex;align-items:center;gap:10px}
+    .sliderrow input[type=range]{width:180px}
   </style>
 </head>
 <body>
-  <!-- HEADER -->
   <header class="topbar">
-    <div class="brand">
-      <div class="logo"><i class="fa-solid fa-chart-simple"></i></div>
-      <h1>Trader Prep</h1>
-    </div>
+    <div class="brand"><div class="logo"><i class="fa-solid fa-chart-simple"></i></div><h1>Trader Prep</h1></div>
     <nav class="navicons">
       <div class="iconbtn active" id="nav-prep" title="Prep"><i class="fa-solid fa-bars-staggered"></i></div>
       <div class="iconbtn" id="nav-trend" title="Trend"><i class="fa-solid fa-wave-square"></i></div>
@@ -133,67 +78,30 @@
     </nav>
   </header>
 
-  <!-- STATS STRIP: AK/BG with color-by-P&L -->
   <div class="statstrip">
-    <div class="chip" id="chipAKWrap">
-      <span class="muted">AK$ (today):</span> <strong id="chipAK">$0.00</strong>
-      <span class="muted" style="margin-left:8px">/ all:</span> <strong id="chipAKAll">$0.00</strong>
-    </div>
-    <div class="chip" id="chipBGWrap">
-      <span class="muted">BG$ (today):</span> <strong id="chipBG">$0.00</strong>
-      <span class="muted" style="margin-left:8px">/ all:</span> <strong id="chipBGAll">$0.00</strong>
-    </div>
+    <div class="chip" id="chipAKWrap"><span class="muted">AK$ (today):</span> <strong id="chipAK">$0.00</strong><span class="muted" style="margin-left:8px">/ all:</span> <strong id="chipAKAll">$0.00</strong></div>
+    <div class="chip" id="chipBGWrap"><span class="muted">BG$ (today):</span> <strong id="chipBG">$0.00</strong><span class="muted" style="margin-left:8px">/ all:</span> <strong id="chipBGAll">$0.00</strong></div>
     <div class="chip ok" id="conn1"><i class="fa-solid fa-signal"></i> API OK</div>
     <div class="chip ok" id="conn2"><i class="fa-solid fa-chart-line"></i> Data OK</div>
   </div>
 
   <div class="wrap">
-    <!-- SETTINGS (API keys only) -->
+    <!-- SETTINGS -->
     <div class="card" id="panel-settings" style="display:none">
       <div class="row"><strong>Settings</strong><span class="muted">(Keys optional; proxy fallback built-in)</span></div>
-      <div class="row" style="margin-top:10px">
-        <label class="muted" style="min-width:170px">GNews API Key</label>
-        <input id="gnews" placeholder="gnews.io token">
-      </div>
-      <div class="row" style="margin-top:10px">
-        <label class="muted" style="min-width:170px">Alpha Vantage Key</label>
-        <input id="alpha" placeholder="alphavantage.co key">
-      </div>
-      <div class="actions" style="margin-top:10px">
-        <button id="saveKeys" class="primary"><i class="fa-regular fa-floppy-disk"></i>&nbsp;Save Keys</button>
-        <span id="saveMsg" class="muted"></span>
-      </div>
+      <div class="row" style="margin-top:10px"><label class="muted" style="min-width:170px">GNews API Key</label><input id="gnews" placeholder="gnews.io token"></div>
+      <div class="row" style="margin-top:10px"><label class="muted" style="min-width:170px">Alpha Vantage Key</label><input id="alpha" placeholder="alphavantage.co key"></div>
+      <div class="actions" style="margin-top:10px"><button id="saveKeys" class="primary"><i class="fa-regular fa-floppy-disk"></i>&nbsp;Save Keys</button><span id="saveMsg" class="muted"></span></div>
     </div>
 
-    <!-- PROFIT LOG (separate panel) -->
+    <!-- PNL -->
     <div class="card" id="panel-pnl" style="display:none">
       <div class="row"><strong>Daily P&L Log</strong><span class="muted">(updates AK$/BG$ chips for today)</span></div>
-      <div class="row" style="margin-top:10px">
-        <label class="muted" style="min-width:170px">Who</label>
-        <div class="actions">
-          <label><input type="radio" name="who" value="AK" checked> AK</label>
-          <label style="margin-left:10px"><input type="radio" name="who" value="BG"> BG</label>
-        </div>
-      </div>
-      <div class="row" style="margin-top:10px">
-        <label class="muted" style="min-width:170px">Amount ($)</label>
-        <input id="pnlAmount" placeholder="e.g. 125.50 or -75">
-      </div>
-      <div class="row" style="margin-top:10px">
-        <label class="muted" style="min-width:170px">Note (optional)</label>
-        <input id="pnlNote" placeholder="scalp NQ open, etc.">
-      </div>
-      <div class="actions" style="margin-top:10px">
-        <button id="logPnl" class="primary"><i class="fa-solid fa-plus"></i>&nbsp;Log Profit</button>
-        <span id="pnlMsg" class="muted"></span>
-      </div>
-      <details style="margin-top:12px">
-        <summary>Today’s entries</summary>
-        <div id="pnlTodayTable" class="muted" style="margin-top:8px">—</div>
-        <div class="actions" style="margin-top:8px">
-          <button id="undoLast"><i class="fa-solid fa-rotate-left"></i>&nbsp;Undo last entry</button>
-        </div>
-      </details>
+      <div class="row" style="margin-top:10px"><label class="muted" style="min-width:170px">Who</label><div class="actions"><label><input type="radio" name="who" value="AK" checked> AK</label><label style="margin-left:10px"><input type="radio" name="who" value="BG"> BG</label></div></div>
+      <div class="row" style="margin-top:10px"><label class="muted" style="min-width:170px">Amount ($)</label><input id="pnlAmount" placeholder="e.g. 125.50 or -75"></div>
+      <div class="row" style="margin-top:10px"><label class="muted" style="min-width:170px">Note (optional)</label><input id="pnlNote" placeholder="scalp NQ open, etc."></div>
+      <div class="actions" style="margin-top:10px"><button id="logPnl" class="primary"><i class="fa-solid fa-plus"></i>&nbsp;Log Profit</button><span id="pnlMsg" class="muted"></span></div>
+      <details style="margin-top:12px"><summary>Today’s entries</summary><div id="pnlTodayTable" class="muted" style="margin-top:8px">—</div><div class="actions" style="margin-top:8px"><button id="undoLast"><i class="fa-solid fa-rotate-left"></i>&nbsp;Undo last entry</button></div></details>
     </div>
 
     <!-- MARKETS -->
@@ -214,14 +122,10 @@
         <div>
           <label class="muted">Futures/markets</label>
           <select id="futures" multiple size="8">
-            <option value="ES">ES – S&P 500</option>
-            <option value="NQ">NQ – Nasdaq 100</option>
-            <option value="YM">YM – Dow</option>
-            <option value="RTY">RTY – Russell 2000</option>
-            <option value="CL">CL – Crude Oil</option>
-            <option value="GC">GC – Gold</option>
-            <option value="ZN">ZN – 10-Yr Note</option>
-            <option value="6E">6E – EUR/USD</option>
+            <option value="ES">ES – S&P 500</option><option value="NQ">NQ – Nasdaq 100</option>
+            <option value="YM">YM – Dow</option><option value="RTY">RTY – Russell 2000</option>
+            <option value="CL">CL – Crude Oil</option><option value="GC">GC – Gold</option>
+            <option value="ZN">ZN – 10-Yr Note</option><option value="6E">6E – EUR/USD</option>
           </select>
         </div>
         <div>
@@ -245,49 +149,42 @@
       </div>
     </div>
 
-    <!-- PREP OUTPUT -->
+    <!-- PREP -->
     <div id="prepOut" class="card">
-      <div class="row">
-        <strong>Trader Prep</strong>
-        <span class="muted">Now: <span id="now"></span></span>
-      </div>
+      <div class="row"><strong>Trader Prep</strong><span class="muted">Now: <span id="now"></span></span></div>
       <div class="muted">Focus: <span id="focus"></span> • <span id="keyStatus"></span></div>
       <div id="summary" style="margin-top:12px"></div>
       <h3 style="margin-top:16px">Quick Links</h3>
       <ul id="links"></ul>
     </div>
 
-    <!-- TREND OUTPUT -->
+    <!-- TREND -->
     <div id="trendOut" class="card" style="display:none">
-      <div class="row">
-        <strong>Current Trend</strong>
-        <span class="muted">Window: <span id="trendWin">15m</span></span>
-      </div>
+      <div class="row"><strong>Current Trend</strong><span class="muted">Window: <span id="trendWin">15m</span></span></div>
       <div class="muted">Primary: <span id="trendSym"></span> (mapped ETF) • <span id="trendTime"></span></div>
       <div id="trendSummary" style="margin-top:12px"></div>
       <canvas id="trendChart"></canvas>
       <div id="trendAdvice" style="margin-top:12px"></div>
       <div class="muted" style="margin-top:6px;font-size:12px">Last refreshed: <span id="trendRef">—</span></div>
-      <details style="margin-top:10px">
-        <summary>How we decide “busy”</summary>
-        <div class="muted" style="margin-top:6px">
-          We compute 1-minute returns and flag as <b>Busy</b> when realized vol in the window is elevated
-          (≥ ~0.06% std-dev) or average volume is above the window’s median (≥ 1.2×). Tweak: <code>BUSY_VOL_STD</code>, <code>BUSY_VOL_RATIO</code>.
-        </div>
+      <details style="margin-top:10px"><summary>How we decide “busy”</summary>
+        <div class="muted" style="margin-top:6px">We compute 1-minute returns and flag as <b>Busy</b> when realized vol in the window is elevated (≥ ~0.06% std-dev) or average volume is above the window’s median (≥ 1.2×). Tweak: <code>BUSY_VOL_STD</code>, <code>BUSY_VOL_RATIO</code>.</div>
       </details>
     </div>
 
-    <!-- RISK OUTPUT -->
+    <!-- RISK -->
     <div id="riskOut" class="card" style="display:none">
-      <div class="row">
-        <strong>Risk Read</strong>
-        <span class="muted">Window: <span id="riskWin">15m</span></span>
-      </div>
+      <div class="row"><strong>Risk Read</strong><span class="muted">Window: <span id="riskWin">15m</span></span></div>
 
-      <!-- Mode toggle -->
       <div class="seg" id="riskModeSeg" style="margin:6px 0 2px">
         <button class="segbtn active" data-mode="conservative">Conservative</button>
         <button class="segbtn" data-mode="aggressive">Aggressive</button>
+      </div>
+
+      <!-- NEW: Candles slider -->
+      <div class="sliderrow" style="margin:4px 0 8px">
+        <span class="muted" style="min-width:120px">Candles (1m each)</span>
+        <input id="riskCandles" type="range" min="3" max="15" step="1" value="3">
+        <span class="pill" id="riskCandlesLabel">3 min</span>
       </div>
 
       <div class="muted">Primary: <span id="riskSym"></span> (mapped ETF) • <span id="riskTime"></span></div>
@@ -296,132 +193,92 @@
       <div id="riskAdvice" style="margin-top:12px"></div>
       <div class="muted" style="margin-top:6px;font-size:12px">Last refreshed: <span id="riskRef">—</span></div>
 
-      <details style="margin-top:10px">
-        <summary>How “Aggressive” works</summary>
+      <details style="margin-top:10px"><summary>How Aggressive works</summary>
         <div class="muted" style="margin-top:6px">
-          Aggressive mode looks at the <b>last 3 one-minute candles</b> for directional unanimity and a minimum net move
-          threshold. If the last 3 closes are <b>all higher</b> and the total change ≥ <code>0.05%</code>, it recommends <b>Buy</b>.
-          If <b>all lower</b> with ≤ <code>−0.05%</code>, it recommends <b>Sell</b>. Otherwise it says <b>Wait</b>.
-          Conservative mode uses the broader trend/vol logic you prefer.
+          Aggressive: looks at the <b>last N one-minute candles</b> for directional unanimity and a scaled net-move threshold. Conservative uses the same N but requires stronger confirmation and alignment with the broader tape; otherwise recommends <b>Wait</b>.
         </div>
       </details>
     </div>
   </div>
 
   <script>
-    /* ---------------------------- IMPORTANT ----------------------------
-       1) Replace with YOUR Google Apps Script Web App URL (must end in /exec?url=)
-          Example: 'https://script.google.com/macros/s/AKfycbxYOURID/exec?url='
-       2) Set PNL_API (your PnL Apps Script /exec) and PNL_TOKEN (same token as in that script)
-    ------------------------------------------------------------------- */
-    const PROXY_RAW = 'https://script.google.com/macros/s/AKfycbztzwYcRxD3mQ2MgD99ubT3-nW-nQJiU-thNoUrdRuMkrTIF1LilnEyCbysHP6Z7HYf/exec?url=';
+    /* Config */
+    const PROXY_RAW='https://script.google.com/macros/s/AKfycbztzwYcRxD3mQ2MgD99ubT3-nW-nQJiU-thNoUrdRuMkrTIF1LilnEyCbysHP6Z7HYf/exec?url=';
+    const PNL_API='https://script.google.com/macros/s/AKfycbz2b9H8BLD7BvWfbtWaPnaThvUHM66MsnBcDb0_siM5L_xxqj1MrfqSPk1uOjvbbNx0/exec';
+    const PNL_TOKEN='CHANGE_ME_32CHAR';
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 
-    // ===== PnL API =====
-    const PNL_API   = 'https://script.google.com/macros/s/AKfycbz2b9H8BLD7BvWfbtWaPnaThvUHM66MsnBcDb0_siM5L_xxqj1MrfqSPk1uOjvbbNx0/exec'; // <-- no ?url=
-    const PNL_TOKEN = 'CHANGE_ME_32CHAR';
-
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
-
-    // Panels/nav
-    const panelSettings = document.getElementById('panel-settings');
-    const panelPnL = document.getElementById('panel-pnl');
-    const navPrep=document.getElementById('nav-prep'), navTrend=document.getElementById('nav-trend'), navSettings=document.getElementById('nav-settings'), navPnL=document.getElementById('nav-pnl');
-
-    function hidePanels(){ panelSettings.style.display='none'; panelPnL.style.display='none'; }
+    /* Nav */
+    const panelSettings=document.getElementById('panel-settings');
+    const panelPnL=document.getElementById('panel-pnl');
+    const navPrep=document.getElementById('nav-prep'),navTrend=document.getElementById('nav-trend'),navSettings=document.getElementById('nav-settings'),navPnL=document.getElementById('nav-pnl');
+    function hidePanels(){panelSettings.style.display='none';panelPnL.style.display='none'}
     function setNav(active){
-      [navPrep,navTrend,navSettings,navPnL].forEach(n=>n.classList.toggle('active', n.id===active));
+      [navPrep,navTrend,navSettings,navPnL].forEach(n=>n.classList.toggle('active',n.id===active));
       hidePanels();
-      if(active==='nav-settings'){ panelSettings.style.display='block'; }
-      if(active==='nav-pnl'){ panelPnL.style.display='block'; }
-      if(active==='nav-prep'){ setTab('prep'); }
-      if(active==='nav-trend'){ setTab('trend'); }
+      if(active==='nav-settings') panelSettings.style.display='block';
+      if(active==='nav-pnl') panelPnL.style.display='block';
+      if(active==='nav-prep') setTab('prep');
+      if(active==='nav-trend') setTab('trend');
     }
-    navPrep.onclick=()=>setNav('nav-prep');
-    navTrend.onclick=()=>setNav('nav-trend');
-    navSettings.onclick=()=>setNav('nav-settings');
-    navPnL.onclick=()=>setNav('nav-pnl');
+    navPrep.onclick=()=>setNav('nav-prep'); navTrend.onclick=()=>setNav('nav-trend'); navSettings.onclick=()=>setNav('nav-settings'); navPnL.onclick=()=>setNav('nav-pnl');
     document.getElementById('openSettings').onclick=()=>setNav('nav-settings');
 
-    // Tabs
+    /* Tabs */
     const tabPrep=document.getElementById('tab-prep'), tabTrend=document.getElementById('tab-trend'), tabRisk=document.getElementById('tab-risk');
     const prepOut=document.getElementById('prepOut'), trendOut=document.getElementById('trendOut'), riskOut=document.getElementById('riskOut');
     function setTab(which){
-      tabPrep.classList.toggle('active', which==='prep');
-      tabTrend.classList.toggle('active', which==='trend');
-      tabRisk.classList.toggle('active', which==='risk');
-      prepOut.style.display  = which==='prep'  ? '' : 'none';
-      trendOut.style.display = which==='trend' ? '' : 'none';
-      riskOut.style.display  = which==='risk'  ? '' : 'none';
+      tabPrep.classList.toggle('active',which==='prep');
+      tabTrend.classList.toggle('active',which==='trend');
+      tabRisk.classList.toggle('active',which==='risk');
+      prepOut.style.display=(which==='prep')?'':'none';
+      trendOut.style.display=(which==='trend')?'':'none';
+      riskOut.style.display=(which==='risk')?'':'none';
     }
 
-    // Elements
+    /* Elements */
     const startBtn=document.getElementById('start'), quickBtn=document.getElementById('quick'), runTrendBtn=document.getElementById('runTrend'), runRiskBtn=document.getElementById('runRisk');
     const futuresSel=document.getElementById('futures');
     const nowEl=document.getElementById('now'), focusEl=document.getElementById('focus'), summaryEl=document.getElementById('summary');
     const keyStatusEl=document.getElementById('keyStatus'), gnewsEl=document.getElementById('gnews'), alphaEl=document.getElementById('alpha');
     const saveBtn=document.getElementById('saveKeys'), saveMsg=document.getElementById('saveMsg'), linksEl=document.getElementById('links');
 
-    const trendWinEl=document.getElementById('trendWin'), trendSymEl=document.getElementById('trendSym'), trendTimeEl=document.getElementById('trendTime'), trendSummaryEl=document.getElementById('trendSummary');
-    const trendAdviceEl=document.getElementById('trendAdvice'); const trendCanvas=document.getElementById('trendChart');
-
-    const riskWinEl=document.getElementById('riskWin'), riskSymEl=document.getElementById('riskSym'), riskTimeEl=document.getElementById('riskTime'), riskSummaryEl=document.getElementById('riskSummary');
-    const riskAdviceEl=document.getElementById('riskAdvice'); const riskCanvas=document.getElementById('riskChart');
+    const trendWinEl=document.getElementById('trendWin'), trendSymEl=document.getElementById('trendSym'), trendTimeEl=document.getElementById('trendTime'), trendSummaryEl=document.getElementById('trendSummary'), trendAdviceEl=document.getElementById('trendAdvice'), trendCanvas=document.getElementById('trendChart');
+    const riskWinEl=document.getElementById('riskWin'), riskSymEl=document.getElementById('riskSym'), riskTimeEl=document.getElementById('riskTime'), riskSummaryEl=document.getElementById('riskSummary'), riskAdviceEl=document.getElementById('riskAdvice'), riskCanvas=document.getElementById('riskChart');
     const riskModeSeg=document.getElementById('riskModeSeg');
+    const riskCandles=document.getElementById('riskCandles'), riskCandlesLabel=document.getElementById('riskCandlesLabel');
 
-    const chipAK=document.getElementById('chipAK'), chipBG=document.getElementById('chipBG');
-    const chipAKAll=document.getElementById('chipAKAll'), chipBGAll=document.getElementById('chipBGAll');
-    const chipAKWrap=document.getElementById('chipAKWrap'), chipBGWrap=document.getElementById('chipBGWrap');
-
-    // Default trend/risk timeframe = 15m
+    /* Timeframe buttons */
     let trendMinutes=15;
+    const segBtns=document.querySelectorAll('.segbtn[data-tf]');
+    function setTfActive(mins){
+      segBtns.forEach(btn=>btn.classList.toggle('active',parseInt(btn.dataset.tf,10)===mins));
+      trendMinutes=mins; trendWinEl.textContent=mins+'m'; riskWinEl.textContent=mins+'m';
+    }
+    segBtns.forEach(btn=>btn.addEventListener('click',()=>setTfActive(parseInt(btn.dataset.tf,10))));
 
-    // Keys
-    function loadKeys(){ gnewsEl.value=localStorage.getItem('GNEWS_KEY')||''; alphaEl.value=localStorage.getItem('ALPHA_KEY')||''; }
-    function saveKeys(){ localStorage.setItem('GNEWS_KEY',gnewsEl.value.trim()); localStorage.setItem('ALPHA_KEY',alphaEl.value.trim()); saveMsg.textContent='Saved ✓'; setTimeout(()=>saveMsg.textContent='',1500);}
+    /* Keys */
+    function loadKeys(){gnewsEl.value=localStorage.getItem('GNEWS_KEY')||'';alphaEl.value=localStorage.getItem('ALPHA_KEY')||''}
+    function saveKeys(){localStorage.setItem('GNEWS_KEY',gnewsEl.value.trim());localStorage.setItem('ALPHA_KEY',alphaEl.value.trim());saveMsg.textContent='Saved ✓';setTimeout(()=>saveMsg.textContent='',1500)}
     loadKeys(); saveBtn.addEventListener('click',saveKeys);
 
-    // Bundles & timeframe
-    function getSelectedFutures(){ return Array.from(futuresSel.selectedOptions).map(o=>o.value); }
-    document.querySelectorAll('.bundle[data-bundle]').forEach(b=>{
-      b.addEventListener('click', ()=>{
-        const arr=b.dataset.bundle.split(',');
-        for(const o of futuresSel.options) o.selected=arr.includes(o.value);
-      });
-    });
+    /* Futures helpers */
+    function getSelectedFutures(){return Array.from(futuresSel.selectedOptions).map(o=>o.value)}
+    document.querySelectorAll('.bundle[data-bundle]').forEach(b=>b.addEventListener('click',()=>{const arr=b.dataset.bundle.split(',');for(const o of futuresSel.options)o.selected=arr.includes(o.value)}));
 
-    // Segmented timeframe buttons (5/15/30/60)
-    const segBtns = document.querySelectorAll('.segbtn[data-tf]');
-    function setTfActive(mins){
-      segBtns.forEach(btn=>btn.classList.toggle('active', parseInt(btn.dataset.tf,10)===mins));
-      trendMinutes = mins;
-      trendWinEl.textContent = mins+'m';
-      riskWinEl.textContent  = mins+'m';
-    }
-    segBtns.forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const mins = parseInt(btn.dataset.tf,10);
-        setTfActive(mins);
-      });
-    });
+    /* Links */
+    function showPrepHeader(markets){nowEl.textContent=new Date().toLocaleString();focusEl.textContent=markets.join(', ')}
+    function makeLinks(markets){const q=encodeURIComponent(markets.join(' ')||'ES NQ');linksEl.innerHTML=`<li><a target="_blank" href="https://www.google.com/search?q=index+futures">Index Futures Snapshot</a></li><li><a target="_blank" href="https://www.google.com/search?q=today+economic+calendar">Economic Calendar</a></li><li><a target="_blank" href="https://news.google.com/">Macro headlines</a></li><li><a target="_blank" href="https://news.google.com/search?q=${q}">News for ${markets.join(', ')}</a></li>`}
 
-    function showPrepHeader(markets){ nowEl.textContent=new Date().toLocaleString(); focusEl.textContent=markets.join(', '); }
-    function makeLinks(markets){
-      const q=encodeURIComponent(markets.join(' ')||'ES NQ');
-      linksEl.innerHTML=`
-        <li><a target="_blank" href="https://www.google.com/search?q=index+futures">Index Futures Snapshot</a></li>
-        <li><a target="_blank" href="https://www.google.com/search?q=today+economic+calendar">Economic Calendar</a></li>
-        <li><a target="_blank" href="https://news.google.com/">Macro headlines</a></li>
-        <li><a target="_blank" href="https://news.google.com/search?q=${q}">News for ${markets.join(', ')}</a></li>`;
-    }
-
-    // Maps & helpers
+    /* Maps */
     const FUTURES_TO_ETF={ES:'SPY',NQ:'QQQ',YM:'DIA',RTY:'IWM',CL:'USO',GC:'GLD',ZN:'IEF','6E':'FXE'};
     const ETF_TO_STOOQ={SPY:'spy.us',QQQ:'qqq.us',DIA:'dia.us',IWM:'iwm.us',USO:'uso.us',GLD:'gld.us',IEF:'ief.us',FXE:'fxe.us'};
 
+    /* Sentiment rules */
     const POS=['beat','surge','strong','record','optim','rally','up','gain','bull','expand','growth'];
     const NEG=['miss','fall','weak','cut','warn','down','bear','slump','contract','decline','risk','halt','ban','tariff'];
-    function headlineScore(t){const s=t.toLowerCase();let n=0;POS.forEach(w=>{if(s.includes(w))n++;});NEG.forEach(w=>{if(s.includes(w))n--;});return n;}
-    function overallLabel(score){if(score>=2)return['Bullish','ok'];if(score<=-2)return['Bearish','bad'];return['Neutral','warn'];}
+    function headlineScore(t){const s=t.toLowerCase();let n=0;POS.forEach(w=>{if(s.includes(w))n++});NEG.forEach(w=>{if(s.includes(w))n--});return n}
+    function overallLabel(score){if(score>=2)return['Bullish','ok'];if(score<=-2)return['Bearish','bad'];return['Neutral','warn']}
 
     const CAUSE_RULES=[
       {key:'fed',label:'Fed/Rate outlook',pat:/(fed|powell|fomc|rate cut|rate hike|yield|treasury|dot plot|t-bill|t-note|t-bond)/i,w:2},
@@ -440,339 +297,182 @@
     const WHY_PCT=0.35;
 
     function topCausesFromHeadlines(headlines,max=3){
-      const scores=new Map(); const examples={};
-      for(const h of (headlines||[])){
-        for(const r of CAUSE_RULES){
-          if(r.pat.test(h)){ scores.set(r.key,(scores.get(r.key)||0)+r.w); if(!examples[r.key]) examples[r.key]=h; }
-        }
-      }
-      return Array.from(scores.entries()).sort((a,b)=>b[1]-a[1]).slice(0,max)
-        .map(([key,score])=>({key,score,label:CAUSE_RULES.find(rr=>rr.key===key).label,sample:examples[key]}));
+      const scores=new Map();const examples={};
+      for(const h of (headlines||[])){for(const r of CAUSE_RULES){if(r.pat.test(h)){scores.set(r.key,(scores.get(r.key)||0)+r.w);if(!examples[r.key])examples[r.key]=h}}}
+      return Array.from(scores.entries()).sort((a,b)=>b[1]-a[1]).slice(0,max).map(([key,score])=>({key,score,label:CAUSE_RULES.find(rr=>rr.key===key).label,sample:examples[key]}))
     }
-    function moveDescriptor(pct){const ap=Math.abs(pct); if(ap>=2)return'surging'; if(ap>=1)return'up solidly'; if(ap>=0.5)return'firm'; if(ap>=0.2)return'slightly higher'; return'little changed';}
-    function buildWhyNarrative({dayRes,headlines}){
-      const parts=[];
-      if(dayRes?.ok){const dir=dayRes.pct>=0?'higher':'lower', tone=moveDescriptor(dayRes.pct);
-        parts.push(`Markets are ${tone} (${dayRes.pct.toFixed(2)}% ${dir} for ${dayRes.etf} at the last close).`);}
-      const causes=topCausesFromHeadlines(headlines,3);
-      if(causes.length){parts.push(`Likely drivers: ${causes.map(c=>c.label).join(', ')}.`); const s=causes[0].sample; if(s) parts.push(`e.g., “${s.replace(/"/g,'')}”.`);}
-      else parts.push(`No dominant driver detected; tone appears mixed.`);
-      return parts.join(' ');
-    }
+    function moveDescriptor(pct){const ap=Math.abs(pct);if(ap>=2)return'surging';if(ap>=1)return'up solidly';if(ap>=0.5)return'firm';if(ap>=0.2)return'slightly higher';return'little changed'}
+    function buildWhyNarrative({dayRes,headlines}){const parts=[];if(dayRes?.ok){const dir=dayRes.pct>=0?'higher':'lower',tone=moveDescriptor(dayRes.pct);parts.push(`Markets are ${tone} (${dayRes.pct.toFixed(2)}% ${dir} for ${dayRes.etf} at the last close).`)}const causes=topCausesFromHeadlines(headlines,3);if(causes.length){parts.push(`Likely drivers: ${causes.map(c=>c.label).join(', ')}.`);const s=causes[0].sample;if(s)parts.push(`e.g., “${s.replace(/"/g,'')}”.`)}else parts.push(`No dominant driver detected; tone appears mixed.`);return parts.join(' ')}
 
-    // Fetch helpers
-    async function fetchJsonOnce(u,t=9000){const c=new AbortController();const to=setTimeout(()=>c.abort('timeout'),t);try{const r=await fetch(u,{signal:c.signal,cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json();}finally{clearTimeout(to);}}
-    async function fetchJsonRetry(u,tries=2){let e=null;for(let i=0;i<tries;i++){try{return await fetchJsonOnce(u,i?12000:9000);}catch(x){e=x;await new Promise(r=>setTimeout(r,300));}}throw e;}
-    async function fetchTextOnce(u,t=9000){const c=new AbortController();const to=setTimeout(()=>c.abort('timeout'),t);try{const r=await fetch(u,{signal:c.signal,cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.text();}finally{clearTimeout(to);}}
-    async function fetchTextRetry(u,tries=2){let e=null;for(let i=0;i<tries;i++){try{return await fetchTextOnce(u,i?12000:9000);}catch(x){e=x;await new Promise(r=>setTimeout(r,300));}}throw e;}
+    /* Fetch helpers */
+    async function fetchJsonOnce(u,t=9000){const c=new AbortController();const to=setTimeout(()=>c.abort('timeout'),t);try{const r=await fetch(u,{signal:c.signal,cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}finally{clearTimeout(to)}}
+    async function fetchJsonRetry(u,tries=2){let e=null;for(let i=0;i<tries;i++){try{return await fetchJsonOnce(u,i?12000:9000)}catch(x){e=x;await new Promise(r=>setTimeout(r,300))}}throw e}
+    async function fetchTextOnce(u,t=9000){const c=new AbortController();const to=setTimeout(()=>c.abort('timeout'),t);try{const r=await fetch(u,{signal:c.signal,cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.text()}finally{clearTimeout(to)}}
+    async function fetchTextRetry(u,tries=2){let e=null;for(let i=0;i<tries;i++){try{return await fetchTextOnce(u,i?12000:9000)}catch(x){e=x;await new Promise(r=>setTimeout(r,300))}}throw e}
 
-    // Headlines (GNews if key; else Google News RSS via proxy)
+    /* Headlines */
     async function getHeadlines(markets){
       const gkey=(localStorage.getItem('GNEWS_KEY')||'').trim();
-      if(gkey){
-        try{
-          const q=encodeURIComponent(markets.join(' OR '));
-          const url=`https://gnews.io/api/v4/search?q=${q}&lang=en&country=us&max=20&token=${gkey}`;
-          const data=await fetchJsonRetry(url,2);
-          const headlines=(data.articles||[]).map(a=>a.title||'').filter(Boolean);
-          return {ok:true,source:'gnews',headlines};
-        }catch(e){}
-      }
-      const q=encodeURIComponent(markets.join(' '));
-      const rss=`https://news.google.com/rss/search?q=${q}&hl=en-US&gl=US&ceid=US:en&t=${Date.now()}`;
-      try{
-        const xml=await fetchTextRetry(PROXY_RAW+encodeURIComponent(rss),2);
-        const doc=new DOMParser().parseFromString(xml,'text/xml');
-        const items=Array.from(doc.querySelectorAll('item>title'));
-        const heads=items.map(n=>n.textContent||'').filter(Boolean);
-        return {ok:heads.length>0,source:'rss-proxy',headlines:heads};
-      }catch(e){ return {ok:false,source:'rss-proxy',reason:String(e)}; }
-    }
+      if(gkey){try{const q=encodeURIComponent(markets.join(' OR '));const url=`https://gnews.io/api/v4/search?q=${q}&lang=en&country=us&max=20&token=${gkey}`;const data=await fetchJsonRetry(url,2);const headlines=(data.articles||[]).map(a=>a.title||'').filter(Boolean);return {ok:true,source:'gnews',headlines}}catch(e){}}
+      const q=encodeURIComponent(markets.join(' '));const rss=`https://news.google.com/rss/search?q=${q}&hl=en-US&gl=US&ceid=US:en&t=${Date.now()}`;
+      try{const xml=await fetchTextRetry(PROXY_RAW+encodeURIComponent(rss),2);const doc=new DOMParser().parseFromString(xml,'text/xml');const items=Array.from(doc.querySelectorAll('item>title'));const heads=items.map(n=>n.textContent||'').filter(Boolean);return {ok:heads.length>0,source:'rss-proxy',headlines:heads}}catch(e){return {ok:false,source:'rss-proxy',reason:String(e)}}}
 
-    // Last day: Alpha (key) → Yahoo (proxy) → Stooq (proxy)
+    /* Last day (Alpha→Yahoo→Stooq) */
     async function getLastDayMove(markets){
       const akey=(localStorage.getItem('ALPHA_KEY')||'').trim();
       const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
-
-      if(akey){
-        try{
-          const url=`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${etf}&apikey=${akey}`;
-          const data=await fetchJsonRetry(url,2);
-          const s=data['Time Series (Daily)']||{};
-          const d=Object.keys(s).sort().reverse();
-          if(d.length>=2){
-            const c0=parseFloat(s[d[0]]['4. close']), c1=parseFloat(s[d[1]]['4. close']);
-            const pct=((c0-c1)/c1)*100, delta=c0-c1;
-            const closes=d.slice(0,10).reverse().map(k=>parseFloat(s[k]['4. close'])).filter(n=>isFinite(n));
-            return {ok:true,etf,latest:d[0],prior:d[1],pct,delta,closes,source:'alpha'};
-          }
-        }catch(e){}
-      }
-      try{
-        const yUrl=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(etf)}?range=15d&interval=1d&t=${Date.now()}`;
-        const yData=await fetchJsonRetry(PROXY_RAW+encodeURIComponent(yUrl),2);
-        const r=yData?.chart?.result?.[0];
-        const closes=r?.indicators?.quote?.[0]?.close?.filter(v=>v!=null)||[];
-        if(closes.length>=2){
-          const c0=closes.at(-1), c1=closes.at(-2);
-          const pct=((c0-c1)/c1)*100, delta=c0-c1;
-          const ts=r.timestamp||[];
-          const toDate=t=>{const d=new Date(t*1000);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
-          const latest=ts.length?toDate(ts.at(-1)):'', prior=ts.length>1?toDate(ts.at(-2)):'';
-          return {ok:true,etf,latest,prior,pct,delta,closes:closes.slice(-10),source:'yahoo-proxy'};
-        }
-      }catch(e){}
-      const sym=ETF_TO_STOOQ[etf]||'spy.us';
-      const srcs=[
-        `https://stooq.com/q/d/l/?s=${encodeURIComponent(sym)}&i=d&t=${Date.now()}`,
-        `https://stooq.pl/q/d/l/?s=${encodeURIComponent(sym)}&i=d&t=${Date.now()}`
-      ];
-      let lastErr=null;
-      for(const u of srcs){
-        try{
-          const csv=await fetchTextRetry(PROXY_RAW+encodeURIComponent(u),2);
-          const rows=csv.trim().split('\n');
-          if(rows.length>=3){
-            const last=rows.at(-1).split(','), prev=rows.at(-2).split(',');
-            const c0=parseFloat(last[4]), c1=parseFloat(prev[4]);
-            if(!isFinite(c0)||!isFinite(c1)) throw new Error('bad close');
-            const pct=((c0-c1)/c1)*100, delta=c0-c1;
-            const closes=rows.slice(-11).slice(1).map(r=>parseFloat(r.split(',')[4])).filter(v=>isFinite(v));
-            return {ok:true,etf,latest:last[0],prior:prev[0],pct,delta,closes,source:u.includes('.pl')?'stooq-proxy(pl)':'stooq-proxy(com)'};
-          }
-        }catch(e){ lastErr=e; }
-      }
-      return {ok:false,reason:String(lastErr||'fetch failed')};
-    }
-
-    function sentimentFrom(headlines){const total=headlines.reduce((a,t)=>a+headlineScore(t),0);const [label,cls]=overallLabel(total);return {label,cls,total};}
-    function drawSparkline(container,values){
-      if(!values||values.length<2) return;
-      const c=document.createElement('canvas'); c.width=480; c.height=100; container.appendChild(c);
-      const ctx=c.getContext('2d'); const w=c.width,h=c.height,p=8;
-      const min=Math.min(...values), max=Math.max(...values), range=(max-min)||1, step=(w-p*2)/(values.length-1);
-      ctx.lineWidth=2; ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--fg').trim() || '#eee';
-      ctx.beginPath();
-      values.forEach((v,i)=>{const x=p+step*i, y=h-p-((v-min)/range)*(h-p*2); if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);});
-      ctx.stroke();
-    }
+      if(akey){try{const url=`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${etf}&apikey=${akey}`;const data=await fetchJsonRetry(url,2);const s=data['Time Series (Daily)']||{};const d=Object.keys(s).sort().reverse();if(d.length>=2){const c0=parseFloat(s[d[0]]['4. close']), c1=parseFloat(s[d[1]]['4. close']);const pct=((c0-c1)/c1)*100, delta=c0-c1;const closes=d.slice(0,10).reverse().map(k=>parseFloat(s[k]['4. close'])).filter(n=>isFinite(n));return {ok:true,etf,latest:d[0],prior:d[1],pct,delta,closes,source:'alpha'}}}catch(e){}}
+      try{const yUrl=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(etf)}?range=15d&interval=1d&t=${Date.now()}`;const yData=await fetchJsonRetry(PROXY_RAW+encodeURIComponent(yUrl),2);const r=yData?.chart?.result?.[0];const closes=r?.indicators?.quote?.[0]?.close?.filter(v=>v!=null)||[];if(closes.length>=2){const c0=closes.at(-1), c1=closes.at(-2);const pct=((c0-c1)/c1)*100, delta=c0-c1;const ts=r.timestamp||[];const toDate=t=>{const d=new Date(t*1000);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};const latest=ts.length?toDate(ts.at(-1)):'', prior=ts.length>1?toDate(ts.at(-2)):'';return {ok:true,etf,latest,prior,pct,delta,closes:closes.slice(-10),source:'yahoo-proxy'}}}catch(e){}
+      const sym=ETF_TO_STOOQ[etf]||'spy.us';const srcs=[`https://stooq.com/q/d/l/?s=${encodeURIComponent(sym)}&i=d&t=${Date.now()}`,`https://stooq.pl/q/d/l/?s=${encodeURIComponent(sym)}&i=d&t=${Date.now()}`];
+      let lastErr=null;for(const u of srcs){try{const csv=await fetchTextRetry(PROXY_RAW+encodeURIComponent(u),2);const rows=csv.trim().split('\n');if(rows.length>=3){const last=rows.at(-1).split(','), prev=rows.at(-2).split(',');const c0=parseFloat(last[4]), c1=parseFloat(prev[4]);if(!isFinite(c0)||!isFinite(c1)) throw new Error('bad close');const pct=((c0-c1)/c1)*100, delta=c0-c1;const closes=rows.slice(-11).slice(1).map(r=>parseFloat(r.split(',')[4])).filter(v=>isFinite(v));return {ok:true,etf,latest:last[0],prior:prev[0],pct,delta,closes,source:u.includes('.pl')?'stooq-proxy(pl)':'stooq-proxy(com)'}}}catch(e){lastErr=e}}return {ok:false,reason:String(lastErr||'fetch failed')}}
+    function sentimentFrom(h){const total=h.reduce((a,t)=>a+headlineScore(t),0);const [label,cls]=overallLabel(total);return {label,cls,total}}
+    function drawSparkline(container,values){if(!values||values.length<2)return;const c=document.createElement('canvas');c.width=480;c.height=100;container.appendChild(c);const ctx=c.getContext('2d');const w=c.width,h=c.height,p=8;const min=Math.min(...values),max=Math.max(...values),range=(max-min)||1,step=(w-p*2)/(values.length-1);ctx.lineWidth=2;ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--fg').trim()||'#eee';ctx.beginPath();values.forEach((v,i)=>{const x=p+step*i,y=h-p-((v-min)/range)*(h-p*2);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke()}
 
     async function buildSummary(markets){
       nowEl.textContent=new Date().toLocaleString();
-      const gkey=(localStorage.getItem('GNEWS_KEY')||'').trim();
-      const akey=(localStorage.getItem('ALPHA_KEY')||'').trim();
-      keyStatusEl.textContent = (!gkey || !akey) ? 'Using proxy for any missing services.' : 'Using saved API keys where available.';
+      const gkey=(localStorage.getItem('GNEWS_KEY')||'').trim(), akey=(localStorage.getItem('ALPHA_KEY')||'').trim();
+      keyStatusEl.textContent=(!gkey||!akey)?'Using proxy for any missing services.':'Using saved API keys where available.';
       summaryEl.innerHTML='<span class="spinner"></span> Analyzing...';
-
       let newsRes={ok:false,reason:'timeout'}, dayRes={ok:false,reason:'timeout'};
-      try{ newsRes=await getHeadlines(markets); }catch(e){ newsRes={ok:false,reason:String(e)}; }
-      try{ dayRes=await getLastDayMove(markets); }catch(e){ dayRes={ok:false,reason:String(e)}; }
-
+      try{newsRes=await getHeadlines(markets)}catch(e){newsRes={ok:false,reason:String(e)}}
+      try{dayRes=await getLastDayMove(markets)}catch(e){dayRes={ok:false,reason:String(e)}}
       const parts=[];
-
-      if(newsRes.ok && newsRes.headlines?.length){
-        const senti=sentimentFrom(newsRes.headlines);
-        const overall = senti.total>=2 ? 'lean <b>bullish</b>' : (senti.total<=-2 ? 'lean <b>bearish</b>' : 'look <b>mixed/neutral</b>');
-        parts.push(`<div class="pill ${senti.cls}"><i class="fa-regular fa-newspaper"></i> News sentiment (${newsRes.source}): <strong>${senti.label}</strong></div>`);
-        parts.push(`<p style="margin-top:8px">According to current news, <b>${markets.join(', ')}</b> ${overall} as of now.</p>`);
-        const top = newsRes.headlines.slice(0,5).map(h=>`<li>${h}</li>`).join('');
-        parts.push(`<details style="margin-top:6px"><summary>Top headlines</summary><ul>${top}</ul></details>`);
-      } else {
-        parts.push(`<div class="muted"><i class="fa-regular fa-newspaper"></i> News sentiment unavailable${newsRes.reason? ' ('+newsRes.reason+')':''}</div>`);
-      }
-
-      if(dayRes.ok){
-        const dir=dayRes.pct>=0?'▲':'▼', cls=dayRes.pct>=0?'ok':'bad';
-        let weekendHint=''; try{ const dL=new Date(dayRes.latest).getDay(), dP=new Date(dayRes.prior).getDay(); if(dL===1 && dP===5) weekendHint=' (Fri → Mon)'; }catch(_){}
-        parts.push(`<div class="pill ${cls}" style="margin-top:8px"><i class="fa-solid fa-chart-line"></i> Prev day (${dayRes.etf}, ${dayRes.source}): ${dir} ${dayRes.pct.toFixed(2)}% (close ${dayRes.latest}${weekendHint})</div>`);
-      } else {
-        parts.push(`<div class="muted" style="margin-top:8px">Last day summary unavailable${dayRes.reason? ' ('+dayRes.reason+')':''}</div>`);
-      }
-
-      try{
-        const showWhy = dayRes?.ok && Math.abs(dayRes.pct) >= WHY_PCT;
-        if(showWhy){
-          const why = buildWhyNarrative({ dayRes, headlines: (newsRes.ok ? newsRes.headlines : []) });
-          parts.push(`<p style="margin-top:10px"><strong>Why?</strong> ${why}</p>`);
-        }
-      }catch(_){}
-
-      summaryEl.innerHTML = parts.join('');
-      if(dayRes.ok && dayRes.closes?.length) drawSparkline(summaryEl, dayRes.closes);
+      if(newsRes.ok&&newsRes.headlines?.length){const senti=sentimentFrom(newsRes.headlines);const overall=senti.total>=2?'lean <b>bullish</b>':(senti.total<=-2?'lean <b>bearish</b>':'look <b>mixed/neutral</b>');parts.push(`<div class="pill ${senti.cls}"><i class="fa-regular fa-newspaper"></i> News sentiment (${newsRes.source}): <strong>${senti.label}</strong></div>`);parts.push(`<p style="margin-top:8px">According to current news, <b>${markets.join(', ')}</b> ${overall} as of now.</p>`);const top=newsRes.headlines.slice(0,5).map(h=>`<li>${h}</li>`).join('');parts.push(`<details style="margin-top:6px"><summary>Top headlines</summary><ul>${top}</ul></details>`)}else{parts.push(`<div class="muted"><i class="fa-regular fa-newspaper"></i> News sentiment unavailable${newsRes.reason?' ('+newsRes.reason+')':''}</div>`)}
+      if(dayRes.ok){const dir=dayRes.pct>=0?'▲':'▼',cls=dayRes.pct>=0?'ok':'bad';let weekendHint='';try{const dL=new Date(dayRes.latest).getDay(),dP=new Date(dayRes.prior).getDay();if(dL===1&&dP===5)weekendHint=' (Fri → Mon)'}catch(_){}} else {parts.push(`<div class="muted" style="margin-top:8px">Last day summary unavailable${dayRes.reason?' ('+dayRes.reason+')':''}</div>`)}
+      try{const showWhy=dayRes?.ok&&Math.abs(dayRes.pct)>=WHY_PCT;if(showWhy){const why=buildWhyNarrative({dayRes,headlines:(newsRes.ok?newsRes.headlines:[])});parts.push(`<p style="margin-top:10px"><strong>Why?</strong> ${why}</p>`)}}catch(_){}
+      summaryEl.innerHTML=parts.join('');
+      if(dayRes.ok&&dayRes.closes?.length) drawSparkline(summaryEl,dayRes.closes);
     }
 
-    // ====== TREND TAB ======
+    /* TREND */
     const BUSY_VOL_STD=0.0006, BUSY_VOL_RATIO=1.20;
-
-    async function fetchIntraday(etf){
-      const u=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(etf)}?range=1d&interval=1m&includePrePost=true&t=${Date.now()}`;
-      const data=await fetchJsonRetry(PROXY_RAW+encodeURIComponent(u),2);
-      const r=data?.chart?.result?.[0]; const q=r?.indicators?.quote?.[0]; const ts=r?.timestamp||[];
-      const out=[]; for(let i=0;i<ts.length;i++){ const c=q?.close?.[i], v=q?.volume?.[i]; if(c!=null && v!=null){ out.push({t:ts[i]*1000,c,v}); } }
-      return out;
-    }
-    function selectWindow(bars, minutes){
-      if(!bars.length) return [];
-      const cutoff=Date.now()-minutes*60*1000;
-      const recent=bars.filter(b=>b.t>=cutoff);
-      if(recent.length<Math.min(15,minutes)) return bars.slice(-Math.max(15,minutes));
-      return recent;
-    }
+    async function fetchIntraday(etf){const u=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(etf)}?range=1d&interval=1m&includePrePost=true&t=${Date.now()}`;const data=await fetchJsonRetry(PROXY_RAW+encodeURIComponent(u),2);const r=data?.chart?.result?.[0];const q=r?.indicators?.quote?.[0];const ts=r?.timestamp||[];const out=[];for(let i=0;i<ts.length;i++){const c=q?.close?.[i],v=q?.volume?.[i];if(c!=null&&v!=null)out.push({t:ts[i]*1000,c,v})}return out}
+    function selectWindow(bars,minutes){if(!bars.length)return[];const cutoff=Date.now()-minutes*60*1000;const recent=bars.filter(b=>b.t>=cutoff);if(recent.length<Math.min(15,minutes))return bars.slice(-Math.max(15,minutes));return recent}
     function statsTrend(windowBars){
       if(windowBars.length<5) return {ok:false,reason:'not enough bars'};
       const closes=windowBars.map(b=>b.c), vols=windowBars.map(b=>b.v);
       const first=closes[0], last=closes.at(-1);
       const pct=(last-first)/first*100, delta=last-first;
-      const rets=[]; for(let i=1;i<closes.length;i++){ const r=(closes[i]-closes[i-1])/closes[i-1]; if(isFinite(r)) rets.push(r); }
+      const rets=[]; for(let i=1;i<closes.length;i++){const r=(closes[i]-closes[i-1])/closes[i-1];if(isFinite(r))rets.push(r)}
       const mean=rets.reduce((a,b)=>a+b,0)/Math.max(1,rets.length);
       const varr=rets.reduce((a,b)=>a+(b-mean)*(b-mean),0)/Math.max(1,rets.length);
       const std=Math.sqrt(varr);
-      const median=arr=>{const a=[...arr].sort((x,y)=>x-y); const m=Math.floor(a.length/2); return a.length%2?a[m]:(a[m-1]+a[m])/2;};
+      const median=arr=>{const a=[...arr].sort((x,y)=>x-y);const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2};
       const volMed=median(vols), volAvg=vols.reduce((a,b)=>a+b,0)/vols.length, volRatio=volMed>0?volAvg/volMed:1;
-      // slope (least squares)
-      let sx=0,sy=0,sxx=0,sxy=0; for(let i=0;i<closes.length;i++){ sx+=i; sy+=closes[i]; sxx+=i*i; sxy+=i*closes[i]; }
-      const n=closes.length, denom=(n*sxx - sx*sx)||1; const slope=(n*sxy - sx*sy)/denom; const slopePctPerHour=(slope/first)*60*100;
-
-      let direction='Sideways', dirClass='warn';
-      if(pct>=0.2 || slopePctPerHour>=0.5){ direction='Uptrend'; dirClass='ok'; }
-      else if(pct<=-0.2 || slopePctPerHour<=-0.5){ direction='Downtrend'; dirClass='bad'; }
-      const busy = (std>=BUSY_VOL_STD) || (volRatio>=BUSY_VOL_RATIO);
-      const busyLabel=busy?'Busy':'Calmer', busyClass=busy?'ok':'warn';
-
-      return {ok:true,pct,delta,std,volRatio,slopePctPerHour,direction,dirClass,busyLabel,busyClass,closes,bars:windowBars};
+      let sx=0,sy=0,sxx=0,sxy=0; for(let i=0;i<closes.length;i++){sx+=i;sy+=closes[i];sxx+=i*i;sxy+=i*closes[i]}
+      const n=closes.length, denom=(n*sxx-sx*sx)||1; const slope=(n*sxy-sx*sy)/denom; const slopePctPerHour=(slope/first)*60*100;
+      let direction='Sideways',dirClass='warn'; if(pct>=0.2||slopePctPerHour>=0.5){direction='Uptrend';dirClass='ok'} else if(pct<=-0.2||slopePctPerHour<=-0.5){direction='Downtrend';dirClass='bad'}
+      const busy=(std>=BUSY_VOL_STD)||(volRatio>=BUSY_VOL_RATIO); const busyLabel=busy?'Busy':'Calmer',busyClass=busy?'ok':'warn';
+      return {ok:true,pct,delta,std,volRatio,slopePctPerHour,direction,dirClass,busyLabel,busyClass,closes,bars:windowBars}
     }
-    function drawTrendChart(canvas,bars){
-      const w=canvas.width=700, h=canvas.height=160; const ctx=canvas.getContext('2d');
-      ctx.clearRect(0,0,w,h); if(!bars||bars.length<2) return;
-      const prices=bars.map(b=>b.c); const min=Math.min(...prices), max=Math.max(...prices), range=(max-min)||1;
-      const pad=8, step=(w-pad*2)/(prices.length-1);
-      ctx.lineWidth=2; ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--fg').trim() || '#eee';
-      ctx.beginPath();
-      prices.forEach((p,i)=>{const x=pad+step*i; const y=h-pad-((p-min)/range)*(h-pad*2); if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);});
-      ctx.stroke();
-    }
+    function drawTrendChart(canvas,bars){const w=canvas.width=700,h=canvas.height=160;const ctx=canvas.getContext('2d');ctx.clearRect(0,0,w,h);if(!bars||bars.length<2)return;const prices=bars.map(b=>b.c);const min=Math.min(...prices),max=Math.max(...prices),range=(max-min)||1;const pad=8,step=(w-pad*2)/(prices.length-1);ctx.lineWidth=2;ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--fg').trim()||'#eee';ctx.beginPath();prices.forEach((p,i)=>{const x=pad+step*i;const y=h-pad-((p-min)/range)*(h-pad*2);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke()}
 
     function tradeSuggestion(info){
-      // Simple rules: Uptrend & Busy => Buy, Downtrend & Busy => Sell, else Wait
-      if (!info?.ok) return {text:'—', action:'Wait'};
-      if (info.direction==='Uptrend' && info.busyLabel==='Busy') return {text:'Recommend: <b>Buy</b> (uptrend + active tape)', action:'Buy'};
-      if (info.direction==='Downtrend' && info.busyLabel==='Busy') return {text:'Recommend: <b>Sell</b> (downtrend + active tape)', action:'Sell'};
-      if (info.direction==='Uptrend') return {text:'Recommend: <b>Buy (cautious)</b> (uptrend, calmer tape)', action:'Buy'};
-      if (info.direction==='Downtrend') return {text:'Recommend: <b>Sell (cautious)</b> (downtrend, calmer tape)', action:'Sell'};
-      return {text:'Recommend: <b>Wait</b> (sideways / mixed)', action:'Wait'};
+      if(!info?.ok) return {text:'—',action:'Wait'};
+      if(info.direction==='Uptrend'&&info.busyLabel==='Busy') return {text:'Recommend: <b>Buy</b> (uptrend + active tape)',action:'Buy'};
+      if(info.direction==='Downtrend'&&info.busyLabel==='Busy') return {text:'Recommend: <b>Sell</b> (downtrend + active tape)',action:'Sell'};
+      if(info.direction==='Uptrend') return {text:'Recommend: <b>Buy (cautious)</b> (uptrend, calmer tape)',action:'Buy'};
+      if(info.direction==='Downtrend') return {text:'Recommend: <b>Sell (cautious)</b> (downtrend, calmer tape)',action:'Sell'};
+      return {text:'Recommend: <b>Wait</b> (sideways / mixed)',action:'Wait'};
     }
 
     async function buildTrend(markets){
       const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
       trendSymEl.textContent=etf; trendTimeEl.textContent=new Date().toLocaleString();
-      trendSummaryEl.innerHTML='<span class="spinner"></span> Loading 1-minute bars...';
-      trendAdviceEl.innerHTML='';
+      trendSummaryEl.innerHTML='<span class="spinner"></span> Loading 1-minute bars...'; trendAdviceEl.innerHTML='';
       try{
-        const all=await fetchIntraday(etf);
-        const win=selectWindow(all, trendMinutes);
-        const info=statsTrend(win);
-        if(!info.ok){ trendSummaryEl.innerHTML=`<span class="muted">Trend unavailable (${info.reason})</span>`; drawTrendChart(trendCanvas,[]); return; }
+        const all=await fetchIntraday(etf); const win=selectWindow(all,trendMinutes); const info=statsTrend(win);
+        if(!info.ok){trendSummaryEl.innerHTML=`<span class="muted">Trend unavailable (${info.reason})</span>`;drawTrendChart(trendCanvas,[]);return}
         const dirPill=`<span class="pill ${info.dirClass}"><i class="fa-solid fa-arrow-trend-${info.direction==='Downtrend'?'down':'up'}"></i> ${info.direction}</span>`;
         const busyPill=`<span class="pill ${info.busyClass}"><i class="fa-solid fa-bolt"></i> ${info.busyLabel}</span>`;
         const pctStr=`${info.pct>=0?'▲':'▼'} ${info.pct.toFixed(2)}%`;
         const slopeStr=`${info.slopePctPerHour>=0?'+':''}${info.slopePctPerHour.toFixed(2)}%/hr slope`;
         const volStr=`σ(1m) ${(info.std*100).toFixed(3)}% • Vol ratio ${info.volRatio.toFixed(2)}×`;
-        trendSummaryEl.innerHTML = `${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} • ${slopeStr} • ${volStr}</div>`;
-        drawTrendChart(trendCanvas, win);
-
-        // Advice + disclaimer
-        const advice = tradeSuggestion(info);
-        trendAdviceEl.innerHTML = `
-          <div class="pill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941">
-            <i class="fa-solid fa-lightbulb"></i>&nbsp; ${advice.text}
-          </div>
-          <div class="muted" style="margin-top:6px;font-size:12px">
-            Disclaimer: This summary is generated solely from current market data in this app and is for informational purposes only. It is not financial advice.
-          </div>
-        `;
-
-        // Last refreshed line + flash
-        const refEl = document.getElementById('trendRef');
-        if (refEl) { refEl.textContent = new Date().toLocaleTimeString(); refEl.classList.remove('flash'); void refEl.offsetWidth; refEl.classList.add('flash'); }
-      }catch(e){
-        trendSummaryEl.innerHTML=`<span class="muted">Trend fetch failed (${String(e.message||e)})</span>`;
-        drawTrendChart(trendCanvas,[]);
-      }
+        trendSummaryEl.innerHTML=`${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} • ${slopeStr} • ${volStr}</div>`;
+        drawTrendChart(trendCanvas,win);
+        const advice=tradeSuggestion(info);
+        trendAdviceEl.innerHTML=`<div class="pill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941"><i class="fa-solid fa-lightbulb"></i>&nbsp; ${advice.text}</div><div class="muted" style="margin-top:6px;font-size:12px">Disclaimer: This summary is generated solely from current market data in this app and is for informational purposes only. It is not financial advice.</div>`;
+        const refEl=document.getElementById('trendRef'); if(refEl){refEl.textContent=new Date().toLocaleTimeString();refEl.classList.remove('flash');void refEl.offsetWidth;refEl.classList.add('flash')}
+      }catch(e){trendSummaryEl.innerHTML=`<span class="muted">Trend fetch failed (${String(e.message||e)})</span>`;drawTrendChart(trendCanvas,[])}
     }
 
-    // ====== RISK TAB ======
-    let riskMode = 'conservative'; // default
+    /* ===== RISK ===== */
+    let riskMode='conservative';
+    let riskCandlesN=3; // slider value
 
-    if (riskModeSeg){
-      riskModeSeg.addEventListener('click', (e)=>{
-        const btn = e.target.closest('.segbtn');
-        if (!btn) return;
-        riskMode = btn.dataset.mode || 'conservative';
-        Array.from(riskModeSeg.querySelectorAll('.segbtn')).forEach(b=>b.classList.toggle('active', b===btn));
-        document.getElementById('riskWin').textContent = `${trendMinutes}m`;
-        const m = getSelectedFutures();
-        buildRisk(m.length?m:['ES']);
-      });
+    if(riskModeSeg){riskModeSeg.addEventListener('click',e=>{const btn=e.target.closest('.segbtn');if(!btn)return;riskMode=btn.dataset.mode||'conservative';Array.from(riskModeSeg.querySelectorAll('.segbtn')).forEach(b=>b.classList.toggle('active',b===btn));riskWinEl.textContent=`${trendMinutes}m`;const m=getSelectedFutures();buildRisk(m.length?m:['ES'])})}
+
+    if(riskCandles){
+      const syncLabel=()=>riskCandlesLabel.textContent=`${riskCandles.value} min`;
+      riskCandles.addEventListener('input',()=>{riskCandlesN=parseInt(riskCandles.value,10)||3;syncLabel()});
+      riskCandles.addEventListener('change',()=>{riskCandlesN=parseInt(riskCandles.value,10)||3;const m=getSelectedFutures();buildRisk(m.length?m:['ES'])});
+      syncLabel();
     }
 
-    function last3Signal(bars){
-      const last3 = (bars||[]).slice(-3);
-      if (last3.length < 3) return {text:'Recommend: <b>Wait</b> (need 3 bars)', action:'Wait'};
-      const c0=last3[0].c, c1=last3[1].c, c2=last3[2].c;
-      const up  = (c1>c0) && (c2>c1);
-      const dn  = (c1<c0) && (c2<c1);
-      const pct = ((c2 - c0)/c0)*100;
-      const THRESH = 0.05; // 0.05% net across 3 minutes
-      if (up && pct >= THRESH)   return {text:`Recommend: <b>Buy</b> (Aggressive: last 3 ↑, +${pct.toFixed(2)}%)`, action:'Buy'};
-      if (dn && pct <= -THRESH)  return {text:`Recommend: <b>Sell</b> (Aggressive: last 3 ↓, ${pct.toFixed(2)}%)`, action:'Sell'};
-      return {text:'Recommend: <b>Wait</b> (Aggressive: mixed/insufficient move)', action:'Wait'};
+    // Aggressive: last-N unanimity + scaled threshold
+    function lastNSignal(bars,N){
+      const seg=(bars||[]).slice(-N); if(seg.length<N) return {text:'Recommend: <b>Wait</b> (need more bars)',action:'Wait',pct:0,up:false,dn:false};
+      let up=true,dn=true; for(let i=1;i<seg.length;i++){if(!(seg[i].c>seg[i-1].c)) up=false; if(!(seg[i].c<seg[i-1].c)) dn=false;}
+      const pct=((seg.at(-1).c - seg[0].c)/seg[0].c)*100;
+      const base=0.05; // 0.05% for 3 bars
+      const thresh=base*(N/3); // scale with N
+      if(up && pct>=thresh) return {text:`Recommend: <b>Buy</b> (Aggressive: last ${N} ↑, +${pct.toFixed(2)}%)`,action:'Buy',pct,up:true,dn:false};
+      if(dn && pct<=-thresh) return {text:`Recommend: <b>Sell</b> (Aggressive: last ${N} ↓, ${pct.toFixed(2)}%)`,action:'Sell',pct,up:false,dn:true};
+      return {text:`Recommend: <b>Wait</b> (Aggressive: mixed/insufficient move)`,action:'Wait',pct,up:false,dn:false};
     }
 
-    // Lean from the last 5 one-minute candles (Aggressive-only)
-    function fiveMinLean(bars){
-      const last5 = (bars || []).slice(-5);
-      if (last5.length < 2) return null;
-      const first = last5[0].c, last = last5.at(-1).c;
-      const pct = ((last - first) / first) * 100;
-      let ups = 0, downs = 0;
-      for (let i = 1; i < last5.length; i++){
-        const d = last5[i].c - last5[i-1].c;
-        if (d > 0) ups++; else if (d < 0) downs++;
-      }
-      const dir = (pct > 0 || (Math.abs(pct) < 1e-9 && ups >= downs)) ? 'Bullish' : 'Bearish';
-      const cls = dir === 'Bullish' ? 'ok' : 'bad';
-      return { dir, cls, pct, ups, downs };
+    // Conservative: same N but stricter threshold + require broader alignment if not strong
+    function conservativeSignal(info,bars,N){
+      const seg=(bars||[]).slice(-N); if(seg.length<N||!info?.ok) return {text:'Recommend (Conservative): <b>Wait</b> (insufficient data)',action:'Wait'};
+      // Direction unanimity check
+      let up=true,dn=true; for(let i=1;i<seg.length;i++){if(!(seg[i].c>seg[i-1].c)) up=false; if(!(seg[i].c<seg[i-1].c)) dn=false;}
+      const pct=((seg.at(-1).c - seg[0].c)/seg[0].c)*100;
+      const base=0.05, thresh=base*(N/3)*1.6; // stricter
+      const alignUp = (info.direction==='Uptrend');
+      const alignDn = (info.direction==='Downtrend');
+      const busyOk  = (info.busyLabel==='Busy');
+
+      if(up && pct>=thresh && (alignUp || busyOk)) return {text:`Recommend (Conservative): <b>Buy</b> (+${pct.toFixed(2)}% over ${N}m, aligned)`,action:'Buy'};
+      if(dn && pct<=-thresh && (alignDn || busyOk)) return {text:`Recommend (Conservative): <b>Sell</b> (${pct.toFixed(2)}% over ${N}m, aligned)`,action:'Sell'};
+      return {text:`Recommend (Conservative): <b>Wait</b> (safer bias)`,action:'Wait'};
+    }
+
+    // Lean bubble: last M minutes (M = min(trendMinutes, N))
+    function leanWindow(bars, minutesDesired){
+      const lastN=(bars||[]).slice(-minutesDesired);
+      if(lastN.length<2) return null;
+      const first=lastN[0].c,last=lastN.at(-1).c; const pct=((last-first)/first)*100;
+      let ups=0,downs=0; for(let i=1;i<lastN.length;i++){const d=lastN[i].c-lastN[i-1].c; if(d>0) ups++; else if(d<0) downs++;}
+      const dir=(pct>0 || (Math.abs(pct)<1e-9 && ups>=downs))?'Bullish':'Bearish';
+      const cls=dir==='Bullish'?'ok':'bad'; return {dir,cls,pct};
     }
 
     async function buildRisk(markets){
-      const etf = FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
-      riskSymEl.textContent = etf;
-      riskTimeEl.textContent = new Date().toLocaleString();
-      riskSummaryEl.innerHTML = '<span class="spinner"></span> Loading 1-minute bars...';
-      riskAdviceEl.innerHTML = '';
-
+      const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
+      riskSymEl.textContent=etf; riskTimeEl.textContent=new Date().toLocaleString();
+      riskSummaryEl.innerHTML='<span class="spinner"></span> Loading 1-minute bars...'; riskAdviceEl.innerHTML='';
       try{
-        const all = await fetchIntraday(etf);
-        const win = selectWindow(all, trendMinutes); // reuse timeframe
-        const info = statsTrend(win);
-        if(!info.ok){ riskSummaryEl.innerHTML=`<span class="muted">Risk read unavailable (${info.reason})</span>`; drawTrendChart(riskCanvas,[]); return; }
+        const all=await fetchIntraday(etf);
+        const win=selectWindow(all,trendMinutes);
+        const info=statsTrend(win);
+        if(!info.ok){riskSummaryEl.innerHTML=`<span class="muted">Risk read unavailable (${info.reason})</span>`;drawTrendChart(riskCanvas,[]);return}
 
-        const dirPill  = `<span class="pill ${info.dirClass}"><i class="fa-solid fa-arrow-trend-${info.direction==='Downtrend'?'down':'up'}"></i> ${info.direction}</span>`;
-        const busyPill = `<span class="pill ${info.busyClass}"><i class="fa-solid fa-bolt"></i> ${info.busyLabel}</span>`;
-        const pctStr   = `${info.pct>=0?'▲':'▼'} ${info.pct.toFixed(2)}%`;
-        const slopeStr = `${info.slopePctPerHour>=0?'+':''}${info.slopePctPerHour.toFixed(2)}%/hr slope`;
-        const volStr   = `σ(1m) ${(info.std*100).toFixed(3)}% • Vol ratio ${info.volRatio.toFixed(2)}×`;
-        riskSummaryEl.innerHTML = `${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} • ${slopeStr} • ${volStr}</div>`;
-        drawTrendChart(riskCanvas, win);
+        const dirPill=`<span class="pill ${info.dirClass}"><i class="fa-solid fa-arrow-trend-${info.direction==='Downtrend'?'down':'up'}"></i> ${info.direction}</span>`;
+        const busyPill=`<span class="pill ${info.busyClass}"><i class="fa-solid fa-bolt"></i> ${info.busyLabel}</span>`;
+        const pctStr=`${info.pct>=0?'▲':'▼'} ${info.pct.toFixed(2)}%`;
+        const slopeStr=`${info.slopePctPerHour>=0?'+':''}${info.slopePctPerHour.toFixed(2)}%/hr slope`;
+        const volStr=`σ(1m) ${(info.std*100).toFixed(3)}% • Vol ratio ${info.volRatio.toFixed(2)}×`;
+        riskSummaryEl.innerHTML=`${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} • ${slopeStr} • ${volStr}</div>`;
+        drawTrendChart(riskCanvas,win);
 
-        // Recommendation: conservative vs aggressive
+        // Selected N (candles) and M (lean minutes)
+        const N = Math.max(3, Math.min(15, riskCandlesN||3));
+        const M = Math.max(2, Math.min(N, trendMinutes)); // bubble uses min(timeframe, candles)
+
+        // Recommendation
         let rec;
-        if (riskMode === 'aggressive') {
-          rec = last3Signal(win);
-        } else {
-          rec = tradeSuggestion(info);
-          rec = { text: rec.text.replace('Recommend:', 'Recommend (Conservative):'), action: rec.action };
-        }
+        if(riskMode==='aggressive'){ rec = lastNSignal(win, N); }
+        else { rec = conservativeSignal(info, win, N); }
 
         riskAdviceEl.innerHTML = `
           <div class="pill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941">
@@ -783,153 +483,51 @@
           </div>
         `;
 
-        // Aggressive-only: add "last 5 minutes" lean bubble (always Bullish or Bearish)
-        if (riskMode === 'aggressive') {
-          const lean = fiveMinLean(win);
-          if (lean) {
-            const pctStr2 = `${lean.pct >= 0 ? '+' : ''}${lean.pct.toFixed(2)}%`;
+        // Aggressive-only lean bubble using M minutes
+        if (riskMode==='aggressive'){
+          const lean = leanWindow(win, M);
+          if(lean){
+            const pctStr2=`${lean.pct>=0?'+':''}${lean.pct.toFixed(2)}%`;
             riskAdviceEl.innerHTML += `
               <div class="pill ${lean.cls}" style="margin-top:8px">
                 <i class="fa-solid fa-clock-rotate-left"></i>
-                &nbsp; According to the last 5 minutes, this trend is leaning <b>${lean.dir}</b> (${pctStr2}).
+                &nbsp; According to the last <b>${M} minutes</b>, this trend is leaning <b>${lean.dir}</b> (${pctStr2}).
               </div>
             `;
           }
         }
 
         // Last refreshed
-        const refEl = document.getElementById('riskRef');
-        if (refEl) { refEl.textContent = new Date().toLocaleTimeString(); refEl.classList.remove('flash'); void refEl.offsetWidth; refEl.classList.add('flash'); }
-        riskWinEl.textContent = `${trendMinutes}m`;
-      }catch(e){
-        riskSummaryEl.innerHTML=`<span class="muted">Risk fetch failed (${String(e.message||e)})</span>`;
-        drawTrendChart(riskCanvas,[]);
-      }
+        const refEl=document.getElementById('riskRef'); if(refEl){refEl.textContent=new Date().toLocaleTimeString();refEl.classList.remove('flash');void refEl.offsetWidth;refEl.classList.add('flash')}
+        riskWinEl.textContent=`${trendMinutes}m`;
+      }catch(e){riskSummaryEl.innerHTML=`<span class="muted">Risk fetch failed (${String(e.message||e)})</span>`;drawTrendChart(riskCanvas,[])}
     }
 
-    // ====== PnL wiring ======
-    function setChipColor(elWrap, amount){
-      elWrap.classList.remove('ok','bad','warn');
-      const a = Number(amount)||0;
-      if (a > 0.005) elWrap.classList.add('ok');
-      else if (a < -0.005) elWrap.classList.add('bad');
-      else elWrap.classList.add('warn');
-    }
+    /* PnL */
+    const chipAK=document.getElementById('chipAK'), chipBG=document.getElementById('chipBG'), chipAKAll=document.getElementById('chipAKAll'), chipBGAll=document.getElementById('chipBGAll'), chipAKWrap=document.getElementById('chipAKWrap'), chipBGWrap=document.getElementById('chipBGWrap');
+    function setChipColor(elWrap,amount){elWrap.classList.remove('ok','bad','warn');const a=Number(amount)||0;if(a>0.005)elWrap.classList.add('ok');else if(a<-0.005)elWrap.classList.add('bad');else elWrap.classList.add('warn')}
+    async function pnlGetTotals(){if(!PNL_API||!PNL_TOKEN){chipAK.textContent='N/A';chipBG.textContent='N/A';return}try{const r=await fetch(`${PNL_API}?token=${encodeURIComponent(PNL_TOKEN)}`,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();if(!j.ok)throw new Error(j.error||'bad');const ak=Number(j.today?.AK||0),bg=Number(j.today?.BG||0),aka=Number(j.all?.AK||0),bga=Number(j.all?.BG||0);chipAK.textContent=`$${ak.toFixed(2)}`;chipBG.textContent=`$${bg.toFixed(2)}`;chipAKAll.textContent=`$${aka.toFixed(2)}`;chipBGAll.textContent=`$${bga.toFixed(2)}`;setChipColor(chipAKWrap,ak);setChipColor(chipBGWrap,bg)}catch(e){chipAK.textContent='N/A';chipBG.textContent='N/A';chipAKAll.textContent='N/A';chipBGAll.textContent='N/A';chipAKWrap.classList.add('warn');chipBGWrap.classList.add('warn')}}
+    async function pnlPostLog({user,amount,note}){const body=new URLSearchParams({token:PNL_TOKEN,user,amount:String(Number(amount)),note:note||''});const r=await fetch(PNL_API,{method:'POST',body});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();if(!j.ok)throw new Error(j.error||'bad');return j}
+    let _todayLogCache=[];async function pnlFetchTodayList(){const box=document.getElementById('pnlTodayTable');if(!_todayLogCache.length){box.textContent='No entries logged this session.';return}const rows=_todayLogCache.map(r=>`<tr><td>${r.user}</td><td style="text-align:right">${Number(r.amount).toFixed(2)}</td><td>${r.note||''}</td><td class="muted">${new Date(r.time).toLocaleTimeString()}</td></tr>`).join('');box.innerHTML=`<table style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left">User</th><th style="text-align:right">Amt</th><th style="text-align:left">Note</th><th style="text-align:left">Time</th></tr></thead><tbody>${rows}</tbody></table>`}
+    async function pnlUndoLast(){if(!_todayLogCache.length)return;const last=_todayLogCache.pop();await pnlPostLog({user:last.user,amount:-Number(last.amount),note:`UNDO: ${last.note||''}`});await pnlGetTotals();await pnlFetchTodayList()}
 
-    async function pnlGetTotals() {
-      if (!PNL_API || !PNL_TOKEN) { chipAK.textContent='N/A'; chipBG.textContent='N/A'; return; }
-      try {
-        const r = await fetch(`${PNL_API}?token=${encodeURIComponent(PNL_TOKEN)}`, { cache: 'no-store' });
-        if (!r.ok) throw new Error('HTTP '+r.status);
-        const j = await r.json();
-        if (!j.ok) throw new Error(j.error || 'bad');
+    /* Prep flow */
+    async function startAnalyze({linksOnly=false}={}){const sel=getSelectedFutures();const markets=sel.length?sel:['ES','NQ'];nowEl.textContent=new Date().toLocaleString();showPrepHeader(markets);makeLinks(markets);if(!linksOnly)await buildSummary(markets);else summaryEl.innerHTML=`<span class="muted">Quick-links mode. Tap Analyze for auto-summary.</span>`;window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})}
 
-        const ak = Number(j.today?.AK || 0), bg = Number(j.today?.BG || 0);
-        const aka = Number(j.all?.AK || 0), bga = Number(j.all?.BG || 0);
+    /* Events */
+    document.getElementById('start').addEventListener('click',()=>{setNav('nav-prep');setTab('prep');startAnalyze({linksOnly:false})});
+    document.getElementById('quick').addEventListener('click',()=>{setNav('nav-prep');setTab('prep');startAnalyze({linksOnly:true})});
+    document.getElementById('runTrend').addEventListener('click',()=>{setNav('nav-trend');setTab('trend');const m=getSelectedFutures();buildTrend(m.length?m:['ES'])});
+    document.getElementById('runRisk').addEventListener('click',()=>{setTab('risk');const m=getSelectedFutures();buildRisk(m.length?m:['ES'])});
 
-        chipAK.textContent = `$${ak.toFixed(2)}`;
-        chipBG.textContent = `$${bg.toFixed(2)}`;
-        chipAKAll.textContent = `$${aka.toFixed(2)}`;
-        chipBGAll.textContent = `$${bga.toFixed(2)}`;
-        setChipColor(chipAKWrap, ak);
-        setChipColor(chipBGWrap, bg);
-      } catch (e) {
-        chipAK.textContent = 'N/A'; chipBG.textContent = 'N/A';
-        chipAKAll.textContent='N/A'; chipBGAll.textContent='N/A';
-        chipAKWrap.classList.add('warn'); chipBGWrap.classList.add('warn');
-      }
-    }
+    document.addEventListener('DOMContentLoaded',()=>{
+      pnlGetTotals(); setInterval(pnlGetTotals,120000);
+      const btn=document.getElementById('logPnl'), msg=document.getElementById('pnlMsg');
+      if(btn){btn.addEventListener('click',async()=>{try{const who=(document.querySelector('input[name="who"]:checked')||{}).value||'AK';const amt=(document.getElementById('pnlAmount')||{}).value||'';const note=(document.getElementById('pnlNote')||{}).value||'';if(!amt||isNaN(Number(amt))){msg.textContent='Enter a number (e.g. 125 or -75)';return}msg.textContent='Saving...';await pnlPostLog({user:who,amount:amt,note});msg.textContent='Saved ✓';document.getElementById('pnlAmount').value='';document.getElementById('pnlNote').value='';_todayLogCache.push({user:who,amount:amt,note,time:Date.now()});await pnlGetTotals();await pnlFetchTodayList();setTimeout(()=>msg.textContent='',1200)}catch(e){msg.textContent='Error: '+(e.message||e)}})}
+      const undoBtn=document.getElementById('undoLast'); if(undoBtn) undoBtn.addEventListener('click',async()=>{try{await pnlUndoLast()}catch(e){}});
 
-    async function pnlPostLog({ user, amount, note }) {
-      const body = new URLSearchParams({
-        token: PNL_TOKEN,
-        user,
-        amount: String(Number(amount)),
-        note: note || ''
-      });
-      const r = await fetch(PNL_API, { method: 'POST', body }); // no headers → simple request
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      const j = await r.json();
-      if (!j.ok) throw new Error(j.error || 'bad');
-      return j;
-    }
-
-    let _todayLogCache = []; // session-side log view
-    async function pnlFetchTodayList(){
-      const box = document.getElementById('pnlTodayTable');
-      if (!_todayLogCache.length) { box.textContent = 'No entries logged this session.'; return; }
-      const rows = _todayLogCache.map(r => `<tr>
-        <td>${r.user}</td>
-        <td style="text-align:right">${Number(r.amount).toFixed(2)}</td>
-        <td>${r.note||''}</td>
-        <td class="muted">${new Date(r.time).toLocaleTimeString()}</td>
-      </tr>`).join('');
-      box.innerHTML = `<table style="width:100%;border-collapse:collapse">
-        <thead><tr><th style="text-align:left">User</th><th style="text-align:right">Amt</th><th style="text-align:left">Note</th><th style="text-align:left">Time</th></tr></thead>
-        <tbody>${rows}</tbody></table>`;
-    }
-    async function pnlUndoLast(){
-      if (!_todayLogCache.length) return;
-      const last = _todayLogCache.pop();
-      await pnlPostLog({ user: last.user, amount: -Number(last.amount), note: `UNDO: ${last.note||''}` });
-      await pnlGetTotals();
-      await pnlFetchTodayList();
-    }
-
-    // ====== PREP FLOW ======
-    async function startAnalyze({linksOnly=false}={}){
-      const sel=getSelectedFutures(); const markets=sel.length?sel:['ES','NQ'];
-      showPrepHeader(markets); makeLinks(markets);
-      if(!linksOnly) await buildSummary(markets); else summaryEl.innerHTML=`<span class="muted">Quick-links mode. Tap Analyze for auto-summary.</span>`;
-      window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'});
-    }
-
-    // Events
-    document.getElementById('start').addEventListener('click', ()=>{ setNav('nav-prep'); setTab('prep'); startAnalyze({linksOnly:false}); });
-    document.getElementById('quick').addEventListener('click', ()=>{ setNav('nav-prep'); setTab('prep'); startAnalyze({linksOnly:true}); });
-    document.getElementById('runTrend').addEventListener('click', ()=>{ setNav('nav-trend'); setTab('trend'); const m=getSelectedFutures(); buildTrend(m.length?m:['ES']); });
-    document.getElementById('runRisk').addEventListener('click', ()=>{ setTab('risk'); const m=getSelectedFutures(); buildRisk(m.length?m:['ES']); });
-
-    // PnL events + auto refresh
-    document.addEventListener('DOMContentLoaded', () => {
-      pnlGetTotals();
-      setInterval(pnlGetTotals, 120000);
-
-      const btn = document.getElementById('logPnl');
-      const msg = document.getElementById('pnlMsg');
-      if (btn) {
-        btn.addEventListener('click', async () => {
-          try {
-            const who = (document.querySelector('input[name="who"]:checked') || {}).value || 'AK';
-            const amt = (document.getElementById('pnlAmount') || {}).value || '';
-            const note= (document.getElementById('pnlNote') || {}).value || '';
-            if (!amt || isNaN(Number(amt))) { msg.textContent = 'Enter a number (e.g. 125 or -75)'; return; }
-            msg.textContent = 'Saving...';
-            await pnlPostLog({ user: who, amount: amt, note });
-            msg.textContent = 'Saved ✓';
-            document.getElementById('pnlAmount').value = '';
-            document.getElementById('pnlNote').value = '';
-            _todayLogCache.push({ user: who, amount: amt, note, time: Date.now() });
-            await pnlGetTotals();
-            await pnlFetchTodayList();
-            setTimeout(()=> msg.textContent = '', 1200);
-          } catch (e) {
-            msg.textContent = 'Error: ' + (e.message || e);
-          }
-        });
-      }
-      const undoBtn = document.getElementById('undoLast');
-      if (undoBtn) undoBtn.addEventListener('click', async ()=>{ try{ await pnlUndoLast(); }catch(e){} });
-
-      // Ensure 15m is highlighted on load
       setTfActive(15);
-
-      // Auto-refresh Trend/Risk every 30s when visible
-      setInterval(()=>{
-        const m = getSelectedFutures();
-        if (trendOut.style.display !== 'none') buildTrend(m.length ? m : ['ES']);
-        if (riskOut.style.display  !== 'none') buildRisk (m.length ? m : ['ES']);
-      }, 30000);
+      setInterval(()=>{const m=getSelectedFutures();if(trendOut.style.display!=='none')buildTrend(m.length?m:['ES']);if(riskOut.style.display!=='none')buildRisk(m.length?m:['ES'])},30000);
     });
   </script>
 </body>
