@@ -17,10 +17,11 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" referrerpolicy="no-referrer"/>
 
   <style>
-    :root {
+    :root{
       --bg:#1b191b; --panel:#2a292f; --panel-2:#242328; --line:#35343a;
       --fg:#f1f2f4; --muted:#a7adbb;
-      --accent:#6f5aff;            /* a bit darker than #7c5cff */
+      --accent:#6f5aff;               /* darker signature purple */
+      --accent-graph:#8a78ff;         /* graph purple (price lines) */
       --ok:#6abd74; --bad:#e05d5d; --warn:#d3a54a; --pill:#24252b;
       --shadow:0 6px 18px rgba(0,0,0,.35); --radius:14px; --pad:16px;
     }
@@ -75,6 +76,11 @@
     .flash{animation:flash .6s ease}@keyframes flash{0%{color:var(--ok)}100%{color:var(--muted)}}
     .sliderrow{display:flex;align-items:center;gap:10px}
     .sliderrow input[type=range]{width:200px}
+
+    /* Chart legend */
+    .legend{position:absolute; right:10px; top:10px; display:flex; gap:10px; background:#1f1f25; border:1px solid var(--line); border-radius:10px; padding:6px 8px; font-size:12px; color:var(--muted)}
+    .legend .sw{display:inline-block; width:16px; height:3px; border-radius:2px; margin-right:6px; vertical-align:middle}
+    .legend .sw.candle{width:12px;height:12px;border:2px solid #5a5a60;border-radius:3px;background:#333}
   </style>
 </head>
 <body>
@@ -176,11 +182,16 @@
     </div>
 
     <!-- TREND -->
-    <div id="trendOut" class="card" style="display:none">
+    <div id="trendOut" class="card" style="display:none; position:relative">
       <div class="row"><strong>Current Trend</strong><span class="muted">Window: <span id="trendWin">15m</span></span></div>
       <div class="muted">Primary: <span id="trendSym"></span> (mapped ETF) • <span id="trendTime"></span></div>
       <div id="trendSummary" style="margin-top:12px"></div>
       <canvas id="trendChart" class="chart"></canvas>
+      <!-- Legend -->
+      <div class="legend" id="trendLegend">
+        <span><span class="sw candle"></span>Price (candles)</span>
+        <span><span class="sw" style="background:transparent;border-top:3px dashed var(--accent)"></span>FMV (VWAP)</span>
+      </div>
       <div id="trendAdvice" style="margin-top:12px"></div>
       <div class="muted" style="margin-top:6px;font-size:12px">Last refreshed: <span id="trendRef">—</span></div>
       <details style="margin-top:10px"><summary>How we decide “busy”</summary>
@@ -189,7 +200,7 @@
     </div>
 
     <!-- RISK -->
-    <div id="riskOut" class="card" style="display:none">
+    <div id="riskOut" class="card" style="display:none; position:relative">
       <div class="row"><strong>Risk Read</strong><span class="muted">Window: <span id="riskWin">15m</span></span></div>
 
       <div class="seg" id="riskModeSeg" style="margin:6px 0 2px">
@@ -206,6 +217,11 @@
       <div class="muted">Primary: <span id="riskSym"></span> (mapped ETF) • <span id="riskTime"></span></div>
       <div id="riskSummary" style="margin-top:12px"></div>
       <canvas id="riskChart" class="chart"></canvas>
+      <!-- Legend -->
+      <div class="legend" id="riskLegend">
+        <span><span class="sw candle"></span>Price (candles)</span>
+        <span><span class="sw" style="background:transparent;border-top:3px dashed var(--accent)"></span>FMV (VWAP)</span>
+      </div>
       <div id="riskAdvice" style="margin-top:12px"></div>
       <div class="muted" style="margin-top:6px;font-size:12px">Last refreshed: <span id="riskRef">—</span></div>
     </div>
@@ -213,10 +229,10 @@
 
   <script>
     /* ---------------- Config ---------------- */
-     const PROXY_RAW = 'https://script.google.com/macros/s/AKfycbztzwYcRxD3mQ2MgD99ubT3-nW-nQJiU-thNoUrdRuMkrTIF1LilnEyCbysHP6Z7HYf/exec?url=';
+    const PROXY_RAW = 'https://script.google.com/macros/s/AKfycbztzwYcRxD3mQ2MgD99ubT3-nW-nQJiU-thNoUrdRuMkrTIF1LilnEyCbysHP6Z7HYf/exec?url=';
 
     // ===== PnL API =====
-    const PNL_API   = 'https://script.google.com/macros/s/AKfycbz2b9H8BLD7BvWfbtWaPnaThvUHM66MsnBcDb0_siM5L_xxqj1MrfqSPk1uOjvbbNx0/exec'; // <-- no ?url=
+    const PNL_API   = 'https://script.google.com/macros/s/AKfycbz2b9H8BLD7BvWfbtWaPnaThvUHM66MsnBcDb0_siM5L_xxqj1MrfqSPk1uOjvbbNx0/exec';
     const PNL_TOKEN = 'CHANGE_ME_32CHAR';
 
     /* ---------------- Nav / Tabs ---------------- */
@@ -334,7 +350,6 @@
       const sym=ETF_TO_STOOQ[etf]||'spy.us';const srcs=[`https://stooq.com/q/d/l/?s=${encodeURIComponent(sym)}&i=d&t=${Date.now()}`,`https://stooq.pl/q/d/l/?s=${encodeURIComponent(sym)}&i=d&t=${Date.now()}`];
       let lastErr=null;for(const u of srcs){try{const csv=await fetchTextRetry(PROXY_RAW+encodeURIComponent(u),2);const rows=csv.trim().split('\n');if(rows.length>=3){const last=rows.at(-1).split(','), prev=rows.at(-2).split(',');const c0=parseFloat(last[4]), c1=parseFloat(prev[4]);if(!isFinite(c0)||!isFinite(c1)) throw new Error('bad close');const pct=((c0-c1)/c1)*100, delta=c0-c1;const closes=rows.slice(-11).slice(1).map(r=>parseFloat(r.split(',')[4])).filter(v=>isFinite(v));return {ok:true,etf,latest:last[0],prior:prev[0],pct,delta,closes,source:u.includes('.pl')?'stooq-proxy(pl)':'stooq-proxy(com)'}}}catch(e){lastErr=e}}return {ok:false,reason:String(lastErr||'fetch failed')}}
     function sentimentFrom(h){const total=h.reduce((a,t)=>a+headlineScore(t),0);const [label,cls]=overallLabel(total);return {label,cls,total}}
-    function drawSparkline(container,values){if(!values||values.length<2)return;const c=document.createElement('canvas');c.className='chart';container.appendChild(c);drawLineChart(c,values.map((v,i)=>({c:v,t:i})))}
 
     /* ---------------- Charts ---------------- */
     function sizeCanvas(canvas){
@@ -346,29 +361,42 @@
       return { ctx: canvas.getContext('2d'), w: canvas.width, h: canvas.height, dpr };
     }
 
-    function drawCandleChart(canvas, bars){
+    function drawLineChart(canvas, series){
+      const {ctx,w,h} = sizeCanvas(canvas);
+      ctx.clearRect(0,0,w,h);
+      if(!series || series.length<2) return;
+      const pad=12;
+      const vals = series.map(p=>p.c);
+      const min = Math.min(...vals), max = Math.max(...vals), range=(max-min)||1;
+      const step = (w - pad*2) / (series.length-1);
+
+      // grid
+      ctx.strokeStyle = '#2d2d33'; ctx.lineWidth = 1;
+      for (let i=1;i<=3;i++){ const y=pad + (h - pad*2) * (i/4); ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(w-pad,y); ctx.stroke(); }
+
+      // price line (graph purple)
+      ctx.beginPath(); ctx.lineWidth=2; ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--accent-graph').trim()||'#8a78ff';
+      series.forEach((p,i)=>{ const x=pad+step*i; const y=h-pad-((p.c-min)/range)*(h-pad*2); if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+      ctx.stroke();
+    }
+
+    function drawCandlePlusFMV(canvas, bars){
       const {ctx,w,h} = sizeCanvas(canvas);
       ctx.clearRect(0,0,w,h);
       if(!bars || bars.length<2) return;
       const pad = 12;
-      const highs = bars.map(b=>b.h), lows = bars.map(b=>b.l);
+      const highs = bars.map(b=>b.h), lows = bars.map(b=>b.l), closes=bars.map(b=>b.c);
       const min = Math.min(...lows), max = Math.max(...highs), range = (max-min)||1;
       const step = (w - pad*2) / (bars.length-1);
-      const bodyFrac = 0.65; // candle body width fraction
-      const bodyW = Math.max(3, step * bodyFrac);
+      const bodyFrac = 0.55, bodyW = Math.max(3, step * bodyFrac);
 
-      // subtle grid
-      ctx.strokeStyle = '#2d2d33';
-      ctx.lineWidth = 1;
-      for (let i=1;i<=3;i++){
-        const y = pad + (h - pad*2) * (i/4);
-        ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(w-pad,y); ctx.stroke();
-      }
+      // grid
+      ctx.strokeStyle = '#2d2d33'; ctx.lineWidth = 1;
+      for (let i=1;i<=3;i++){ const y = pad + (h - pad*2) * (i/4); ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(w-pad,y); ctx.stroke(); }
 
-      // wicks + bodies
+      // candles
       for (let i=0;i<bars.length;i++){
-        const b = bars[i];
-        const x = pad + step*i;
+        const b=bars[i]; const x=pad+step*i;
         const yH = h - pad - ((b.h - min)/range)*(h - pad*2);
         const yL = h - pad - ((b.l - min)/range)*(h - pad*2);
         const yO = h - pad - ((b.o - min)/range)*(h - pad*2);
@@ -385,23 +413,39 @@
         ctx.fillStyle = up ? '#6abd74' : '#e05d5d';
         ctx.fillRect(x - bodyW/2, top, bodyW, Math.max(2, bot-top));
       }
-    }
 
-    function drawLineChart(canvas, bars){
-      const {ctx,w,h} = sizeCanvas(canvas);
-      if(!bars || bars.length<2) return;
-      const pad = 10;
-      const prices = bars.map(b=>b.c);
-      const min=Math.min(...prices), max=Math.max(...prices), range=(max-min)||1;
-      const step=(w-pad*2)/(prices.length-1);
-
-      ctx.lineWidth=2; ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--accent-graph').trim()||'#7c5cff';
+      // FMV (VWAP) dashed purple
+      let cumPV=0, cumVol=0;
       ctx.beginPath();
-      prices.forEach((p,i)=>{const x=pad+step*i;const y=h-pad-((p-min)/range)*(h-pad*2); if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);});
-      ctx.stroke();
+      ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#6f5aff';
+      ctx.setLineDash([5,4]);
+      ctx.lineWidth=1.7;
+      for(let i=0;i<bars.length;i++){
+        const b=bars[i];
+        cumPV += b.c * b.v; cumVol += b.v;
+        const vwap = cumPV / Math.max(1, cumVol);
+        const x=pad+step*i;
+        const y=h-pad-((vwap-min)/range)*(h-pad*2);
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.stroke(); ctx.setLineDash([]);
     }
 
     /* ---------------- Prep summary ---------------- */
+    function drawSparkline(container,values){
+      if(!values||values.length<2)return;
+      const c=document.createElement('canvas'); c.className='chart';
+      container.appendChild(c);
+      const series = values.map((v,i)=>({c:v,t:i}));
+      drawLineChart(c, series);
+      // Add a simple legend for Prep
+      const legend = document.createElement('div');
+      legend.className = 'legend';
+      legend.innerHTML = `<span><span class="sw" style="background:var(--accent-graph)"></span>Close</span>`;
+      c.parentElement.style.position='relative';
+      c.parentElement.appendChild(legend);
+    }
+
     async function buildSummary(markets){
       nowEl.textContent=new Date().toLocaleString();
       const gkey=(localStorage.getItem('GNEWS_KEY')||'').trim(), akey=(localStorage.getItem('ALPHA_KEY')||'').trim();
@@ -439,18 +483,35 @@
       if(dayRes.ok&&dayRes.closes?.length) drawSparkline(summaryEl,dayRes.closes);
     }
 
-    /* ---------------- Intraday fetch ---------------- */
+    /* ---------------- Intraday fetch (session-only FMV) ---------------- */
     async function fetchIntraday(etf){
-      const u=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(etf)}?range=1d&interval=1m&includePrePost=true&t=${Date.now()}`;
-      const data=await fetchJsonRetry(PROXY_RAW+encodeURIComponent(u),2);
-      const r=data?.chart?.result?.[0]; const q=r?.indicators?.quote?.[0]; const ts=r?.timestamp||[];
-      const out=[];
-      for(let i=0;i<ts.length;i++){
-        const o=q?.open?.[i], h=q?.high?.[i], l=q?.low?.[i], c=q?.close?.[i], v=q?.volume?.[i];
-        if([o,h,l,c,v].every(x=>x!=null)) out.push({t:ts[i]*1000,o,h,l,c,v});
+      const u = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(etf)}?range=1d&interval=1m&includePrePost=true&t=${Date.now()}`;
+      const data = await fetchJsonRetry(PROXY_RAW + encodeURIComponent(u), 2);
+      const r = data?.chart?.result?.[0];
+      const q = r?.indicators?.quote?.[0] || {};
+      const ts = r?.timestamp || [];
+
+      const out = [];
+      for (let i = 0; i < ts.length; i++) {
+        const o = q.open?.[i], h = q.high?.[i], l = q.low?.[i], c = q.close?.[i], v = q.volume?.[i];
+        if ([o,h,l,c,v].every(x => x != null)) out.push({ t: ts[i]*1000, o, h, l, c, v });
       }
-      return out;
+
+      const reg = r?.meta?.currentTradingPeriod?.regular;
+      const regStart = (reg?.start ? reg.start * 1000 : null);
+      const regEnd   = (reg?.end   ? reg.end   * 1000 : null);
+
+      return { bars: out, regStart, regEnd };
     }
+
+    function filterToSession(bars, regStart, regEnd){
+      if (regStart && regEnd) {
+        return bars.filter(b => b.t >= regStart && b.t <= Math.min(Date.now(), regEnd));
+      }
+      // Fallback ≈ one trade day (6.5h)
+      return bars.slice(-390);
+    }
+
     function selectWindow(bars,minutes){
       if(!bars.length) return [];
       const cutoff=Date.now()-minutes*60*1000;
@@ -458,6 +519,7 @@
       if(recent.length<Math.min(15,minutes)) return bars.slice(-Math.max(15,minutes));
       return recent;
     }
+
     function statsTrend(windowBars){
       if(windowBars.length<5) return {ok:false,reason:'not enough bars'};
       const closes=windowBars.map(b=>b.c), vols=windowBars.map(b=>b.v);
@@ -467,16 +529,20 @@
       const mean=rets.reduce((a,b)=>a+b,0)/Math.max(1,rets.length);
       const varr=rets.reduce((a,b)=>a+(b-mean)*(b-mean),0)/Math.max(1,rets.length);
       const std=Math.sqrt(varr);
-      const median=arr=>{const a=[...arr].sort((x,y)=>x-y); const m=Math.floor(a.length/2); return a.length%2?a[m]:(a[m-1]+a[m])/2;};
+      const median=arr=>{const a=[...arr].sort((x,y)=>x-y);const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2};
       const volMed=median(vols), volAvg=vols.reduce((a,b)=>a+b,0)/vols.length, volRatio=volMed>0?volAvg/volMed:1;
-      let sx=0,sy=0,sxx=0,sxy=0; for(let i=0;i<closes.length;i++){ sx+=i; sy+=closes[i]; sxx+=i*i; sxy+=i*closes[i]; }
+
+      // slope (least squares)
+      let sx=0,sy=0,sxx=0,sxy=0; for(let i=0;i<closes.length;i++){sx+=i;sy+=closes[i];sxx+=i*i;sxy+=i*closes[i]}
       const n=closes.length, denom=(n*sxx - sx*sx)||1; const slope=(n*sxy - sx*sy)/denom; const slopePctPerHour=(slope/first)*60*100;
-      let direction='Sideways',dirClass='warn'; if(pct>=0.2||slopePctPerHour>=0.5){direction='Uptrend';dirClass='ok'} else if(pct<=-0.2||slopePctPerHour<=-0.5){direction='Downtrend';dirClass='bad'}
-      const busy=(std>=0.0006)||(volRatio>=1.20); const busyLabel=busy?'Busy':'Calmer',busyClass=busy?'ok':'warn';
+
+      let direction='Sideways',dirClass='warn';
+      if(pct>=0.2||slopePctPerHour>=0.5){direction='Uptrend';dirClass='ok'}
+      else if(pct<=-0.2||slopePctPerHour<=-0.5){direction='Downtrend';dirClass='bad'}
+      const busy=(std>=0.0006)||(volRatio>=1.20);
+      const busyLabel=busy?'Busy':'Calmer',busyClass=busy?'ok':'warn';
       return {ok:true,pct,delta,std,volRatio,slopePctPerHour,direction,dirClass,busyLabel,busyClass,closes,bars:windowBars}
     }
-
-    function drawTrend(canvas,bars){ drawCandleChart(canvas,bars); }
 
     function tradeSuggestion(info){
       if(!info?.ok) return {text:'—',action:'Wait'};
@@ -487,24 +553,55 @@
       return {text:'Recommend: <b>Wait</b> (sideways / mixed)',action:'Wait'};
     }
 
+    /* Simple short-horizon prediction (extra purple blip on Risk)
+       Uses: window direction, VWAP distance, last-N unanimity, vol regime.
+    */
+    function shortHorizonPrediction(info, bars, N=5){
+      if(!info?.ok || !bars?.length) return {dir:'Indeterminate', cls:'warn', msg:'Tape unclear'};
+      const seg = bars.slice(-Math.max(3, Math.min(N, bars.length)));
+      // unanimity
+      let up=true,dn=true; for(let i=1;i<seg.length;i++){ if(!(seg[i].c>seg[i-1].c)) up=false; if(!(seg[i].c<seg[i-1].c)) dn=false; }
+      // simple VWAP distance
+      let cumPV=0, cumVol=0, vwap=seg[0].c;
+      for (const b of bars){ cumPV += b.c*b.v; cumVol += b.v; }
+      vwap = cumPV/Math.max(1,cumVol);
+      const last = bars.at(-1).c;
+      const vwapDistPct = (last - vwap)/vwap * 100;
+
+      let leaning = 'Range';
+      if (up || (info.direction==='Uptrend' && vwapDistPct>0)) leaning = 'Bullish';
+      if (dn || (info.direction==='Downtrend' && vwapDistPct<0)) leaning = 'Bearish';
+
+      // if calmer, soften the claim
+      if (info.busyLabel==='Calmer' && leaning!=='Range') {
+        leaning = 'Mild ' + leaning;
+      }
+      const cls = /Bullish/i.test(leaning) ? 'ok' : (/Bearish/i.test(leaning) ? 'bad' : 'warn');
+      return {dir:leaning, cls, msg:`Based on current info, market likely to stay <b>${leaning}</b> in the near term.`};
+    }
+
+    /* ---------------- TREND ---------------- */
     async function buildTrend(markets){
       const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
       trendSymEl.textContent=etf; trendTimeEl.textContent=new Date().toLocaleString();
       trendSummaryEl.innerHTML='<span class="spinner"></span> Loading 1-minute bars...'; trendAdviceEl.innerHTML='';
       try{
-        const all=await fetchIntraday(etf); const win=selectWindow(all,trendMinutes); const info=statsTrend(win);
-        if(!info.ok){trendSummaryEl.innerHTML=`<span class="muted">Trend unavailable (${info.reason})</span>`;drawTrend(trendCanvas,[]);return}
+        const fetched=await fetchIntraday(etf);
+        const sessionBars = filterToSession(fetched.bars, fetched.regStart, fetched.regEnd);
+        const win=selectWindow(sessionBars,trendMinutes);
+        const info=statsTrend(win);
+        if(!info.ok){trendSummaryEl.innerHTML=`<span class="muted">Trend unavailable (${info.reason})</span>`;drawCandlePlusFMV(trendCanvas,[]);return}
         const dirPill=`<span class="pill ${info.dirClass}"><i class="fa-solid fa-arrow-trend-${info.direction==='Downtrend'?'down':'up'}"></i> ${info.direction}</span>`;
         const busyPill=`<span class="pill ${info.busyClass}"><i class="fa-solid fa-bolt"></i> ${info.busyLabel}</span>`;
         const pctStr=`${info.pct>=0?'▲':'▼'} ${info.pct.toFixed(2)}%`;
         const slopeStr=`${info.slopePctPerHour>=0?'+':''}${info.slopePctPerHour.toFixed(2)}%/hr slope`;
         const volStr=`σ(1m) ${(info.std*100).toFixed(3)}% • Vol ratio ${info.volRatio.toFixed(2)}×`;
         trendSummaryEl.innerHTML=`${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} • ${slopeStr} • ${volStr}</div>`;
-        drawTrend(trendCanvas,win);
+        drawCandlePlusFMV(trendCanvas,win);
         const advice=tradeSuggestion(info);
         trendAdviceEl.innerHTML=`<div class="pill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941"><i class="fa-solid fa-lightbulb"></i>&nbsp; ${advice.text}</div><div class="muted" style="margin-top:6px;font-size:12px">Disclaimer: This summary is generated solely from current market data in this app and is for informational purposes only. It is not financial advice.</div>`;
         const refEl=document.getElementById('trendRef'); if(refEl){refEl.textContent=new Date().toLocaleTimeString();refEl.classList.remove('flash');void refEl.offsetWidth;refEl.classList.add('flash')}
-      }catch(e){trendSummaryEl.innerHTML=`<span class="muted">Trend fetch failed (${String(e.message||e)})</span>`;drawTrend(trendCanvas,[])}
+      }catch(e){trendSummaryEl.innerHTML=`<span class="muted">Trend fetch failed (${String(e.message||e)})</span>`;drawCandlePlusFMV(trendCanvas,[])}
     }
 
     /* ---------------- Risk ---------------- */
@@ -564,10 +661,11 @@
       riskSymEl.textContent=etf; riskTimeEl.textContent=new Date().toLocaleString();
       riskSummaryEl.innerHTML='<span class="spinner"></span> Loading 1-minute bars...'; riskAdviceEl.innerHTML='';
       try{
-        const all=await fetchIntraday(etf);
-        const win=selectWindow(all,trendMinutes);
+        const fetched=await fetchIntraday(etf);
+        const sessionBars = filterToSession(fetched.bars, fetched.regStart, fetched.regEnd);
+        const win=selectWindow(sessionBars,trendMinutes);
         const info=statsTrend(win);
-        if(!info.ok){riskSummaryEl.innerHTML=`<span class="muted">Risk read unavailable (${info.reason})</span>`;drawTrend(riskCanvas,[]);return}
+        if(!info.ok){riskSummaryEl.innerHTML=`<span class="muted">Risk read unavailable (${info.reason})</span>`;drawCandlePlusFMV(riskCanvas,[]);return}
 
         const dirPill=`<span class="pill ${info.dirClass}"><i class="fa-solid fa-arrow-trend-${info.direction==='Downtrend'?'down':'up'}"></i> ${info.direction}</span>`;
         const busyPill=`<span class="pill ${info.busyClass}"><i class="fa-solid fa-bolt"></i> ${info.busyLabel}</span>`;
@@ -575,7 +673,7 @@
         const slopeStr=`${info.slopePctPerHour>=0?'+':''}${info.slopePctPerHour.toFixed(2)}%/hr slope`;
         const volStr=`σ(1m) ${(info.std*100).toFixed(3)}% • Vol ratio ${info.volRatio.toFixed(2)}×`;
         riskSummaryEl.innerHTML=`${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} • ${slopeStr} • ${volStr}</div>`;
-        drawTrend(riskCanvas,win);
+        drawCandlePlusFMV(riskCanvas,win);
 
         const N = Math.max(3, Math.min(15, riskCandlesN||3));
         const M = Math.max(2, Math.min(N, trendMinutes));
@@ -589,21 +687,18 @@
             Disclaimer: This is an automated summary and not financial advice.
           </div>
         `;
-        if (riskMode==='aggressive'){
-          const lean = leanWindow(win, M);
-          if(lean){
-            const pctStr2=`${lean.pct>=0?'+':''}${lean.pct.toFixed(2)}%`;
-            riskAdviceEl.innerHTML += `
-              <div class="pill ${lean.cls}" style="margin-top:8px">
-                <i class="fa-solid fa-clock-rotate-left"></i>
-                &nbsp; According to the last <b>${M} minutes</b>, this trend is leaning <b>${lean.dir}</b> (${pctStr2}).
-              </div>
-            `;
-          }
-        }
+
+        /* Extra purple prediction blip (does not change your existing logic) */
+        const pred = shortHorizonPrediction(info, win, Math.min(5, N));
+        riskAdviceEl.innerHTML += `
+          <div class="pill" style="margin-top:8px;border-color:transparent;background:rgba(111,90,255,.15);color:var(--accent)">
+            <i class="fa-solid fa-bullseye"></i>&nbsp; ${pred.msg}
+          </div>
+        `;
+
         const refEl=document.getElementById('riskRef'); if(refEl){refEl.textContent=new Date().toLocaleTimeString();refEl.classList.remove('flash');void refEl.offsetWidth;refEl.classList.add('flash')}
         riskWinEl.textContent=`${trendMinutes}m`;
-      }catch(e){riskSummaryEl.innerHTML=`<span class="muted">Risk fetch failed (${String(e.message||e)})</span>`;drawTrend(riskCanvas,[])}
+      }catch(e){riskSummaryEl.innerHTML=`<span class="muted">Risk fetch failed (${String(e.message||e)})</span>`;drawCandlePlusFMV(riskCanvas,[])}
     }
 
     /* ---------------- PnL chips ---------------- */
@@ -622,8 +717,9 @@
     document.addEventListener('DOMContentLoaded',()=>{
       pnlGetTotals(); setInterval(pnlGetTotals,120000);
       const btn=document.getElementById('logPnl'), msg=document.getElementById('pnlMsg');
-      if(btn){btn.addEventListener('click',async()=>{try{const who=(document.querySelector('input[name="who"]:checked')||{}).value||'AK';const amt=(document.getElementById('pnlAmount')||{}).value||'';const note=(document.getElementById('pnlNote')||{}).value||'';if(!amt||isNaN(Number(amt))){msg.textContent='Enter a number (e.g. 125 or -75)';return}msg.textContent='Saving...';await pnlPostLog({user:who,amount:amt,note});msg.textContent='Saved ✓';document.getElementById('pnlAmount').value='';document.getElementById('pnlNote').value='';await pnlGetTotals();setTimeout(()=>msg.textContent='',1200)}catch(e){msg.textContent='Error: '+(e.message||e)}})}
-      const undoBtn=document.getElementById('undoLast'); if(undoBtn) undoBtn.addEventListener('click',async()=>{try{/* optional undo call */}catch(e){}});
+      if(btn){btn.addEventListener('click',async()=>{try{const who=(document.querySelector('input[name="who"]:checked')||{}).value||'AK';const amt=(document.getElementById('pnlAmount')||{}).value||'';const note=(document.getElementById('pnlNote')||{}).value||'';if(!amt||isNaN(Number(amt))){msg.textContent='Enter a number (e.g. 125 or -75)';return}msg.textContent='Saving...';await fetch(PNL_API,{method:'POST',body:new URLSearchParams({token:PNL_TOKEN,user:who,amount:String(Number(amt)),note:note||''})});msg.textContent='Saved ✓';document.getElementById('pnlAmount').value='';document.getElementById('pnlNote').value='';await pnlGetTotals();setTimeout(()=>msg.textContent='',1200)}catch(e){msg.textContent='Error: '+(e.message||e)}})}
+      const undoBtn=document.getElementById('undoLast'); if(undoBtn) undoBtn.addEventListener('click',async()=>{msg.textContent='Undo not implemented in this build';setTimeout(()=>msg.textContent='',1200)});
+
       setTfActive(15);
 
       // Auto-refresh visible charts every 30s
