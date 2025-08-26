@@ -402,12 +402,19 @@
 
     if(riskModeSeg){riskModeSeg.addEventListener('click',e=>{const btn=e.target.closest('.segbtn');if(!btn)return;riskMode=btn.dataset.mode||'conservative';Array.from(riskModeSeg.querySelectorAll('.segbtn')).forEach(b=>b.classList.toggle('active',b===btn));riskWinEl.textContent=`${trendMinutes}m`;const m=getSelectedFutures();buildRisk(m.length?m:['ES'])})}
 
-    if(riskCandles){
-      const syncLabel=()=>riskCandlesLabel.textContent=`${riskCandles.value} candles`;
-      riskCandles.addEventListener('input',()=>{riskCandlesN=parseInt(riskCandles.value,10)||3;syncLabel()});
-      riskCandles.addEventListener('change',()=>{riskCandlesN=parseInt(riskCandles.value,10)||3;const m=getSelectedFutures();buildRisk(m.length?m:['ES'])});
-      syncLabel();
-    }
+   if(riskCandles){
+  const syncLabel=()=>riskCandlesLabel.textContent=`${riskCandles.value} candles`;
+  riskCandles.addEventListener('input',()=>{
+    riskCandlesN=parseInt(riskCandles.value,10)||3;
+    syncLabel();
+  });
+  riskCandles.addEventListener('change',()=>{
+    riskCandlesN=parseInt(riskCandles.value,10)||3;
+    const m=getSelectedFutures();
+    buildRisk(m.length?m:['ES']);
+  });
+  syncLabel();
+}
 
     // Aggressive: last-N unanimity + scaled threshold
     function lastNSignal(bars,N){
