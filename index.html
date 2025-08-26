@@ -112,6 +112,13 @@
 
     .spinner{display:inline-block; width:18px; height:18px; border:3px solid #45434c; border-top-color:#ddd; border-radius:50%; animation:spin 1s linear infinite; vertical-align:-3px;}
     @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* Last refreshed flash */
+    .flash { animation: flash 0.6s ease; }
+    @keyframes flash {
+      0% { color: var(--ok); }
+      100% { color: var(--muted); }
+    }
   </style>
 </head>
 <body>
@@ -261,8 +268,8 @@
       <div id="trendSummary" style="margin-top:12px"></div>
       <canvas id="trendChart"></canvas>
       <div id="trendAdvice" style="margin-top:12px"></div>
-    <div class="muted" style="margin-top:6px;font-size:12px">Last refreshed: <span id="trendRef">—</span></div>
-  <details style="margin-top:10px">
+      <div class="muted" style="margin-top:6px;font-size:12px">Last refreshed: <span id="trendRef">—</span></div>
+      <details style="margin-top:10px">
         <summary>How we decide “busy”</summary>
         <div class="muted" style="margin-top:6px">
           We compute 1-minute returns and flag as <b>Busy</b> when realized vol in the window is elevated
@@ -281,7 +288,7 @@
     const PROXY_RAW = 'https://script.google.com/macros/s/AKfycbztzwYcRxD3mQ2MgD99ubT3-nW-nQJiU-thNoUrdRuMkrTIF1LilnEyCbysHP6Z7HYf/exec?url=';
 
     // ===== PnL API =====
-    const PNL_API   = 'https://script.google.com/macros/s/AKfycbwd3osQnOh2Xpk1xEhA0Nq76LfOqK_HB-O40IaegbrFagF_PPmlc17i8a9IMFSN6bE/exec?url=';
+    const PNL_API   = 'https://script.google.com/macros/s/AKfycbwd3osQnOh2Xpk1xEhA0Nq76LfOqK_HB-O40IaegbrFagF_PPmlc17i8a9IMFSN6bE/exec'; // <-- no ?url=
     const PNL_TOKEN = 'CHANGE_ME_32CHAR';
 
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
@@ -589,7 +596,6 @@
       let sx=0,sy=0,sxx=0,sxy=0; for(let i=0;i<closes.length;i++){ sx+=i; sy+=closes[i]; sxx+=i*i; sxy+=i*closes[i]; }
       const n=closes.length, denom=(n*sxx - sx*sx)||1; const slope=(n*sxy - sx*sy)/denom; const slopePctPerHour=(slope/first)*60*100;
 
-      // labels
       let direction='Sideways', dirClass='warn';
       if(pct>=0.2 || slopePctPerHour>=0.5){ direction='Uptrend'; dirClass='ok'; }
       else if(pct<=-0.2 || slopePctPerHour<=-0.5){ direction='Downtrend'; dirClass='bad'; }
@@ -614,7 +620,6 @@
       if (!info?.ok) return {text:'—', action:'Wait'};
       if (info.direction==='Uptrend' && info.busyLabel==='Busy') return {text:'Recommend: <b>Buy</b> (uptrend + active tape)', action:'Buy'};
       if (info.direction==='Downtrend' && info.busyLabel==='Busy') return {text:'Recommend: <b>Sell</b> (downtrend + active tape)', action:'Sell'};
-      // softer: if slight up/down but calm, still suggest cautious
       if (info.direction==='Uptrend') return {text:'Recommend: <b>Buy (cautious)</b> (uptrend, calmer tape)', action:'Buy'};
       if (info.direction==='Downtrend') return {text:'Recommend: <b>Sell (cautious)</b> (downtrend, calmer tape)', action:'Sell'};
       return {text:'Recommend: <b>Wait</b> (sideways / mixed)', action:'Wait'};
@@ -648,15 +653,13 @@
             Disclaimer: This summary is generated solely from current market data in this app and is for informational purposes only. It is not financial advice.
           </div>
         `;
+
+        // Last refreshed line + flash
         const refEl = document.getElementById('trendRef');
         if (refEl) {
           refEl.textContent = new Date().toLocaleTimeString();
+          refEl.classList.remove('flash'); void refEl.offsetWidth; refEl.classList.add('flash');
         }
-      }catch(e){
-        trendSummaryEl.innerHTML=`<span class="muted">Trend fetch failed (${String(e.message||e)})</span>`;
-        drawTrendChart(trendCanvas,[]);
-      }
-    }
       }catch(e){
         trendSummaryEl.innerHTML=`<span class="muted">Trend fetch failed (${String(e.message||e)})</span>`;
         drawTrendChart(trendCanvas,[]);
@@ -748,7 +751,7 @@
     document.getElementById('quick').addEventListener('click', ()=>{ setNav('nav-prep'); setTab('prep'); startAnalyze({linksOnly:true}); });
     document.getElementById('runTrend').addEventListener('click', ()=>{ setNav('nav-trend'); setTab('trend'); const m=getSelectedFutures(); buildTrend(m.length?m:['ES']); });
 
-    // PnL events
+    // PnL events + auto refresh
     document.addEventListener('DOMContentLoaded', () => {
       pnlGetTotals();
       setInterval(pnlGetTotals, 120000);
@@ -779,16 +782,17 @@
       const undoBtn = document.getElementById('undoLast');
       if (undoBtn) undoBtn.addEventListener('click', async ()=>{ try{ await pnlUndoLast(); }catch(e){} });
 
-      // Default selected timeframe highlight already set to 15m in HTML; ensure synced
+      // Ensure 15m is highlighted on load
       setTfActive(15);
-      // Auto-refresh Trend every 30 seconds (only if Trend tab is visible)
-  setInterval(()=>{
-    if (trendOut.style.display !== 'none') {
-      const m = getSelectedFutures();
-      buildTrend(m.length ? m : ['ES']);
-    }
-  }, 30000);
-});
+
+      // Auto-refresh Trend every 30s when visible
+      setInterval(()=>{
+        if (trendOut.style.display !== 'none') {
+          const m = getSelectedFutures();
+          buildTrend(m.length ? m : ['ES']);
+        }
+      }, 30000);
+    });
   </script>
 </body>
 </html>
