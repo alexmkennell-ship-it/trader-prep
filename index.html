@@ -711,7 +711,6 @@
   const j = await r.json();
   if (!j.ok) throw new Error(j.error || 'bad');
   return j;
-}
     }
 
     let _todayLogCache = []; // session-side log view
