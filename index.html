@@ -151,7 +151,6 @@
         <div>
           <div class="muted">Trend/Risk timeframe</div>
           <div class="seg" style="margin-top:6px">
-            <button class="segbtn" data-tf="5">5m</button>
             <button class="segbtn active" data-tf="15">15m</button>
             <button class="segbtn" data-tf="30">30m</button>
             <button class="segbtn" data-tf="60">60m</button>
@@ -396,7 +395,7 @@
       const min=Math.min(...prices), max=Math.max(...prices), range=(max-min)||1;
       const step=(w-pad*2)/(prices.length-1);
 
-      ctx.lineWidth=2; ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--fg').trim()||'#eee';
+      ctx.lineWidth=2; ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--accent-graph').trim()||'#7c5cff';
       ctx.beginPath();
       prices.forEach((p,i)=>{const x=pad+step*i;const y=h-pad-((p-min)/range)*(h-pad*2); if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);});
       ctx.stroke();
