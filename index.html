@@ -60,7 +60,6 @@
 .modal .sheet h3{margin:4px 0 10px;font-size:16px}
 .modal .sheet .close{float:right}
 .sliderrow{display:flex;align-items:center;gap:10px;flex-wrap:nowrap}
-    }
     html,body{background:var(--bg);color:var(--fg)}
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;margin:0;line-height:1.35;word-break:break-word}
     a{color:inherit}
@@ -252,7 +251,7 @@
       <div class="row"><strong>Current Trend</strong><span class="muted">Window: <span id="trendWin">15m</span></span></div>
       <div class="muted">Primary: <span id="trendSym"></span> (mapped ETF) • <span id="trendTime"></span></div>
       <div id="trendSummary" style="margin-top:12px"></div>
-      <canvas id="trendChart" class="chart"></canvas>
+      <!-- duplicate trendChart removed -->
       <div id="trendLegend" class="legend"></div>
       <div id="trendAdvice" style="margin-top:12px"></div>
       <div class="muted" style="margin-top:6px;font-size:12px">Last refreshed: <span id="trendRef">—</span></div>
@@ -281,7 +280,7 @@
 
       <div class="muted">Primary: <span id="riskSym"></span> (mapped ETF) • <span id="riskTime"></span></div>
       <div id="riskSummary" style="margin-top:12px"></div>
-      <canvas id="riskChart" class="chart"></canvas>
+      <!-- duplicate riskChart removed -->
       <div id="riskLegend" class="legend"></div>
       <div id="riskAdvice" style="margin-top:12px"></div>
       <div class="muted" style="margin-top:6px;font-size:12px">Last refreshed: <span id="riskRef">—</span></div>
@@ -289,8 +288,6 @@
   </div>
 
   <script>
-    const trendLegend = document.getElementById('trendLegend');
-const riskLegend  = document.getElementById('riskLegend');
 let lastTrendWhy = null, lastRiskWhy = null;
 
 function setLegend(el){
@@ -345,10 +342,10 @@ function setLegend(el){
 
     const trendWinEl=document.getElementById('trendWin'), trendSymEl=document.getElementById('trendSym'), trendTimeEl=document.getElementById('trendTime'), trendSummaryEl=document.getElementById('trendSummary'), trendAdviceEl=document.getElementById('trendAdvice'), trendCanvas=document.getElementById('trendChart');
     const riskWinEl=document.getElementById('riskWin'), riskSymEl=document.getElementById('riskSym'), riskTimeEl=document.getElementById('riskTime'), riskSummaryEl=document.getElementById('riskSummary'), riskAdviceEl=document.getElementById('riskAdvice'), riskCanvas=document.getElementById('riskChart');
-    const trendLegend=document.getElementById('trendLegend');
-    const riskLegend=document.getElementById('riskLegend');
-
-    /* ---------------- Timeframe ---------------- */
+const trendLegend=document.getElementById('trendLegend');
+const riskLegend=document.getElementById('riskLegend');
+let lastTrendWhy=null,lastRiskWhy=null;
+/* ---------------- Timeframe ---------------- */
     let trendMinutes=15;
     const segBtns=document.querySelectorAll('.segbtn[data-tf]');
     function setTfActive(mins){
@@ -478,14 +475,7 @@ function marketPrediction(info,bars){
       return { ctx: canvas.getContext('2d'), w: canvas.width, h: canvas.height, dpr };
     }
 
-    function sizeCanvas(canvas){
-  const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-  const cssW = canvas.clientWidth || 700;
-  const cssH = canvas.clientHeight || 190;
-  canvas.width  = Math.floor(cssW * dpr);
-  canvas.height = Math.floor(cssH * dpr);
-  return { ctx: canvas.getContext('2d'), w: canvas.width, h: canvas.height, dpr };
-}
+    /* duplicate removed */
 
 function drawCandleChart(canvas, bars, opts={}){
   const {ctx,w,h}=sizeCanvas(canvas);
@@ -553,8 +543,8 @@ function drawCandleChart(canvas, bars, opts={}){
 }
 
 function drawTrend(canvas,bars){ drawCandleChart(canvas,bars,{vwap:true,closeLine:true}); }
-    setLegend(trendLegend);   // in buildTrend
-setLegend(riskLegend);    // in buildRisk
+    setLegend(trendLegend);
+setLegend(riskLegend);
 
 
       // subtle grid
@@ -708,7 +698,6 @@ setLegend(riskLegend);    // in buildRisk
   if(recent.length > desired+2) recent = recent.slice(-desired); // prevents “not moving over”
   return recent;
 }
-    }
     function statsTrend(windowBars){
       if(windowBars.length<5) return {ok:false,reason:'not enough bars'};
       const closes=windowBars.map(b=>b.c), vols=windowBars.map(b=>b.v);
@@ -727,7 +716,7 @@ setLegend(riskLegend);    // in buildRisk
       return {ok:true,pct,delta,std,volRatio,slopePctPerHour,direction,dirClass,busyLabel,busyClass,closes,bars:windowBars}
     }
 
-    function drawTrend(canvas,bars){ drawCandleChart(canvas,bars,{vwap:true,closeLine:true}); }
+    /* duplicate removed */
 
     function tradeSuggestion(info){
       if(!info?.ok) return {text:'—',action:'Wait'};
@@ -744,38 +733,10 @@ setLegend(riskLegend);    // in buildRisk
       return out;
     }
 
-    function setLegend(el){
-      if(!el) return;
-      el.innerHTML = `
-        <span class="item"><span class="swatch" style="background:#6abd74"></span> Up candle</span>
-        <span class="item"><span class="swatch" style="background:#e05d5d"></span> Down candle</span>
-        <span class="item" style="color:var(--accent-graph)"><span class="swatch line" style="color:var(--accent-graph)"></span> Close line</span>
-        <span class="item" style="color:var(--accent)"><span class="swatch line dashed" style="color:var(--accent)"></span> VWAP (proxy)</span>`;
-    }
+    /* duplicate removed */
 
     /* ---------------- Prediction (new purple blip) ---------------- */
-    function marketPrediction(info, bars){
-      if(!info?.ok || !bars?.length) return {label:'Neutral', conf:0.5, text:'Market bias unclear'};
-      const N = Math.min(15, bars.length);
-      const lastN = bars.slice(-N);
-      const vwapArr = computeVWAP(lastN);
-      const last = lastN.at(-1).c; const vwap = vwapArr.at(-1);
-      let score = 0;
-      // Direction & slope
-      if(info.direction==='Uptrend') score += 1; else if(info.direction==='Downtrend') score -= 1;
-      score += Math.tanh(info.slopePctPerHour/1.2); // smooth contribution
-      // Above/below VWAP
-      if(last > vwap) score += 0.6; else score -= 0.6;
-      // Recent momentum
-      let ups=0,downs=0; for(let i=1;i<lastN.length;i++){const d=lastN[i].c-lastN[i-1].c; if(d>0) ups++; else if(d<0) downs++;}
-      if(ups>downs) score += 0.4; else if(downs>ups) score -= 0.4;
-      // Volatility: calmer = lower confidence
-      const volAdj = Math.max(0.35, Math.min(1, info.busyLabel==='Busy'?1:0.6));
-      const conf = Math.max(0.5, Math.min(0.95, (0.6 + Math.abs(score)/3) * volAdj));
-      const label = score>0.25? 'Bullish' : (score<-0.25? 'Bearish' : 'Range/Neutral');
-      const text = label==='Bullish' ? 'likely to stay bullish' : (label==='Bearish' ? 'may turn/continue bearish' : 'likely range-bound');
-      return {label,conf,text};
-    }
+    /* duplicate removed */
 
     async function buildTrend(markets){
       const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
@@ -995,6 +956,9 @@ document.body.addEventListener('click',e=>{
       if(!j.ok) throw new Error(j.error||'save failed');
       return j;
     }
-  </script>
+  
+// Mobile menu toggle ensure
+(function(){const btn=document.getElementById('mobileMenu');const nav=document.getElementById('navicons');if(btn&&nav){btn.addEventListener('click',()=>nav.classList.toggle('show'));}})();
+</script>
 </body>
 </html>
