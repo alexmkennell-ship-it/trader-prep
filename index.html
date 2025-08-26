@@ -1,28 +1,26 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no"/>
-  <meta name="theme-color" content="#000000"/>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <meta name="theme-color" content="#1b191b"/>
   <meta name="color-scheme" content="dark"/>
   <title>Trader Prep</title>
 
-  <!-- Favicons -->
-<link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
-<link rel="apple-touch-icon" href="icon-192.png">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+  <!-- Icons / Manifest -->
+  <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
 
-
+  <!-- Icons (CDN, free) -->
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" referrerpolicy="no-referrer"/>
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" href="icon-192.png">
 
   <style>
     :root {
       --bg:#1b191b; --panel:#2a292f; --panel-2:#242328; --line:#35343a;
-      --fg:#f1f2f4; --muted:#a7adbb; --accent:#7c5cff;
+      --fg:#f1f2f4; --muted:#a7adbb;
+      --accent:#6f5aff;            /* a bit darker than #7c5cff */
       --ok:#6abd74; --bad:#e05d5d; --warn:#d3a54a; --pill:#24252b;
       --shadow:0 6px 18px rgba(0,0,0,.35); --radius:14px; --pad:16px;
     }
@@ -30,28 +28,31 @@
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;margin:0}
     a{color:inherit}
 
+    /* Top bar */
     .topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,#201f25 0%,#1a191f 100%);border-bottom:1px solid var(--line);padding:10px 14px}
     .brand{display:flex;gap:10px;align-items:center}
-    .brand .logo{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:#2f2e36;border:1px solid var(--line)}
+    .brand .logo{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:#2f2e36;border:1px solid var(--line);overflow:hidden}
     .brand h1{font-size:16px;margin:0;letter-spacing:.3px}
     .navicons{display:flex;gap:10px;align-items:center}
-    .iconbtn{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;border:1px solid var(--line);background:#26252b;cursor:pointer;color:#cfd3dc}
+    .iconbtn{min-width:44px;min-height:44px;display:grid;place-items:center;border-radius:12px;border:1px solid var(--line);background:#26252b;cursor:pointer;color:#cfd3dc}
     .iconbtn.active{background:var(--accent);color:#090909;border-color:transparent}
 
+    /* Stat strip */
     .statstrip{display:flex;gap:10px;align-items:center;padding:10px 14px;flex-wrap:wrap;border-bottom:1px solid var(--line);background:#1e1d22}
     .chip{display:flex;gap:8px;align-items:center;padding:6px 10px;background:#2a2930;border:1px solid var(--line);border-radius:10px;font-size:12px}
     .chip.ok{background:#213224;color:var(--ok);border-color:#2a4930}
     .chip.warn{background:#332d1f;color:var(--warn);border-color:#5a4726}
     .chip.bad{background:#372325;color:var(--bad);border-color:#5d3439}
 
+    /* Shell */
     .wrap{max-width:1100px;margin:0 auto;padding:14px}
     .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:var(--pad);box-shadow:var(--shadow);margin:14px 0}
     .muted{color:var(--muted)}
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .actions{display:flex;gap:10px;flex-wrap:wrap}
     button,select,input{font-size:15px}
-    select,input{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%}
-    button{padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg);cursor:pointer}
+    select,input{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:12px 12px;width:100%}
+    button{padding:12px 16px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg);cursor:pointer}
     .primary{background:var(--accent);color:#0b0b10;border-color:transparent;font-weight:600}
     .tabs{display:flex;gap:10px;margin:8px 0 2px}
     .tabbtn{border-radius:10px;border:1px solid var(--line);background:#26252b;padding:8px 12px;cursor:pointer}
@@ -63,7 +64,9 @@
     .bundle{padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:#26252b;font-size:14px;cursor:pointer}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     @media (max-width:900px){.grid{grid-template-columns:1fr}}
-    canvas{width:100%;max-width:700px;height:160px;border-radius:10px;background:#24252b;margin-top:10px}
+
+    /* Chart canvas */
+    .chart{width:100%;height:190px;border-radius:10px;background:#24252b;margin-top:10px;display:block}
     .seg{display:flex;gap:8px;flex-wrap:wrap}
     .segbtn{padding:8px 12px;border:1px solid var(--line);background:#26252b;border-radius:10px;cursor:pointer}
     .segbtn.active{background:var(--accent);color:#0b0b10;border-color:transparent}
@@ -71,23 +74,26 @@
     @keyframes spin{to{transform:rotate(360deg)}}
     .flash{animation:flash .6s ease}@keyframes flash{0%{color:var(--ok)}100%{color:var(--muted)}}
     .sliderrow{display:flex;align-items:center;gap:10px}
-    .sliderrow input[type=range]{width:180px}
+    .sliderrow input[type=range]{width:200px}
   </style>
 </head>
 <body>
+  <!-- HEADER -->
   <header class="topbar">
-    <div class="brand"><div class="logo">
-  <img src="icon-192.png" alt="Trader Prep Logo" style="width:100%;height:100%;object-fit:contain;">
-</div>
-<h1>Trader Prep</h1></div>
+    <div class="brand">
+      <div class="logo"><img src="icon-192.png" alt="Trader Prep Logo" style="width:100%;height:100%;object-fit:contain"></div>
+      <h1>Trader Prep</h1>
+    </div>
     <nav class="navicons">
       <div class="iconbtn active" id="nav-prep" title="Prep"><i class="fa-solid fa-bars-staggered"></i></div>
       <div class="iconbtn" id="nav-trend" title="Trend"><i class="fa-solid fa-wave-square"></i></div>
+      <div class="iconbtn" id="nav-risk" title="Risk"><i class="fa-solid fa-fire-flame-curved"></i></div>
       <div class="iconbtn" id="nav-pnl" title="Profit Log"><i class="fa-solid fa-dollar-sign"></i></div>
       <div class="iconbtn" id="nav-settings" title="Settings"><i class="fa-solid fa-gear"></i></div>
     </nav>
   </header>
 
+  <!-- STATS -->
   <div class="statstrip">
     <div class="chip" id="chipAKWrap"><span class="muted">AK$ (today):</span> <strong id="chipAK">$0.00</strong><span class="muted" style="margin-left:8px">/ all:</span> <strong id="chipAKAll">$0.00</strong></div>
     <div class="chip" id="chipBGWrap"><span class="muted">BG$ (today):</span> <strong id="chipBG">$0.00</strong><span class="muted" style="margin-left:8px">/ all:</span> <strong id="chipBGAll">$0.00</strong></div>
@@ -114,7 +120,7 @@
       <details style="margin-top:12px"><summary>Today’s entries</summary><div id="pnlTodayTable" class="muted" style="margin-top:8px">—</div><div class="actions" style="margin-top:8px"><button id="undoLast"><i class="fa-solid fa-rotate-left"></i>&nbsp;Undo last entry</button></div></details>
     </div>
 
-    <!-- MARKETS -->
+    <!-- MARKET PICKER -->
     <div class="card">
       <div class="tabs">
         <button class="tabbtn active" id="tab-prep">Prep</button>
@@ -131,11 +137,15 @@
       <div class="grid" style="margin-top:10px">
         <div>
           <label class="muted">Futures/markets</label>
-          <select id="futures" multiple size="8">
-            <option value="ES">ES – S&P 500</option><option value="NQ">NQ – Nasdaq 100</option>
-            <option value="YM">YM – Dow</option><option value="RTY">RTY – Russell 2000</option>
-            <option value="CL">CL – Crude Oil</option><option value="GC">GC – Gold</option>
-            <option value="ZN">ZN – 10-Yr Note</option><option value="6E">6E – EUR/USD</option>
+          <select id="futures" multiple size="8" aria-label="Futures and markets">
+            <option value="ES">ES – S&P 500</option>
+            <option value="NQ">NQ – Nasdaq 100</option>
+            <option value="YM">YM – Dow</option>
+            <option value="RTY">RTY – Russell 2000</option>
+            <option value="CL">CL – Crude Oil</option>
+            <option value="GC">GC – Gold</option>
+            <option value="ZN">ZN – 10-Yr Note</option>
+            <option value="6E">6E – EUR/USD</option>
           </select>
         </div>
         <div>
@@ -171,11 +181,11 @@
       <div class="row"><strong>Current Trend</strong><span class="muted">Window: <span id="trendWin">15m</span></span></div>
       <div class="muted">Primary: <span id="trendSym"></span> (mapped ETF) • <span id="trendTime"></span></div>
       <div id="trendSummary" style="margin-top:12px"></div>
-      <canvas id="trendChart"></canvas>
+      <canvas id="trendChart" class="chart"></canvas>
       <div id="trendAdvice" style="margin-top:12px"></div>
       <div class="muted" style="margin-top:6px;font-size:12px">Last refreshed: <span id="trendRef">—</span></div>
       <details style="margin-top:10px"><summary>How we decide “busy”</summary>
-        <div class="muted" style="margin-top:6px">We compute 1-minute returns and flag as <b>Busy</b> when realized vol in the window is elevated (≥ ~0.06% std-dev) or average volume is above the window’s median (≥ 1.2×). Tweak: <code>BUSY_VOL_STD</code>, <code>BUSY_VOL_RATIO</code>.</div>
+        <div class="muted" style="margin-top:6px">We compute 1-minute returns and flag as <b>Busy</b> when realized vol in the window is elevated (≥ ~0.06% std-dev) or average volume is above the window’s median (≥ 1.2×).</div>
       </details>
     </div>
 
@@ -188,51 +198,45 @@
         <button class="segbtn" data-mode="aggressive">Aggressive</button>
       </div>
 
-      <!-- NEW: Candles slider -->
       <div class="sliderrow" style="margin:4px 0 8px">
         <span class="muted" style="min-width:120px">Candles (1m each)</span>
-        <input id="riskCandles" type="range" min="3" max="15" step="1" value="3">
-        <span class="pill" id="riskCandlesLabel">3 min</span>
+        <input id="riskCandles" type="range" min="3" max="15" step="1" value="3" aria-label="Risk candles">
+        <span class="pill" id="riskCandlesLabel">3 candles</span>
       </div>
 
       <div class="muted">Primary: <span id="riskSym"></span> (mapped ETF) • <span id="riskTime"></span></div>
       <div id="riskSummary" style="margin-top:12px"></div>
-      <canvas id="riskChart"></canvas>
+      <canvas id="riskChart" class="chart"></canvas>
       <div id="riskAdvice" style="margin-top:12px"></div>
       <div class="muted" style="margin-top:6px;font-size:12px">Last refreshed: <span id="riskRef">—</span></div>
-
-      <details style="margin-top:10px"><summary>How Aggressive works</summary>
-        <div class="muted" style="margin-top:6px">
-          Aggressive: looks at the <b>last N one-minute candles</b> for directional unanimity and a scaled net-move threshold. Conservative uses the same N but requires stronger confirmation and alignment with the broader tape; otherwise recommends <b>Wait</b>.
-        </div>
-      </details>
     </div>
   </div>
 
   <script>
-    /* Config */
-    const PROXY_RAW='https://script.google.com/macros/s/AKfycbztzwYcRxD3mQ2MgD99ubT3-nW-nQJiU-thNoUrdRuMkrTIF1LilnEyCbysHP6Z7HYf/exec?url=';
-    const PNL_API='https://script.google.com/macros/s/AKfycbz2b9H8BLD7BvWfbtWaPnaThvUHM66MsnBcDb0_siM5L_xxqj1MrfqSPk1uOjvbbNx0/exec';
-    const PNL_TOKEN='CHANGE_ME_32CHAR';
-    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    /* ---------------- Config ---------------- */
+     const PROXY_RAW = 'https://script.google.com/macros/s/AKfycbztzwYcRxD3mQ2MgD99ubT3-nW-nQJiU-thNoUrdRuMkrTIF1LilnEyCbysHP6Z7HYf/exec?url=';
 
-    /* Nav */
+    // ===== PnL API =====
+    const PNL_API   = 'https://script.google.com/macros/s/AKfycbz2b9H8BLD7BvWfbtWaPnaThvUHM66MsnBcDb0_siM5L_xxqj1MrfqSPk1uOjvbbNx0/exec'; // <-- no ?url=
+    const PNL_TOKEN = 'CHANGE_ME_32CHAR';
+
+    /* ---------------- Nav / Tabs ---------------- */
     const panelSettings=document.getElementById('panel-settings');
     const panelPnL=document.getElementById('panel-pnl');
-    const navPrep=document.getElementById('nav-prep'),navTrend=document.getElementById('nav-trend'),navSettings=document.getElementById('nav-settings'),navPnL=document.getElementById('nav-pnl');
+    const navPrep=document.getElementById('nav-prep'),navTrend=document.getElementById('nav-trend'),navSettings=document.getElementById('nav-settings'),navPnL=document.getElementById('nav-pnl'),navRisk=document.getElementById('nav-risk');
+
     function hidePanels(){panelSettings.style.display='none';panelPnL.style.display='none'}
     function setNav(active){
-      [navPrep,navTrend,navSettings,navPnL].forEach(n=>n.classList.toggle('active',n.id===active));
+      [navPrep,navTrend,navSettings,navPnL,navRisk].forEach(n=>n.classList.toggle('active',n.id===active));
       hidePanels();
       if(active==='nav-settings') panelSettings.style.display='block';
       if(active==='nav-pnl') panelPnL.style.display='block';
       if(active==='nav-prep') setTab('prep');
       if(active==='nav-trend') setTab('trend');
+      if(active==='nav-risk') setTab('risk');
     }
-    navPrep.onclick=()=>setNav('nav-prep'); navTrend.onclick=()=>setNav('nav-trend'); navSettings.onclick=()=>setNav('nav-settings'); navPnL.onclick=()=>setNav('nav-pnl');
-    document.getElementById('openSettings').onclick=()=>setNav('nav-settings');
+    navPrep.onclick=()=>setNav('nav-prep'); navTrend.onclick=()=>setNav('nav-trend'); navSettings.onclick=()=>setNav('nav-settings'); navPnL.onclick=()=>setNav('nav-pnl'); navRisk.onclick=()=>setNav('nav-risk');
 
-    /* Tabs */
     const tabPrep=document.getElementById('tab-prep'), tabTrend=document.getElementById('tab-trend'), tabRisk=document.getElementById('tab-risk');
     const prepOut=document.getElementById('prepOut'), trendOut=document.getElementById('trendOut'), riskOut=document.getElementById('riskOut');
     function setTab(which){
@@ -244,19 +248,17 @@
       riskOut.style.display=(which==='risk')?'':'none';
     }
 
-    /* Elements */
-    const startBtn=document.getElementById('start'), quickBtn=document.getElementById('quick'), runTrendBtn=document.getElementById('runTrend'), runRiskBtn=document.getElementById('runRisk');
+    /* ---------------- Elements ---------------- */
     const futuresSel=document.getElementById('futures');
-    const nowEl=document.getElementById('now'), focusEl=document.getElementById('focus'), summaryEl=document.getElementById('summary');
+    const startBtn=document.getElementById('start'), runTrendBtn=document.getElementById('runTrend'), runRiskBtn=document.getElementById('runRisk');
+    const nowEl=document.getElementById('now'), focusEl=document.getElementById('focus'), summaryEl=document.getElementById('summary'), linksEl=document.getElementById('links');
     const keyStatusEl=document.getElementById('keyStatus'), gnewsEl=document.getElementById('gnews'), alphaEl=document.getElementById('alpha');
-    const saveBtn=document.getElementById('saveKeys'), saveMsg=document.getElementById('saveMsg'), linksEl=document.getElementById('links');
+    const saveBtn=document.getElementById('saveKeys'), saveMsg=document.getElementById('saveMsg');
 
     const trendWinEl=document.getElementById('trendWin'), trendSymEl=document.getElementById('trendSym'), trendTimeEl=document.getElementById('trendTime'), trendSummaryEl=document.getElementById('trendSummary'), trendAdviceEl=document.getElementById('trendAdvice'), trendCanvas=document.getElementById('trendChart');
     const riskWinEl=document.getElementById('riskWin'), riskSymEl=document.getElementById('riskSym'), riskTimeEl=document.getElementById('riskTime'), riskSummaryEl=document.getElementById('riskSummary'), riskAdviceEl=document.getElementById('riskAdvice'), riskCanvas=document.getElementById('riskChart');
-    const riskModeSeg=document.getElementById('riskModeSeg');
-    const riskCandles=document.getElementById('riskCandles'), riskCandlesLabel=document.getElementById('riskCandlesLabel');
 
-    /* Timeframe buttons */
+    /* ---------------- Timeframe ---------------- */
     let trendMinutes=15;
     const segBtns=document.querySelectorAll('.segbtn[data-tf]');
     function setTfActive(mins){
@@ -265,24 +267,23 @@
     }
     segBtns.forEach(btn=>btn.addEventListener('click',()=>setTfActive(parseInt(btn.dataset.tf,10))));
 
-    /* Keys */
+    /* ---------------- Keys ---------------- */
     function loadKeys(){gnewsEl.value=localStorage.getItem('GNEWS_KEY')||'';alphaEl.value=localStorage.getItem('ALPHA_KEY')||''}
     function saveKeys(){localStorage.setItem('GNEWS_KEY',gnewsEl.value.trim());localStorage.setItem('ALPHA_KEY',alphaEl.value.trim());saveMsg.textContent='Saved ✓';setTimeout(()=>saveMsg.textContent='',1500)}
-    loadKeys(); saveBtn.addEventListener('click',saveKeys);
+    if(saveBtn){loadKeys(); saveBtn.addEventListener('click',saveKeys);}
 
-    /* Futures helpers */
+    /* ---------------- Futures helpers ---------------- */
     function getSelectedFutures(){return Array.from(futuresSel.selectedOptions).map(o=>o.value)}
     document.querySelectorAll('.bundle[data-bundle]').forEach(b=>b.addEventListener('click',()=>{const arr=b.dataset.bundle.split(',');for(const o of futuresSel.options)o.selected=arr.includes(o.value)}));
 
-    /* Links */
     function showPrepHeader(markets){nowEl.textContent=new Date().toLocaleString();focusEl.textContent=markets.join(', ')}
     function makeLinks(markets){const q=encodeURIComponent(markets.join(' ')||'ES NQ');linksEl.innerHTML=`<li><a target="_blank" href="https://www.google.com/search?q=index+futures">Index Futures Snapshot</a></li><li><a target="_blank" href="https://www.google.com/search?q=today+economic+calendar">Economic Calendar</a></li><li><a target="_blank" href="https://news.google.com/">Macro headlines</a></li><li><a target="_blank" href="https://news.google.com/search?q=${q}">News for ${markets.join(', ')}</a></li>`}
 
-    /* Maps */
+    /* ---------------- Maps ---------------- */
     const FUTURES_TO_ETF={ES:'SPY',NQ:'QQQ',YM:'DIA',RTY:'IWM',CL:'USO',GC:'GLD',ZN:'IEF','6E':'FXE'};
     const ETF_TO_STOOQ={SPY:'spy.us',QQQ:'qqq.us',DIA:'dia.us',IWM:'iwm.us',USO:'uso.us',GLD:'gld.us',IEF:'ief.us',FXE:'fxe.us'};
 
-    /* Sentiment rules */
+    /* ---------------- Sentiment rules ---------------- */
     const POS=['beat','surge','strong','record','optim','rally','up','gain','bull','expand','growth'];
     const NEG=['miss','fall','weak','cut','warn','down','bear','slump','contract','decline','risk','halt','ban','tariff'];
     function headlineScore(t){const s=t.toLowerCase();let n=0;POS.forEach(w=>{if(s.includes(w))n++});NEG.forEach(w=>{if(s.includes(w))n--});return n}
@@ -312,20 +313,20 @@
     function moveDescriptor(pct){const ap=Math.abs(pct);if(ap>=2)return'surging';if(ap>=1)return'up solidly';if(ap>=0.5)return'firm';if(ap>=0.2)return'slightly higher';return'little changed'}
     function buildWhyNarrative({dayRes,headlines}){const parts=[];if(dayRes?.ok){const dir=dayRes.pct>=0?'higher':'lower',tone=moveDescriptor(dayRes.pct);parts.push(`Markets are ${tone} (${dayRes.pct.toFixed(2)}% ${dir} for ${dayRes.etf} at the last close).`)}const causes=topCausesFromHeadlines(headlines,3);if(causes.length){parts.push(`Likely drivers: ${causes.map(c=>c.label).join(', ')}.`);const s=causes[0].sample;if(s)parts.push(`e.g., “${s.replace(/"/g,'')}”.`)}else parts.push(`No dominant driver detected; tone appears mixed.`);return parts.join(' ')}
 
-    /* Fetch helpers */
+    /* ---------------- Fetch helpers ---------------- */
     async function fetchJsonOnce(u,t=9000){const c=new AbortController();const to=setTimeout(()=>c.abort('timeout'),t);try{const r=await fetch(u,{signal:c.signal,cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}finally{clearTimeout(to)}}
     async function fetchJsonRetry(u,tries=2){let e=null;for(let i=0;i<tries;i++){try{return await fetchJsonOnce(u,i?12000:9000)}catch(x){e=x;await new Promise(r=>setTimeout(r,300))}}throw e}
     async function fetchTextOnce(u,t=9000){const c=new AbortController();const to=setTimeout(()=>c.abort('timeout'),t);try{const r=await fetch(u,{signal:c.signal,cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.text()}finally{clearTimeout(to)}}
     async function fetchTextRetry(u,tries=2){let e=null;for(let i=0;i<tries;i++){try{return await fetchTextOnce(u,i?12000:9000)}catch(x){e=x;await new Promise(r=>setTimeout(r,300))}}throw e}
 
-    /* Headlines */
+    /* ---------------- Headlines ---------------- */
     async function getHeadlines(markets){
       const gkey=(localStorage.getItem('GNEWS_KEY')||'').trim();
       if(gkey){try{const q=encodeURIComponent(markets.join(' OR '));const url=`https://gnews.io/api/v4/search?q=${q}&lang=en&country=us&max=20&token=${gkey}`;const data=await fetchJsonRetry(url,2);const headlines=(data.articles||[]).map(a=>a.title||'').filter(Boolean);return {ok:true,source:'gnews',headlines}}catch(e){}}
       const q=encodeURIComponent(markets.join(' '));const rss=`https://news.google.com/rss/search?q=${q}&hl=en-US&gl=US&ceid=US:en&t=${Date.now()}`;
       try{const xml=await fetchTextRetry(PROXY_RAW+encodeURIComponent(rss),2);const doc=new DOMParser().parseFromString(xml,'text/xml');const items=Array.from(doc.querySelectorAll('item>title'));const heads=items.map(n=>n.textContent||'').filter(Boolean);return {ok:heads.length>0,source:'rss-proxy',headlines:heads}}catch(e){return {ok:false,source:'rss-proxy',reason:String(e)}}}
 
-    /* Last day (Alpha→Yahoo→Stooq) */
+    /* ---------------- Last day (Alpha→Yahoo→Stooq) ---------------- */
     async function getLastDayMove(markets){
       const akey=(localStorage.getItem('ALPHA_KEY')||'').trim();
       const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
@@ -334,8 +335,74 @@
       const sym=ETF_TO_STOOQ[etf]||'spy.us';const srcs=[`https://stooq.com/q/d/l/?s=${encodeURIComponent(sym)}&i=d&t=${Date.now()}`,`https://stooq.pl/q/d/l/?s=${encodeURIComponent(sym)}&i=d&t=${Date.now()}`];
       let lastErr=null;for(const u of srcs){try{const csv=await fetchTextRetry(PROXY_RAW+encodeURIComponent(u),2);const rows=csv.trim().split('\n');if(rows.length>=3){const last=rows.at(-1).split(','), prev=rows.at(-2).split(',');const c0=parseFloat(last[4]), c1=parseFloat(prev[4]);if(!isFinite(c0)||!isFinite(c1)) throw new Error('bad close');const pct=((c0-c1)/c1)*100, delta=c0-c1;const closes=rows.slice(-11).slice(1).map(r=>parseFloat(r.split(',')[4])).filter(v=>isFinite(v));return {ok:true,etf,latest:last[0],prior:prev[0],pct,delta,closes,source:u.includes('.pl')?'stooq-proxy(pl)':'stooq-proxy(com)'}}}catch(e){lastErr=e}}return {ok:false,reason:String(lastErr||'fetch failed')}}
     function sentimentFrom(h){const total=h.reduce((a,t)=>a+headlineScore(t),0);const [label,cls]=overallLabel(total);return {label,cls,total}}
-    function drawSparkline(container,values){if(!values||values.length<2)return;const c=document.createElement('canvas');c.width=480;c.height=100;container.appendChild(c);const ctx=c.getContext('2d');const w=c.width,h=c.height,p=8;const min=Math.min(...values),max=Math.max(...values),range=(max-min)||1,step=(w-p*2)/(values.length-1);ctx.lineWidth=2;ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--fg').trim()||'#eee';ctx.beginPath();values.forEach((v,i)=>{const x=p+step*i,y=h-p-((v-min)/range)*(h-p*2);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke()}
+    function drawSparkline(container,values){if(!values||values.length<2)return;const c=document.createElement('canvas');c.className='chart';container.appendChild(c);drawLineChart(c,values.map((v,i)=>({c:v,t:i})))}
 
+    /* ---------------- Charts ---------------- */
+    function sizeCanvas(canvas){
+      const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      const cssW = canvas.clientWidth || 700;
+      const cssH = canvas.clientHeight || 190;
+      canvas.width = Math.floor(cssW * dpr);
+      canvas.height = Math.floor(cssH * dpr);
+      return { ctx: canvas.getContext('2d'), w: canvas.width, h: canvas.height, dpr };
+    }
+
+    function drawCandleChart(canvas, bars){
+      const {ctx,w,h} = sizeCanvas(canvas);
+      ctx.clearRect(0,0,w,h);
+      if(!bars || bars.length<2) return;
+      const pad = 12;
+      const highs = bars.map(b=>b.h), lows = bars.map(b=>b.l);
+      const min = Math.min(...lows), max = Math.max(...highs), range = (max-min)||1;
+      const step = (w - pad*2) / (bars.length-1);
+      const bodyFrac = 0.65; // candle body width fraction
+      const bodyW = Math.max(3, step * bodyFrac);
+
+      // subtle grid
+      ctx.strokeStyle = '#2d2d33';
+      ctx.lineWidth = 1;
+      for (let i=1;i<=3;i++){
+        const y = pad + (h - pad*2) * (i/4);
+        ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(w-pad,y); ctx.stroke();
+      }
+
+      // wicks + bodies
+      for (let i=0;i<bars.length;i++){
+        const b = bars[i];
+        const x = pad + step*i;
+        const yH = h - pad - ((b.h - min)/range)*(h - pad*2);
+        const yL = h - pad - ((b.l - min)/range)*(h - pad*2);
+        const yO = h - pad - ((b.o - min)/range)*(h - pad*2);
+        const yC = h - pad - ((b.c - min)/range)*(h - pad*2);
+        const up = b.c >= b.o;
+
+        // wick
+        ctx.strokeStyle = up ? '#6abd74' : '#e05d5d';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(x, yH); ctx.lineTo(x, yL); ctx.stroke();
+
+        // body
+        const top = Math.min(yO, yC), bot = Math.max(yO, yC);
+        ctx.fillStyle = up ? '#6abd74' : '#e05d5d';
+        ctx.fillRect(x - bodyW/2, top, bodyW, Math.max(2, bot-top));
+      }
+    }
+
+    function drawLineChart(canvas, bars){
+      const {ctx,w,h} = sizeCanvas(canvas);
+      if(!bars || bars.length<2) return;
+      const pad = 10;
+      const prices = bars.map(b=>b.c);
+      const min=Math.min(...prices), max=Math.max(...prices), range=(max-min)||1;
+      const step=(w-pad*2)/(prices.length-1);
+
+      ctx.lineWidth=2; ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--fg').trim()||'#eee';
+      ctx.beginPath();
+      prices.forEach((p,i)=>{const x=pad+step*i;const y=h-pad-((p-min)/range)*(h-pad*2); if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);});
+      ctx.stroke();
+    }
+
+    /* ---------------- Prep summary ---------------- */
     async function buildSummary(markets){
       nowEl.textContent=new Date().toLocaleString();
       const gkey=(localStorage.getItem('GNEWS_KEY')||'').trim(), akey=(localStorage.getItem('ALPHA_KEY')||'').trim();
@@ -345,35 +412,72 @@
       try{newsRes=await getHeadlines(markets)}catch(e){newsRes={ok:false,reason:String(e)}}
       try{dayRes=await getLastDayMove(markets)}catch(e){dayRes={ok:false,reason:String(e)}}
       const parts=[];
-      if(newsRes.ok&&newsRes.headlines?.length){const senti=sentimentFrom(newsRes.headlines);const overall=senti.total>=2?'lean <b>bullish</b>':(senti.total<=-2?'lean <b>bearish</b>':'look <b>mixed/neutral</b>');parts.push(`<div class="pill ${senti.cls}"><i class="fa-regular fa-newspaper"></i> News sentiment (${newsRes.source}): <strong>${senti.label}</strong></div>`);parts.push(`<p style="margin-top:8px">According to current news, <b>${markets.join(', ')}</b> ${overall} as of now.</p>`);const top=newsRes.headlines.slice(0,5).map(h=>`<li>${h}</li>`).join('');parts.push(`<details style="margin-top:6px"><summary>Top headlines</summary><ul>${top}</ul></details>`)}else{parts.push(`<div class="muted"><i class="fa-regular fa-newspaper"></i> News sentiment unavailable${newsRes.reason?' ('+newsRes.reason+')':''}</div>`)}
-      if(dayRes.ok){const dir=dayRes.pct>=0?'▲':'▼',cls=dayRes.pct>=0?'ok':'bad';let weekendHint='';try{const dL=new Date(dayRes.latest).getDay(),dP=new Date(dayRes.prior).getDay();if(dL===1&&dP===5)weekendHint=' (Fri → Mon)'}catch(_){}} else {parts.push(`<div class="muted" style="margin-top:8px">Last day summary unavailable${dayRes.reason?' ('+dayRes.reason+')':''}</div>`)}
-      try{const showWhy=dayRes?.ok&&Math.abs(dayRes.pct)>=WHY_PCT;if(showWhy){const why=buildWhyNarrative({dayRes,headlines:(newsRes.ok?newsRes.headlines:[])});parts.push(`<p style="margin-top:10px"><strong>Why?</strong> ${why}</p>`)}}catch(_){}
+      if(newsRes.ok&&newsRes.headlines?.length){
+        const senti=sentimentFrom(newsRes.headlines);
+        const overall=senti.total>=2?'lean <b>bullish</b>':(senti.total<=-2?'lean <b>bearish</b>':'look <b>mixed/neutral</b>');
+        parts.push(`<div class="pill ${senti.cls}"><i class="fa-regular fa-newspaper"></i> News sentiment (${newsRes.source}): <strong>${senti.label}</strong></div>`);
+        parts.push(`<p style="margin-top:8px">According to current news, <b>${markets.join(', ')}</b> ${overall} as of now.</p>`);
+        const top=newsRes.headlines.slice(0,5).map(h=>`<li>${h}</li>`).join('');
+        parts.push(`<details style="margin-top:6px"><summary>Top headlines</summary><ul>${top}</ul></details>`);
+      } else {
+        parts.push(`<div class="muted"><i class="fa-regular fa-newspaper"></i> News sentiment unavailable${newsRes.reason?' ('+newsRes.reason+')':''}</div>`);
+      }
+      if(dayRes.ok){
+        const dir=dayRes.pct>=0?'▲':'▼',cls=dayRes.pct>=0?'ok':'bad';
+        let weekendHint=''; try{const dL=new Date(dayRes.latest).getDay(),dP=new Date(dayRes.prior).getDay(); if(dL===1&&dP===5) weekendHint=' (Fri → Mon)';}catch(_){}
+        parts.push(`<div class="pill ${cls}" style="margin-top:8px"><i class="fa-solid fa-chart-line"></i> Prev day (${dayRes.etf}, ${dayRes.source}): ${dir} ${dayRes.pct.toFixed(2)}% (close ${dayRes.latest}${weekendHint})</div>`);
+      } else {
+        parts.push(`<div class="muted" style="margin-top:8px">Last day summary unavailable${dayRes.reason?' ('+dayRes.reason+')':''}</div>`);
+      }
+      try{
+        const showWhy=dayRes?.ok&&Math.abs(dayRes.pct)>=WHY_PCT;
+        if(showWhy){
+          const why=buildWhyNarrative({dayRes,headlines:(newsRes.ok?newsRes.headlines:[])});
+          parts.push(`<p style="margin-top:10px"><strong>Why?</strong> ${why}</p>`);
+        }
+      }catch(_){}
       summaryEl.innerHTML=parts.join('');
       if(dayRes.ok&&dayRes.closes?.length) drawSparkline(summaryEl,dayRes.closes);
     }
 
-    /* TREND */
-    const BUSY_VOL_STD=0.0006, BUSY_VOL_RATIO=1.20;
-    async function fetchIntraday(etf){const u=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(etf)}?range=1d&interval=1m&includePrePost=true&t=${Date.now()}`;const data=await fetchJsonRetry(PROXY_RAW+encodeURIComponent(u),2);const r=data?.chart?.result?.[0];const q=r?.indicators?.quote?.[0];const ts=r?.timestamp||[];const out=[];for(let i=0;i<ts.length;i++){const c=q?.close?.[i],v=q?.volume?.[i];if(c!=null&&v!=null)out.push({t:ts[i]*1000,c,v})}return out}
-    function selectWindow(bars,minutes){if(!bars.length)return[];const cutoff=Date.now()-minutes*60*1000;const recent=bars.filter(b=>b.t>=cutoff);if(recent.length<Math.min(15,minutes))return bars.slice(-Math.max(15,minutes));return recent}
+    /* ---------------- Intraday fetch ---------------- */
+    async function fetchIntraday(etf){
+      const u=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(etf)}?range=1d&interval=1m&includePrePost=true&t=${Date.now()}`;
+      const data=await fetchJsonRetry(PROXY_RAW+encodeURIComponent(u),2);
+      const r=data?.chart?.result?.[0]; const q=r?.indicators?.quote?.[0]; const ts=r?.timestamp||[];
+      const out=[];
+      for(let i=0;i<ts.length;i++){
+        const o=q?.open?.[i], h=q?.high?.[i], l=q?.low?.[i], c=q?.close?.[i], v=q?.volume?.[i];
+        if([o,h,l,c,v].every(x=>x!=null)) out.push({t:ts[i]*1000,o,h,l,c,v});
+      }
+      return out;
+    }
+    function selectWindow(bars,minutes){
+      if(!bars.length) return [];
+      const cutoff=Date.now()-minutes*60*1000;
+      const recent=bars.filter(b=>b.t>=cutoff);
+      if(recent.length<Math.min(15,minutes)) return bars.slice(-Math.max(15,minutes));
+      return recent;
+    }
     function statsTrend(windowBars){
       if(windowBars.length<5) return {ok:false,reason:'not enough bars'};
       const closes=windowBars.map(b=>b.c), vols=windowBars.map(b=>b.v);
       const first=closes[0], last=closes.at(-1);
       const pct=(last-first)/first*100, delta=last-first;
-      const rets=[]; for(let i=1;i<closes.length;i++){const r=(closes[i]-closes[i-1])/closes[i-1];if(isFinite(r))rets.push(r)}
+      const rets=[]; for(let i=1;i<closes.length;i++){ const r=(closes[i]-closes[i-1])/closes[i-1]; if(isFinite(r)) rets.push(r); }
       const mean=rets.reduce((a,b)=>a+b,0)/Math.max(1,rets.length);
       const varr=rets.reduce((a,b)=>a+(b-mean)*(b-mean),0)/Math.max(1,rets.length);
       const std=Math.sqrt(varr);
-      const median=arr=>{const a=[...arr].sort((x,y)=>x-y);const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2};
+      const median=arr=>{const a=[...arr].sort((x,y)=>x-y); const m=Math.floor(a.length/2); return a.length%2?a[m]:(a[m-1]+a[m])/2;};
       const volMed=median(vols), volAvg=vols.reduce((a,b)=>a+b,0)/vols.length, volRatio=volMed>0?volAvg/volMed:1;
-      let sx=0,sy=0,sxx=0,sxy=0; for(let i=0;i<closes.length;i++){sx+=i;sy+=closes[i];sxx+=i*i;sxy+=i*closes[i]}
-      const n=closes.length, denom=(n*sxx-sx*sx)||1; const slope=(n*sxy-sx*sy)/denom; const slopePctPerHour=(slope/first)*60*100;
+      let sx=0,sy=0,sxx=0,sxy=0; for(let i=0;i<closes.length;i++){ sx+=i; sy+=closes[i]; sxx+=i*i; sxy+=i*closes[i]; }
+      const n=closes.length, denom=(n*sxx - sx*sx)||1; const slope=(n*sxy - sx*sy)/denom; const slopePctPerHour=(slope/first)*60*100;
       let direction='Sideways',dirClass='warn'; if(pct>=0.2||slopePctPerHour>=0.5){direction='Uptrend';dirClass='ok'} else if(pct<=-0.2||slopePctPerHour<=-0.5){direction='Downtrend';dirClass='bad'}
-      const busy=(std>=BUSY_VOL_STD)||(volRatio>=BUSY_VOL_RATIO); const busyLabel=busy?'Busy':'Calmer',busyClass=busy?'ok':'warn';
+      const busy=(std>=0.0006)||(volRatio>=1.20); const busyLabel=busy?'Busy':'Calmer',busyClass=busy?'ok':'warn';
       return {ok:true,pct,delta,std,volRatio,slopePctPerHour,direction,dirClass,busyLabel,busyClass,closes,bars:windowBars}
     }
-    function drawTrendChart(canvas,bars){const w=canvas.width=700,h=canvas.height=160;const ctx=canvas.getContext('2d');ctx.clearRect(0,0,w,h);if(!bars||bars.length<2)return;const prices=bars.map(b=>b.c);const min=Math.min(...prices),max=Math.max(...prices),range=(max-min)||1;const pad=8,step=(w-pad*2)/(prices.length-1);ctx.lineWidth=2;ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--fg').trim()||'#eee';ctx.beginPath();prices.forEach((p,i)=>{const x=pad+step*i;const y=h-pad-((p-min)/range)*(h-pad*2);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke()}
+
+    function drawTrend(canvas,bars){ drawCandleChart(canvas,bars); }
 
     function tradeSuggestion(info){
       if(!info?.ok) return {text:'—',action:'Wait'};
@@ -390,59 +494,55 @@
       trendSummaryEl.innerHTML='<span class="spinner"></span> Loading 1-minute bars...'; trendAdviceEl.innerHTML='';
       try{
         const all=await fetchIntraday(etf); const win=selectWindow(all,trendMinutes); const info=statsTrend(win);
-        if(!info.ok){trendSummaryEl.innerHTML=`<span class="muted">Trend unavailable (${info.reason})</span>`;drawTrendChart(trendCanvas,[]);return}
+        if(!info.ok){trendSummaryEl.innerHTML=`<span class="muted">Trend unavailable (${info.reason})</span>`;drawTrend(trendCanvas,[]);return}
         const dirPill=`<span class="pill ${info.dirClass}"><i class="fa-solid fa-arrow-trend-${info.direction==='Downtrend'?'down':'up'}"></i> ${info.direction}</span>`;
         const busyPill=`<span class="pill ${info.busyClass}"><i class="fa-solid fa-bolt"></i> ${info.busyLabel}</span>`;
         const pctStr=`${info.pct>=0?'▲':'▼'} ${info.pct.toFixed(2)}%`;
         const slopeStr=`${info.slopePctPerHour>=0?'+':''}${info.slopePctPerHour.toFixed(2)}%/hr slope`;
         const volStr=`σ(1m) ${(info.std*100).toFixed(3)}% • Vol ratio ${info.volRatio.toFixed(2)}×`;
         trendSummaryEl.innerHTML=`${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} • ${slopeStr} • ${volStr}</div>`;
-        drawTrendChart(trendCanvas,win);
+        drawTrend(trendCanvas,win);
         const advice=tradeSuggestion(info);
         trendAdviceEl.innerHTML=`<div class="pill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941"><i class="fa-solid fa-lightbulb"></i>&nbsp; ${advice.text}</div><div class="muted" style="margin-top:6px;font-size:12px">Disclaimer: This summary is generated solely from current market data in this app and is for informational purposes only. It is not financial advice.</div>`;
         const refEl=document.getElementById('trendRef'); if(refEl){refEl.textContent=new Date().toLocaleTimeString();refEl.classList.remove('flash');void refEl.offsetWidth;refEl.classList.add('flash')}
-      }catch(e){trendSummaryEl.innerHTML=`<span class="muted">Trend fetch failed (${String(e.message||e)})</span>`;drawTrendChart(trendCanvas,[])}
+      }catch(e){trendSummaryEl.innerHTML=`<span class="muted">Trend fetch failed (${String(e.message||e)})</span>`;drawTrend(trendCanvas,[])}
     }
 
-    /* ===== RISK ===== */
+    /* ---------------- Risk ---------------- */
     let riskMode='conservative';
-    let riskCandlesN=3; // slider value
+    const riskModeSeg=document.getElementById('riskModeSeg');
+    let riskCandlesN=3;
+    const riskCandles=document.getElementById('riskCandles'), riskCandlesLabel=document.getElementById('riskCandlesLabel');
 
-    if(riskModeSeg){riskModeSeg.addEventListener('click',e=>{const btn=e.target.closest('.segbtn');if(!btn)return;riskMode=btn.dataset.mode||'conservative';Array.from(riskModeSeg.querySelectorAll('.segbtn')).forEach(b=>b.classList.toggle('active',b===btn));riskWinEl.textContent=`${trendMinutes}m`;const m=getSelectedFutures();buildRisk(m.length?m:['ES'])})}
+    if(riskModeSeg){
+      riskModeSeg.addEventListener('click',e=>{
+        const btn=e.target.closest('.segbtn'); if(!btn) return;
+        riskMode=btn.dataset.mode||'conservative';
+        Array.from(riskModeSeg.querySelectorAll('.segbtn')).forEach(b=>b.classList.toggle('active',b===btn));
+        const m=getSelectedFutures(); buildRisk(m.length?m:['ES']);
+      });
+    }
+    if(riskCandles){
+      const syncLabel=()=>riskCandlesLabel.textContent=`${riskCandles.value} candles`;
+      riskCandles.addEventListener('input',()=>{riskCandlesN=parseInt(riskCandles.value,10)||3;syncLabel()});
+      riskCandles.addEventListener('change',()=>{riskCandlesN=parseInt(riskCandles.value,10)||3;const m=getSelectedFutures();buildRisk(m.length?m:['ES'])});
+      syncLabel();
+    }
 
-   if(riskCandles){
-  const syncLabel=()=>riskCandlesLabel.textContent=`${riskCandles.value} candles`;
-  riskCandles.addEventListener('input',()=>{
-    riskCandlesN=parseInt(riskCandles.value,10)||3;
-    syncLabel();
-  });
-  riskCandles.addEventListener('change',()=>{
-    riskCandlesN=parseInt(riskCandles.value,10)||3;
-    const m=getSelectedFutures();
-    buildRisk(m.length?m:['ES']);
-  });
-  syncLabel();
-}
-
-    // Aggressive: last-N unanimity + scaled threshold
     function lastNSignal(bars,N){
       const seg=(bars||[]).slice(-N); if(seg.length<N) return {text:'Recommend: <b>Wait</b> (need more bars)',action:'Wait',pct:0,up:false,dn:false};
       let up=true,dn=true; for(let i=1;i<seg.length;i++){if(!(seg[i].c>seg[i-1].c)) up=false; if(!(seg[i].c<seg[i-1].c)) dn=false;}
       const pct=((seg.at(-1).c - seg[0].c)/seg[0].c)*100;
-      const base=0.05; // 0.05% for 3 bars
-      const thresh=base*(N/3); // scale with N
+      const base=0.05, thresh=base*(N/3);
       if(up && pct>=thresh) return {text:`Recommend: <b>Buy</b> (Aggressive: last ${N} ↑, +${pct.toFixed(2)}%)`,action:'Buy',pct,up:true,dn:false};
       if(dn && pct<=-thresh) return {text:`Recommend: <b>Sell</b> (Aggressive: last ${N} ↓, ${pct.toFixed(2)}%)`,action:'Sell',pct,up:false,dn:true};
       return {text:`Recommend: <b>Wait</b> (Aggressive: mixed/insufficient move)`,action:'Wait',pct,up:false,dn:false};
     }
-
-    // Conservative: same N but stricter threshold + require broader alignment if not strong
     function conservativeSignal(info,bars,N){
       const seg=(bars||[]).slice(-N); if(seg.length<N||!info?.ok) return {text:'Recommend (Conservative): <b>Wait</b> (insufficient data)',action:'Wait'};
-      // Direction unanimity check
       let up=true,dn=true; for(let i=1;i<seg.length;i++){if(!(seg[i].c>seg[i-1].c)) up=false; if(!(seg[i].c<seg[i-1].c)) dn=false;}
       const pct=((seg.at(-1).c - seg[0].c)/seg[0].c)*100;
-      const base=0.05, thresh=base*(N/3)*1.6; // stricter
+      const base=0.05, thresh=base*(N/3)*1.6;
       const alignUp = (info.direction==='Uptrend');
       const alignDn = (info.direction==='Downtrend');
       const busyOk  = (info.busyLabel==='Busy');
@@ -451,8 +551,6 @@
       if(dn && pct<=-thresh && (alignDn || busyOk)) return {text:`Recommend (Conservative): <b>Sell</b> (${pct.toFixed(2)}% over ${N}m, aligned)`,action:'Sell'};
       return {text:`Recommend (Conservative): <b>Wait</b> (safer bias)`,action:'Wait'};
     }
-
-    // Lean bubble: last M minutes (M = min(trendMinutes, N))
     function leanWindow(bars, minutesDesired){
       const lastN=(bars||[]).slice(-minutesDesired);
       if(lastN.length<2) return null;
@@ -470,7 +568,7 @@
         const all=await fetchIntraday(etf);
         const win=selectWindow(all,trendMinutes);
         const info=statsTrend(win);
-        if(!info.ok){riskSummaryEl.innerHTML=`<span class="muted">Risk read unavailable (${info.reason})</span>`;drawTrendChart(riskCanvas,[]);return}
+        if(!info.ok){riskSummaryEl.innerHTML=`<span class="muted">Risk read unavailable (${info.reason})</span>`;drawTrend(riskCanvas,[]);return}
 
         const dirPill=`<span class="pill ${info.dirClass}"><i class="fa-solid fa-arrow-trend-${info.direction==='Downtrend'?'down':'up'}"></i> ${info.direction}</span>`;
         const busyPill=`<span class="pill ${info.busyClass}"><i class="fa-solid fa-bolt"></i> ${info.busyLabel}</span>`;
@@ -478,17 +576,12 @@
         const slopeStr=`${info.slopePctPerHour>=0?'+':''}${info.slopePctPerHour.toFixed(2)}%/hr slope`;
         const volStr=`σ(1m) ${(info.std*100).toFixed(3)}% • Vol ratio ${info.volRatio.toFixed(2)}×`;
         riskSummaryEl.innerHTML=`${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} • ${slopeStr} • ${volStr}</div>`;
-        drawTrendChart(riskCanvas,win);
+        drawTrend(riskCanvas,win);
 
-        // Selected N (candles) and M (lean minutes)
         const N = Math.max(3, Math.min(15, riskCandlesN||3));
-        const M = Math.max(2, Math.min(N, trendMinutes)); // bubble uses min(timeframe, candles)
+        const M = Math.max(2, Math.min(N, trendMinutes));
 
-        // Recommendation
-        let rec;
-        if(riskMode==='aggressive'){ rec = lastNSignal(win, N); }
-        else { rec = conservativeSignal(info, win, N); }
-
+        let rec; if(riskMode==='aggressive'){ rec = lastNSignal(win, N); } else { rec = conservativeSignal(info, win, N); }
         riskAdviceEl.innerHTML = `
           <div class="pill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941">
             <i class="fa-solid fa-lightbulb"></i>&nbsp; ${rec.text}
@@ -497,8 +590,6 @@
             Disclaimer: This is an automated summary and not financial advice.
           </div>
         `;
-
-        // Aggressive-only lean bubble using M minutes
         if (riskMode==='aggressive'){
           const lean = leanWindow(win, M);
           if(lean){
@@ -511,38 +602,37 @@
             `;
           }
         }
-
-        // Last refreshed
         const refEl=document.getElementById('riskRef'); if(refEl){refEl.textContent=new Date().toLocaleTimeString();refEl.classList.remove('flash');void refEl.offsetWidth;refEl.classList.add('flash')}
         riskWinEl.textContent=`${trendMinutes}m`;
-      }catch(e){riskSummaryEl.innerHTML=`<span class="muted">Risk fetch failed (${String(e.message||e)})</span>`;drawTrendChart(riskCanvas,[])}
+      }catch(e){riskSummaryEl.innerHTML=`<span class="muted">Risk fetch failed (${String(e.message||e)})</span>`;drawTrend(riskCanvas,[])}
     }
 
-    /* PnL */
+    /* ---------------- PnL chips ---------------- */
     const chipAK=document.getElementById('chipAK'), chipBG=document.getElementById('chipBG'), chipAKAll=document.getElementById('chipAKAll'), chipBGAll=document.getElementById('chipBGAll'), chipAKWrap=document.getElementById('chipAKWrap'), chipBGWrap=document.getElementById('chipBGWrap');
     function setChipColor(elWrap,amount){elWrap.classList.remove('ok','bad','warn');const a=Number(amount)||0;if(a>0.005)elWrap.classList.add('ok');else if(a<-0.005)elWrap.classList.add('bad');else elWrap.classList.add('warn')}
     async function pnlGetTotals(){if(!PNL_API||!PNL_TOKEN){chipAK.textContent='N/A';chipBG.textContent='N/A';return}try{const r=await fetch(`${PNL_API}?token=${encodeURIComponent(PNL_TOKEN)}`,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();if(!j.ok)throw new Error(j.error||'bad');const ak=Number(j.today?.AK||0),bg=Number(j.today?.BG||0),aka=Number(j.all?.AK||0),bga=Number(j.all?.BG||0);chipAK.textContent=`$${ak.toFixed(2)}`;chipBG.textContent=`$${bg.toFixed(2)}`;chipAKAll.textContent=`$${aka.toFixed(2)}`;chipBGAll.textContent=`$${bga.toFixed(2)}`;setChipColor(chipAKWrap,ak);setChipColor(chipBGWrap,bg)}catch(e){chipAK.textContent='N/A';chipBG.textContent='N/A';chipAKAll.textContent='N/A';chipBGAll.textContent='N/A';chipAKWrap.classList.add('warn');chipBGWrap.classList.add('warn')}}
-    async function pnlPostLog({user,amount,note}){const body=new URLSearchParams({token:PNL_TOKEN,user,amount:String(Number(amount)),note:note||''});const r=await fetch(PNL_API,{method:'POST',body});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();if(!j.ok)throw new Error(j.error||'bad');return j}
-    let _todayLogCache=[];async function pnlFetchTodayList(){const box=document.getElementById('pnlTodayTable');if(!_todayLogCache.length){box.textContent='No entries logged this session.';return}const rows=_todayLogCache.map(r=>`<tr><td>${r.user}</td><td style="text-align:right">${Number(r.amount).toFixed(2)}</td><td>${r.note||''}</td><td class="muted">${new Date(r.time).toLocaleTimeString()}</td></tr>`).join('');box.innerHTML=`<table style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left">User</th><th style="text-align:right">Amt</th><th style="text-align:left">Note</th><th style="text-align:left">Time</th></tr></thead><tbody>${rows}</tbody></table>`}
-    async function pnlUndoLast(){if(!_todayLogCache.length)return;const last=_todayLogCache.pop();await pnlPostLog({user:last.user,amount:-Number(last.amount),note:`UNDO: ${last.note||''}`});await pnlGetTotals();await pnlFetchTodayList()}
 
-    /* Prep flow */
-    async function startAnalyze({linksOnly=false}={}){const sel=getSelectedFutures();const markets=sel.length?sel:['ES','NQ'];nowEl.textContent=new Date().toLocaleString();showPrepHeader(markets);makeLinks(markets);if(!linksOnly)await buildSummary(markets);else summaryEl.innerHTML=`<span class="muted">Quick-links mode. Tap Analyze for auto-summary.</span>`;window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})}
+    /* ---------------- Prep flow ---------------- */
+    function startAnalyze({linksOnly=false}={}){const sel=getSelectedFutures();const markets=sel.length?sel:['ES','NQ'];showPrepHeader(markets);makeLinks(markets);if(!linksOnly)buildSummary(markets);else summaryEl.innerHTML=`<span class="muted">Quick-links mode. Tap Analyze for auto-summary.</span>`;window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})}
 
-    /* Events */
+    /* ---------------- Events ---------------- */
     document.getElementById('start').addEventListener('click',()=>{setNav('nav-prep');setTab('prep');startAnalyze({linksOnly:false})});
-    document.getElementById('quick').addEventListener('click',()=>{setNav('nav-prep');setTab('prep');startAnalyze({linksOnly:true})});
     document.getElementById('runTrend').addEventListener('click',()=>{setNav('nav-trend');setTab('trend');const m=getSelectedFutures();buildTrend(m.length?m:['ES'])});
-    document.getElementById('runRisk').addEventListener('click',()=>{setTab('risk');const m=getSelectedFutures();buildRisk(m.length?m:['ES'])});
+    document.getElementById('runRisk').addEventListener('click',()=>{setNav('nav-risk');setTab('risk');const m=getSelectedFutures();buildRisk(m.length?m:['ES'])});
 
     document.addEventListener('DOMContentLoaded',()=>{
       pnlGetTotals(); setInterval(pnlGetTotals,120000);
       const btn=document.getElementById('logPnl'), msg=document.getElementById('pnlMsg');
-      if(btn){btn.addEventListener('click',async()=>{try{const who=(document.querySelector('input[name="who"]:checked')||{}).value||'AK';const amt=(document.getElementById('pnlAmount')||{}).value||'';const note=(document.getElementById('pnlNote')||{}).value||'';if(!amt||isNaN(Number(amt))){msg.textContent='Enter a number (e.g. 125 or -75)';return}msg.textContent='Saving...';await pnlPostLog({user:who,amount:amt,note});msg.textContent='Saved ✓';document.getElementById('pnlAmount').value='';document.getElementById('pnlNote').value='';_todayLogCache.push({user:who,amount:amt,note,time:Date.now()});await pnlGetTotals();await pnlFetchTodayList();setTimeout(()=>msg.textContent='',1200)}catch(e){msg.textContent='Error: '+(e.message||e)}})}
-      const undoBtn=document.getElementById('undoLast'); if(undoBtn) undoBtn.addEventListener('click',async()=>{try{await pnlUndoLast()}catch(e){}});
-
+      if(btn){btn.addEventListener('click',async()=>{try{const who=(document.querySelector('input[name="who"]:checked')||{}).value||'AK';const amt=(document.getElementById('pnlAmount')||{}).value||'';const note=(document.getElementById('pnlNote')||{}).value||'';if(!amt||isNaN(Number(amt))){msg.textContent='Enter a number (e.g. 125 or -75)';return}msg.textContent='Saving...';await pnlPostLog({user:who,amount:amt,note});msg.textContent='Saved ✓';document.getElementById('pnlAmount').value='';document.getElementById('pnlNote').value='';await pnlGetTotals();setTimeout(()=>msg.textContent='',1200)}catch(e){msg.textContent='Error: '+(e.message||e)}})}
+      const undoBtn=document.getElementById('undoLast'); if(undoBtn) undoBtn.addEventListener('click',async()=>{try{/* optional undo call */}catch(e){}});
       setTfActive(15);
-      setInterval(()=>{const m=getSelectedFutures();if(trendOut.style.display!=='none')buildTrend(m.length?m:['ES']);if(riskOut.style.display!=='none')buildRisk(m.length?m:['ES'])},30000);
+
+      // Auto-refresh visible charts every 30s
+      setInterval(()=>{
+        const m=getSelectedFutures();
+        if(trendOut.style.display!=='none') buildTrend(m.length?m:['ES']);
+        if(riskOut.style.display!=='none')  buildRisk(m.length?m:['ES']);
+      }, 30000);
     });
   </script>
 </body>
