@@ -288,7 +288,7 @@
     const PROXY_RAW = 'https://script.google.com/macros/s/AKfycbztzwYcRxD3mQ2MgD99ubT3-nW-nQJiU-thNoUrdRuMkrTIF1LilnEyCbysHP6Z7HYf/exec?url=';
 
     // ===== PnL API =====
-    const PNL_API   = 'https://script.google.com/macros/library/d/1zKZ6MizNXtMmUfZlB_IXKcmboNHCCx4EOIzfGWLiwWIMm06D-uors6cc/1/exec'; // <-- no ?url=
+    const PNL_API   = 'https://script.google.com/macros/s/AKfycbzWEqYMPvUhdcNLKvmfwwj38eqMiYe4mUfIZDRK7SORVyoRbWkWGW6fx3mBefxM3ZE7/exec'; // <-- no ?url=
     const PNL_TOKEN = 'CHANGE_ME_32CHAR';
 
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
@@ -700,12 +700,18 @@
     }
 
     async function pnlPostLog({ user, amount, note }) {
-      const body = JSON.stringify({ token: PNL_TOKEN, user, amount: Number(amount), note });
-      const r = await fetch(PNL_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
-      if (!r.ok) throw new Error('HTTP '+r.status);
-      const j = await r.json();
-      if (!j.ok) throw new Error(j.error || 'bad');
-      return j;
+  const body = new URLSearchParams({
+    token: PNL_TOKEN,
+    user,
+    amount: String(Number(amount)),
+    note: note || ''
+  });
+  const r = await fetch(PNL_API, { method: 'POST', body }); // no headers needed
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const j = await r.json();
+  if (!j.ok) throw new Error(j.error || 'bad');
+  return j;
+}
     }
 
     let _todayLogCache = []; // session-side log view
