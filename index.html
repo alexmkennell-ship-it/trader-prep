@@ -20,10 +20,46 @@
     :root {
       --bg:#1b191b; --panel:#2a292f; --panel-2:#242328; --line:#35343a;
       --fg:#f1f2f4; --muted:#a7adbb;
-      --accent:#6f5aff;           /* main purple */
+      --accent:#6424ac;           /* main purple */
       --accent-graph:#7c5cff;     /* bright line purple (added) */
       --ok:#6abd74; --bad:#e05d5d; --warn:#d3a54a; --pill:#24252b;
       --shadow:0 6px 18px rgba(0,0,0,.35); --radius:14px; --pad:16px;
+      :root{
+  /* keep your vars… then add: */
+  --accent-graph:#7c5cff; /* bright chart purple for close line */
+}
+
+/* Legend UI shown under each chart */
+.legend{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px;font-size:12px;color:var(--muted)}
+.legend .item{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:#26252b;white-space:nowrap}
+.swatch{display:inline-block;width:20px;height:10px;border-radius:2px}
+.swatch.line{width:28px;height:0;border-top:3px solid currentColor}
+.swatch.dashed{border-top-style:dashed}
+
+/* Pills: keep yours and add white-space to prevent wrapping on mobile */
+.pill{white-space:nowrap}
+.pill.accent{background:var(--accent);color:#0b0b10;border-color:transparent}
+/* Mobile header */
+#mobileMenu{display:none}
+@supports(padding:max(0px)){.topbar{padding-top:calc(10px + env(safe-area-inset-top))}}
+@media (max-width:520px){
+  #mobileMenu{display:grid}
+  #navicons{display:none;position:absolute;right:8px;top:calc(100% + 6px);background:#26252b;border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:var(--shadow);z-index:60}
+  #navicons.show{display:flex}
+  .brand h1{max-width:46vw}     /* keeps “Trader Prep” visible */
+  .legend{font-size:11px}
+  .chip{font-size:11px}
+  .tabbtn,button{padding:10px 12px}
+}
+
+/* “Why?” modal + link button */
+.linkbtn{border:1px solid var(--line);background:#2b2a31;color:var(--fg);border-radius:10px;padding:6px 10px;cursor:pointer}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:80}
+.modal.on{display:flex}
+.modal .sheet{background:var(--panel);border:1px solid var(--line);border-radius:16px;max-width:640px;width:92vw;padding:14px;box-shadow:var(--shadow)}
+.modal .sheet h3{margin:4px 0 10px;font-size:16px}
+.modal .sheet .close{float:right}
+.sliderrow{display:flex;align-items:center;gap:10px;flex-wrap:nowrap}
     }
     html,body{background:var(--bg);color:var(--fg)}
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;margin:0;line-height:1.35;word-break:break-word}
@@ -93,21 +129,38 @@
     }
   </style>
 </head>
+  <!-- Why Modal -->
+<div class="modal" id="whyModal" role="dialog" aria-modal="true" aria-labelledby="whyTitle">
+  <div class="sheet">
+    <button class="linkbtn close" onclick="document.getElementById('whyModal').classList.remove('on')">Close</button>
+    <h3 id="whyTitle">Why this suggestion?</h3>
+    <div id="whyBody" class="muted"></div>
+  </div>
+</div>
+
 <body>
   <!-- HEADER -->
   <header class="topbar">
-    <div class="brand">
-      <div class="logo"><img src="icon-192.png" alt="Trader Prep Logo" style="width:100%;height:100%;object-fit:contain"></div>
-      <h1>Trader Prep</h1>
-    </div>
-    <nav class="navicons">
-      <div class="iconbtn active" id="nav-prep" title="Prep"><i class="fa-solid fa-bars-staggered"></i></div>
-      <div class="iconbtn" id="nav-trend" title="Trend"><i class="fa-solid fa-wave-square"></i></div>
-      <div class="iconbtn" id="nav-risk" title="Risk"><i class="fa-solid fa-fire-flame-curved"></i></div>
-      <div class="iconbtn" id="nav-pnl" title="Profit Log"><i class="fa-solid fa-dollar-sign"></i></div>
-      <div class="iconbtn" id="nav-settings" title="Settings"><i class="fa-solid fa-gear"></i></div>
-    </nav>
-  </header>
+  <div class="brand">
+    <div class="logo"><img src="icon-192.png" alt="Trader Prep Logo" style="width:100%;height:100%;object-fit:contain"></div>
+    <h1>Trader Prep</h1>
+  </div>
+
+  <!-- Give nav an id so we can toggle it on mobile -->
+  <nav class="navicons" id="navicons">
+    <div class="iconbtn active" id="nav-prep" title="Prep"><i class="fa-solid fa-bars-staggered"></i></div>
+    <div class="iconbtn" id="nav-trend" title="Trend"><i class="fa-solid fa-wave-square"></i></div>
+    <div class="iconbtn" id="nav-risk" title="Risk"><i class="fa-solid fa-fire-flame-curved"></i></div>
+    <div class="iconbtn" id="nav-pnl" title="Profit Log"><i class="fa-solid fa-dollar-sign"></i></div>
+    <div class="iconbtn" id="nav-settings" title="Settings"><i class="fa-solid fa-gear"></i></div>
+  </nav>
+
+  <!-- New: 3-dot menu only on small screens -->
+  <button class="iconbtn" id="mobileMenu" title="Menu">
+    <i class="fa-solid fa-ellipsis-vertical"></i>
+  </button>
+</header>
+
 
   <!-- STATS -->
   <div class="statstrip">
@@ -192,6 +245,9 @@
     </div>
 
     <!-- TREND -->
+  <!-- TREND -->
+<canvas id="trendChart" class="chart"></canvas>
+<div id="trendLegend" class="legend"></div>
     <div id="trendOut" class="card" style="display:none">
       <div class="row"><strong>Current Trend</strong><span class="muted">Window: <span id="trendWin">15m</span></span></div>
       <div class="muted">Primary: <span id="trendSym"></span> (mapped ETF) • <span id="trendTime"></span></div>
@@ -206,6 +262,9 @@
     </div>
 
     <!-- RISK -->
+    <!-- RISK -->
+<canvas id="riskChart" class="chart"></canvas>
+<div id="riskLegend" class="legend"></div>
     <div id="riskOut" class="card" style="display:none">
       <div class="row"><strong>Risk Read</strong><span class="muted">Window: <span id="riskWin">15m</span></span></div>
 
@@ -230,6 +289,18 @@
   </div>
 
   <script>
+    const trendLegend = document.getElementById('trendLegend');
+const riskLegend  = document.getElementById('riskLegend');
+let lastTrendWhy = null, lastRiskWhy = null;
+
+function setLegend(el){
+  if(!el) return;
+  el.innerHTML = `
+    <span class="item"><span class="swatch" style="background:#6abd74"></span> Up candle</span>
+    <span class="item"><span class="swatch" style="background:#e05d5d"></span> Down candle</span>
+    <span class="item" style="color:var(--accent-graph)"><span class="swatch line" style="color:var(--accent-graph)"></span> Close line</span>
+    <span class="item" style="color:var(--accent)"><span class="swatch line dashed" style="color:var(--accent)"></span> VWAP (proxy)</span>`;
+}
     /* ---------------- Config ---------------- */
      const PROXY_RAW = 'https://script.google.com/macros/s/AKfycbztzwYcRxD3mQ2MgD99ubT3-nW-nQJiU-thNoUrdRuMkrTIF1LilnEyCbysHP6Z7HYf/exec?url=';
 
@@ -292,6 +363,47 @@
     if(saveBtn){loadKeys(); saveBtn.addEventListener('click',saveKeys);}
 
     /* ---------------- Futures helpers ---------------- */
+    function sigmoid(x){return 1/(1+Math.exp(-x))}
+function stdev(arr){if(!arr.length)return 0;const m=arr.reduce((a,b)=>a+b,0)/arr.length;const v=arr.reduce((a,b)=>a+(b-m)*(b-m),0)/arr.length;return Math.sqrt(v)}
+function mad(arr){if(!arr.length)return 0;const m=arr.reduce((a,b)=>a+b,0)/arr.length;const dev=arr.map(x=>Math.abs(x-m)).sort((a,b)=>a-b);const mid=Math.floor(dev.length/2);return dev.length%2?dev[mid]:(dev[mid-1]+dev[mid])/2}
+function ema(arr,a=0.25){const out=[];let s=null;for(const x of arr){s=(s==null)?x:a*x+(1-a)*s;out.push(s)}return out}
+function slopePctPerHour(vals){if(vals.length<3)return 0;const first=vals[0];let sx=0,sy=0,sxx=0,sxy=0;for(let i=0;i<vals.length;i++){sx+=i;sy+=vals[i];sxx+=i*i;sxy+=i*vals[i]}const n=vals.length,den=(n*sxx-sx*sx)||1;const slope=(n*sxy-sx*sy)/den;return (first>0)?(slope/first)*60*100:0}
+
+function marketPrediction(info,bars){
+  if(!info?.ok||!bars?.length) return {label:'Neutral',conf:0.5,text:'Market bias unclear'};
+  const N=Math.min(15,bars.length), lastN=bars.slice(-N);
+  const closes=lastN.map(b=>b.c), vols=lastN.map(b=>b.v);
+  let cumPV=0,cumV=0; const vwap=lastN.map(b=>{cumPV+=b.c*(b.v||1);cumV+=(b.v||1);return cumPV/Math.max(1,cumV)});
+
+  const returns=[]; for(let i=1;i<closes.length;i++){const r=(closes[i]-closes[i-1])/closes[i-1]; if(isFinite(r)) returns.push(r)}
+  const retStd=stdev(returns)||1e-6;
+  const dv=(closes.at(-1)-vwap.at(-1))/(closes.at(-1)||1); const zVWAP=dv/retStd;
+  const vwapSlope=slopePctPerHour(vwap);
+  const emaSlope=slopePctPerHour(ema(closes,0.25));
+  let ups=0,downs=0; for(let i=1;i<closes.length;i++){const d=closes[i]-closes[i-1]; if(d>0) ups++; else if(d<0) downs++;}
+  const breadth=(ups/(ups+downs||1)); const breadthSigned=2*breadth-1;
+  const deltas=[]; for(let i=1;i<closes.length;i++){deltas.push(closes[i]-closes[i-1])}
+  const m=mad(deltas)||1e-6; const lastDelta=deltas.at(-1)||0; const impulse=lastDelta/m;
+  const regime=(info.busyLabel==='Busy')?1:0;
+
+  // Weights tuned for stability on 1-min windows
+  const wVWAPdist=0.95, wVwSlope=1.00, wEmaSlope=0.85, wBreadth=0.60, wImpulse=0.40, wRegime=0.30;
+  const normSlope=v=>Math.max(-1.5,Math.min(1.5,v/1.0));
+  const score = wVWAPdist*Math.max(-3,Math.min(3,zVWAP))
+              + wVwSlope*normSlope(vwapSlope)
+              + wEmaSlope*normSlope(emaSlope)
+              + wBreadth*breadthSigned
+              + wImpulse*Math.max(-2,Math.min(2,impulse))
+              + wRegime*(regime?0.5:0);
+
+  const p=sigmoid(score); 
+  let label='Neutral'; if(p>=0.60) label='Bullish'; else if(p<=0.40) label='Bearish';
+  const conf=Math.max(0.55,Math.min(0.99,0.5+Math.abs(p-0.5)*1.4));
+  const text=(label==='Bullish')?`likely to stay bullish (${Math.round(conf*100)}% conf)`:(label==='Bearish')?`may go bearish (${Math.round(conf*100)}% conf)`:`mixed / no clear edge (${Math.round(conf*100)}% conf)`;
+
+  return {label,conf,text,p,debug:{zVWAP,vwapSlope,emaSlope,breadth,impulse,regime,score}};
+}
+
     function getSelectedFutures(){return Array.from(futuresSel.selectedOptions).map(o=>o.value)}
     document.querySelectorAll('.bundle[data-bundle]').forEach(b=>b.addEventListener('click',()=>{const arr=b.dataset.bundle.split(',');for(const o of futuresSel.options)o.selected=arr.includes(o.value)}));
 
@@ -366,16 +478,84 @@
       return { ctx: canvas.getContext('2d'), w: canvas.width, h: canvas.height, dpr };
     }
 
-    function drawCandleChart(canvas, bars, opts={}){
-      const {ctx,w,h} = sizeCanvas(canvas);
-      ctx.clearRect(0,0,w,h);
-      if(!bars || bars.length<2) return;
-      const pad = 12;
-      const highs = bars.map(b=>b.h), lows = bars.map(b=>b.l);
-      const min = Math.min(...lows), max = Math.max(...highs), range = (max-min)||1;
-      const step = (w - pad*2) / (bars.length-1);
-      const bodyFrac = 0.65; // candle body width fraction
-      const bodyW = Math.max(3, step * bodyFrac);
+    function sizeCanvas(canvas){
+  const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+  const cssW = canvas.clientWidth || 700;
+  const cssH = canvas.clientHeight || 190;
+  canvas.width  = Math.floor(cssW * dpr);
+  canvas.height = Math.floor(cssH * dpr);
+  return { ctx: canvas.getContext('2d'), w: canvas.width, h: canvas.height, dpr };
+}
+
+function drawCandleChart(canvas, bars, opts={}){
+  const {ctx,w,h}=sizeCanvas(canvas);
+  ctx.clearRect(0,0,w,h);
+  if(!bars || bars.length<2) return;
+  const pad=12;
+  const highs=bars.map(b=>b.h), lows=bars.map(b=>b.l);
+  const min=Math.min(...lows), max=Math.max(...highs), range=(max-min)||1;
+  const step=(w-pad*2)/(bars.length-1);
+  const bodyFrac=0.65, bodyW=Math.max(3, step*bodyFrac);
+
+  // grid
+  ctx.strokeStyle = '#2d2d33'; ctx.lineWidth = 1;
+  for (let i=1;i<=3;i++){
+    const y = pad + (h - pad*2) * (i/4);
+    ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(w-pad,y); ctx.stroke();
+  }
+
+  // candles
+  for (let i=0;i<bars.length;i++){
+    const b=bars[i], x=pad+step*i;
+    const yH=h-pad-((b.h-min)/range)*(h-pad*2);
+    const yL=h-pad-((b.l-min)/range)*(h-pad*2);
+    const yO=h-pad-((b.o-min)/range)*(h-pad*2);
+    const yC=h-pad-((b.c-min)/range)*(h-pad*2);
+    const up=b.c>=b.o;
+
+    ctx.strokeStyle=up?'#6abd74':'#e05d5d';
+    ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(x,yH); ctx.lineTo(x,yL); ctx.stroke();
+
+    const top=Math.min(yO,yC), bot=Math.max(yO,yC);
+    ctx.fillStyle=up?'#6abd74':'#e05d5d';
+    ctx.fillRect(x-bodyW/2, top, bodyW, Math.max(2, bot-top));
+  }
+
+  // VWAP proxy (dashed purple)
+  if(opts.vwap){
+    let cumPV=0,cumV=0;
+    ctx.beginPath();
+    ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#6f5aff';
+    ctx.setLineDash([5,4]); ctx.lineWidth=2;
+    for (let i=0;i<bars.length;i++){
+      const b=bars[i], x=pad+step*i;
+      cumPV += (b.c||b.o)*(b.v||1);
+      cumV  += (b.v||1);
+      const vwap=cumPV/Math.max(1,cumV);
+      const y=h-pad-((vwap-min)/range)*(h-pad*2);
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  // close line (solid bright purple)
+  if(opts.closeLine){
+    ctx.beginPath();
+    const color=getComputedStyle(document.documentElement).getPropertyValue('--accent-graph').trim()||'#7c5cff';
+    ctx.strokeStyle=color; ctx.lineWidth=1.75;
+    for (let i=0;i<bars.length;i++){
+      const b=bars[i], x=pad+step*i;
+      const y=h-pad-((b.c-min)/range)*(h-pad*2);
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+  }
+}
+
+function drawTrend(canvas,bars){ drawCandleChart(canvas,bars,{vwap:true,closeLine:true}); }
+    setLegend(trendLegend);   // in buildTrend
+setLegend(riskLegend);    // in buildRisk
+
 
       // subtle grid
       ctx.strokeStyle = '#2d2d33';
@@ -410,7 +590,7 @@
       if (opts.vwap){
         let cumPV=0, cumV=0;
         ctx.beginPath();
-        ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#6f5aff';
+        ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#6424ac';
         ctx.setLineDash([5,4]);
         ctx.lineWidth = 2;
         for (let i=0;i<bars.length;i++){
@@ -519,12 +699,15 @@
       return bars.slice(-MAX_MIN);
     }
 
-    function selectWindow(bars,minutes){
-      if(!bars.length) return [];
-      const cutoff=Date.now()-minutes*60*1000;
-      const recent=bars.filter(b=>b.t>=cutoff);
-      if(recent.length<Math.min(15,minutes)) return bars.slice(-Math.max(15,minutes));
-      return recent;
+    function selectWindow(bars, minutes){
+  if(!bars.length) return [];
+  const desired = Math.max(15, minutes);               // ensure a minimum canvas density
+  const cutoff  = Date.now() - minutes*60*1000;
+  let recent    = bars.filter(b=>b.t >= cutoff);
+  if(recent.length < desired) recent = bars.slice(-desired);
+  if(recent.length > desired+2) recent = recent.slice(-desired); // prevents “not moving over”
+  return recent;
+}
     }
     function statsTrend(windowBars){
       if(windowBars.length<5) return {ok:false,reason:'not enough bars'};
@@ -610,12 +793,24 @@
         drawTrend(trendCanvas,win);
         setLegend(trendLegend);
         const advice=tradeSuggestion(info);
-        trendAdviceEl.innerHTML=`<div class="pill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941"><i class="fa-solid fa-lightbulb"></i>&nbsp; ${advice.text}</div><div class="muted" style="margin-top:6px;font-size:12px">Disclaimer: This summary is generated solely from current market data in this app and is for informational purposes only. It is not financial advice.</div>`;
-        const refEl=document.getElementById('trendRef'); if(refEl){refEl.textContent=new Date().toLocaleTimeString();refEl.classList.remove('flash');void refEl.offsetWidth;refEl.classList.add('flash')}
-      }catch(e){trendSummaryEl.innerHTML=`<span class="muted">Trend fetch failed (${String(e.message||e)})</span>`;drawTrend(trendCanvas,[])}
-    }
+       const advice = tradeSuggestion(info);
+const pred   = marketPrediction(info, win);   // new prediction call
+lastTrendWhy = { panel:'Trend', advice, info, pred };   // save for “Why?” modal
+
+trendAdviceEl.innerHTML = `
+  <div class="pill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941">
+    <i class="fa-solid fa-lightbulb"></i>&nbsp; ${advice.text}
+    &nbsp;<button class="linkbtn why" data-src="trend">Why?</button>
+  </div>
+  <div class="muted" style="margin-top:6px;font-size:12px">
+    Disclaimer: This summary is generated solely from current market data in this app and is for informational purposes only. It is not financial advice.
+  </div>
+`;
+setLegend(trendLegend);   // show legend under chart
+
 
     /* ---------------- Risk ---------------- */
+    
     let riskMode='conservative';
     const riskModeSeg=document.getElementById('riskModeSeg');
     let riskCandlesN=3;
@@ -670,8 +865,28 @@
     async function buildRisk(markets){
       const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
       riskSymEl.textContent=etf; riskTimeEl.textContent=new Date().toLocaleString();
-      riskSummaryEl.innerHTML='<span class="spinner"></span> Loading 1-minute bars...'; riskAdviceEl.innerHTML='';
-      try{
+      riskSummaryEl.innerHTML='<span class="spinner"></span> Loading 1-minute bars...'; riskAdviceEl.innerHTML = `
+  <div class="pill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941">
+    <i class="fa-solid fa-lightbulb"></i>&nbsp; ${rec.text}
+    &nbsp;<button class="linkbtn why" data-src="risk">Why?</button>
+  </div>
+  <div class="muted" style="margin-top:6px;font-size:12px">
+    Disclaimer: This is an automated summary and not financial advice.
+  </div>
+`;
+
+const pred = marketPrediction(info, win);   // prediction call
+lastRiskWhy = { panel:'Risk', mode:riskMode, info, pred, winN:N };
+
+riskAdviceEl.innerHTML += `
+  <div class="pill accent" style="margin-top:8px">
+    <i class="fa-solid fa-wand-magic-sparkles"></i>&nbsp;
+    Prediction: <b>${pred.label==='Bullish'?'likely to stay bullish':(pred.label==='Bearish'?'may go bearish':'mixed')}</b>
+    (${Math.round(pred.conf*100)}% conf)
+  </div>
+`;
+setLegend(riskLegend);   // show legend under chart
+{
         const all=await fetchIntraday(etf);
         const sessionBars=filterToSession(all.bars, all.regStart, all.regEnd);
         const win=selectWindow(sessionBars,trendMinutes);
@@ -742,6 +957,25 @@
       if(btn){btn.addEventListener('click',async()=>{try{const who=(document.querySelector('input[name="who"]:checked')||{}).value||'AK';const amt=(document.getElementById('pnlAmount')||{}).value||'';const note=(document.getElementById('pnlNote')||{}).value||'';if(!amt||isNaN(Number(amt))){msg.textContent='Enter a number (e.g. 125 or -75)';return}msg.textContent='Saving...';await pnlPostLog({user:who,amount:amt,note});msg.textContent='Saved ✓';document.getElementById('pnlAmount').value='';document.getElementById('pnlNote').value='';await pnlGetTotals();setTimeout(()=>msg.textContent='',1200)}catch(e){msg.textContent='Error: '+(e.message||e)}})}
       const undoBtn=document.getElementById('undoLast'); if(undoBtn) undoBtn.addEventListener('click',async()=>{try{/* optional undo call */}catch(e){}});
       setTfActive(15);
+// Handle mobile nav toggle
+const navIconsWrap = document.getElementById('navicons');
+const mobileMenu   = document.getElementById('mobileMenu');
+if(mobileMenu){
+  mobileMenu.addEventListener('click',()=>navIconsWrap.classList.toggle('show'));
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('#navicons') && !e.target.closest('#mobileMenu')){
+      navIconsWrap.classList.remove('show');
+    }
+  });
+}
+
+// Handle “Why?” button clicks
+document.body.addEventListener('click',e=>{
+  const btn=e.target.closest('.why'); if(!btn) return;
+  const which=btn.dataset.src;
+  const data=(which==='trend')?lastTrendWhy:lastRiskWhy;
+  if(data) showWhyModal(data);
+});
 
       // Auto-refresh visible charts every 30s
       setInterval(()=>{
