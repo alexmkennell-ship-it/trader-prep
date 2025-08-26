@@ -648,6 +648,15 @@
             Disclaimer: This summary is generated solely from current market data in this app and is for informational purposes only. It is not financial advice.
           </div>
         `;
+        const refEl = document.getElementById('trendRef');
+        if (refEl) {
+          refEl.textContent = new Date().toLocaleTimeString();
+        }
+      }catch(e){
+        trendSummaryEl.innerHTML=`<span class="muted">Trend fetch failed (${String(e.message||e)})</span>`;
+        drawTrendChart(trendCanvas,[]);
+      }
+    }
       }catch(e){
         trendSummaryEl.innerHTML=`<span class="muted">Trend fetch failed (${String(e.message||e)})</span>`;
         drawTrendChart(trendCanvas,[]);
