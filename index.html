@@ -412,6 +412,41 @@
     function buildWhyNarrative({dayRes,headlines}){const parts=[];if(dayRes?.ok){const dir=dayRes.pct>=0?'higher':'lower',tone=moveDescriptor(dayRes.pct);parts.push(`Markets are ${tone} (${dayRes.pct.toFixed(2)}% ${dir} for ${dayRes.etf} at the last close).`)}const causes=topCausesFromHeadlines(headlines,3);if(causes.length){parts.push(`Likely drivers: ${causes.map(c=>c.label).join(', ')}.`);const s=causes[0].sample;if(s)parts.push(`e.g., “${s.replace(/"/g,'')}”.`)}else parts.push(`No dominant driver detected; tone appears mixed.`);return parts.join(' ')}
 
     /* ---------------- Fetch helpers ---------------- */
+
+    /* ======= Robust CORS proxy fallbacks ======= */
+    function userProxy(){ try{return (localStorage.getItem('PROXY_OVERRIDE')||'').trim()}catch(_){return ''} }
+    function buildProxyUrl(base, target){
+      // base expects: base + encodeURIComponent(target)
+      return base + encodeURIComponent(target);
+    }
+    function buildJinaUrl(target){
+      // r.jina.ai renders arbitrary URLs as text safely with permissive CORS
+      const stripped = target.replace(/^https?:\/\//,''); 
+      return 'https://r.jina.ai/http://' + stripped;
+    }
+    async function fetchTextProxied(target, tries=4){
+      const order = [
+        (u)=> buildProxyUrl(PROXY_RAW, u),
+        (u)=> { const p=userProxy(); return p? buildProxyUrl(p.endsWith('?url=')?p:(p + (p.includes('?')?'&':'?') + 'url='), u): null; },
+        (u)=> 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+        (u)=> buildJinaUrl(u)
+      ];
+      let lastErr=null;
+      for(let i=0;i<order.length && i<tries;i++){
+        try{
+          const url = order[i](target); if(!url) continue;
+          const r = await fetch(url, { cache:'no-store' });
+          if(!r.ok) throw new Error('HTTP '+r.status);
+          return await r.text();
+        }catch(e){ lastErr=e; }
+      }
+      throw lastErr||new Error('proxy failed');
+    }
+    async function fetchJsonProxied(target, tries=4){
+      const txt = await fetchTextProxied(target, tries);
+      try{ return JSON.parse(txt); }catch(_){ return { raw: txt }; }
+    }
+
     async function fetchJsonOnce(u,t=9000){const c=new AbortController();const to=setTimeout(()=>c.abort('timeout'),t);try{const r=await fetch(u,{signal:c.signal,cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}finally{clearTimeout(to)}}
     async function fetchJsonRetry(u,tries=2){let e=null;for(let i=0;i<tries;i++){try{return await fetchJsonOnce(u,i?12000:9000)}catch(x){e=x;await new Promise(r=>setTimeout(r,300))}}throw e}
     async function fetchTextOnce(u,t=9000){const c=new AbortController();const to=setTimeout(()=>c.abort('timeout'),t);try{const r=await fetch(u,{signal:c.signal,cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.text()}finally{clearTimeout(to)}}
@@ -420,18 +455,18 @@
     /* ---------------- Headlines ---------------- */
     async function getHeadlines(markets){
       const gkey=(localStorage.getItem('GNEWS_KEY')||'').trim();
-      if(gkey){try{const q=encodeURIComponent(markets.join(' OR '));const url=`https://gnews.io/api/v4/search?q=${q}&lang=en&country=us&max=20&token=${gkey}`;const data=await fetchJsonRetry(url,2);const headlines=(data.articles||[]).map(a=>a.title||'').filter(Boolean);return {ok:true,source:'gnews',headlines}}catch(e){}}
+      if(gkey){try{const q=encodeURIComponent(markets.join(' OR '));const url=`https://gnews.io/api/v4/search?q=${q}&lang=en&country=us&max=20&token=${gkey}`;let data; try{ data=await fetchJsonRetry(url,2);}catch(e){ data=await fetchJsonProxied(url,4);}const headlines=(data.articles||[]).map(a=>a.title||'').filter(Boolean);return {ok:true,source:'gnews',headlines}}catch(e){}}
       const q=encodeURIComponent(markets.join(' '));const rss=`https://news.google.com/rss/search?q=${q}&hl=en-US&gl=US&ceid=US:en&t=${Date.now()}`;
-      try{const xml=await fetchTextRetry(PROXY_RAW+encodeURIComponent(rss),2);const doc=new DOMParser().parseFromString(xml,'text/xml');const items=Array.from(doc.querySelectorAll('item>title'));const heads=items.map(n=>n.textContent||'').filter(Boolean);return {ok:heads.length>0,source:'rss-proxy',headlines:heads}}catch(e){return {ok:false,source:'rss-proxy',reason:String(e)}}}
+      try{const xml=await fetchTextProxied(rss,4);const doc=new DOMParser().parseFromString(xml,'text/xml');const items=Array.from(doc.querySelectorAll('item>title'));const heads=items.map(n=>n.textContent||'').filter(Boolean);return {ok:heads.length>0,source:'rss-proxy',headlines:heads}}catch(e){return {ok:false,source:'rss-proxy',reason:String(e)}}}
 
     /* ---------------- Last day (Alpha→Yahoo→Stooq) ---------------- */
     async function getLastDayMove(markets){
       const akey=(localStorage.getItem('ALPHA_KEY')||'').trim();
       const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
-      if(akey){try{const url=`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${etf}&apikey=${akey}`;const data=await fetchJsonRetry(url,2);const s=data['Time Series (Daily)']||{};const d=Object.keys(s).sort().reverse();if(d.length>=2){const c0=parseFloat(s[d[0]]['4. close']), c1=parseFloat(s[d[1]]['4. close']);const pct=((c0-c1)/c1)*100, delta=c0-c1;const closes=d.slice(0,10).reverse().map(k=>parseFloat(s[k]['4. close'])).filter(n=>isFinite(n));return {ok:true,etf,latest:d[0],prior:d[1],pct,delta,closes,source:'alpha'}}}catch(e){}}
-      try{const yUrl=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(etf)}?range=15d&interval=1d&t=${Date.now()}`;const yData=await fetchJsonRetry(PROXY_RAW+encodeURIComponent(yUrl+'&cb='+Date.now()),2);const r=yData?.chart?.result?.[0];const closes=r?.indicators?.quote?.[0]?.close?.filter(v=>v!=null)||[];if(closes.length>=2){const c0=closes.at(-1), c1=closes.at(-2);const pct=((c0-c1)/c1)*100, delta=c0-c1;const ts=r.timestamp||[];const toDate=t=>{const d=new Date(t*1000);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};const latest=ts.length?toDate(ts.at(-1)):'', prior=ts.length>1?toDate(ts.at(-2)):'';return {ok:true,etf,latest,prior,pct,delta,closes:closes.slice(-10),source:'yahoo-proxy'}}}catch(e){}
+      if(akey){try{const url=`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${etf}&apikey=${akey}`;let data; try{ data=await fetchJsonRetry(url,2);}catch(e){ data=await fetchJsonProxied(url,4);}const s=data['Time Series (Daily)']||{};const d=Object.keys(s).sort().reverse();if(d.length>=2){const c0=parseFloat(s[d[0]]['4. close']), c1=parseFloat(s[d[1]]['4. close']);const pct=((c0-c1)/c1)*100, delta=c0-c1;const closes=d.slice(0,10).reverse().map(k=>parseFloat(s[k]['4. close'])).filter(n=>isFinite(n));return {ok:true,etf,latest:d[0],prior:d[1],pct,delta,closes,source:'alpha'}}}catch(e){}}
+      try{const yUrl=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(etf)}?range=15d&interval=1d&t=${Date.now()}`;const yData=await fetchJsonProxied(yUrl+'&cb='+Date.now(),4);const r=yData?.chart?.result?.[0];const closes=r?.indicators?.quote?.[0]?.close?.filter(v=>v!=null)||[];if(closes.length>=2){const c0=closes.at(-1), c1=closes.at(-2);const pct=((c0-c1)/c1)*100, delta=c0-c1;const ts=r.timestamp||[];const toDate=t=>{const d=new Date(t*1000);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};const latest=ts.length?toDate(ts.at(-1)):'', prior=ts.length>1?toDate(ts.at(-2)):'';return {ok:true,etf,latest,prior,pct,delta,closes:closes.slice(-10),source:'yahoo-proxy'}}}catch(e){}
       const sym=ETF_TO_STOOQ[etf]||'spy.us';const srcs=[`https://stooq.com/q/d/l/?s=${encodeURIComponent(sym)}&i=d&t=${Date.now()}`,`https://stooq.pl/q/d/l/?s=${encodeURIComponent(sym)}&i=d&t=${Date.now()}`];
-      let lastErr=null;for(const u of srcs){try{const csv=await fetchTextRetry(PROXY_RAW+encodeURIComponent(u),2);const rows=csv.trim().split('\n');if(rows.length>=3){const last=rows.at(-1).split(','), prev=rows.at(-2).split(',');const c0=parseFloat(last[4]), c1=parseFloat(prev[4]);if(!isFinite(c0)||!isFinite(c1)) throw new Error('bad close');const pct=((c0-c1)/c1)*100, delta=c0-c1;const closes=rows.slice(-11).slice(1).map(r=>parseFloat(r.split(',')[4])).filter(v=>isFinite(v));return {ok:true,etf,latest:last[0],prior:prev[0],pct,delta,closes,source:u.includes('.pl')?'stooq-proxy(pl)':'stooq-proxy(com)'}}}catch(e){lastErr=e}}return {ok:false,reason:String(lastErr||'fetch failed')}}
+      let lastErr=null;for(const u of srcs){try{const csv=await fetchTextProxied(u,4);const rows=csv.trim().split('\n');if(rows.length>=3){const last=rows.at(-1).split(','), prev=rows.at(-2).split(',');const c0=parseFloat(last[4]), c1=parseFloat(prev[4]);if(!isFinite(c0)||!isFinite(c1)) throw new Error('bad close');const pct=((c0-c1)/c1)*100, delta=c0-c1;const closes=rows.slice(-11).slice(1).map(r=>parseFloat(r.split(',')[4])).filter(v=>isFinite(v));return {ok:true,etf,latest:last[0],prior:prev[0],pct,delta,closes,source:u.includes('.pl')?'stooq-proxy(pl)':'stooq-proxy(com)'}}}catch(e){lastErr=e}}return {ok:false,reason:String(lastErr||'fetch failed')}}
     function sentimentFrom(h){const total=h.reduce((a,t)=>a+headlineScore(t),0);const [label,cls]=overallLabel(total);return {label,cls,total}}
     function drawSparkline(container,values){if(!values||values.length<2)return;const c=document.createElement('canvas');c.className='chart';container.appendChild(c);drawLineChart(c,values.map((v,i)=>({c:v,t:i})))}
 
