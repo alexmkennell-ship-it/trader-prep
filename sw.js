@@ -10,6 +10,11 @@ const CACHE = 'trader-prep-v53';
 // later, update this list accordingly.
 const ASSETS = [
   './',
+  // Pre-cache both index.html (primary entry point on GitHub Pages) and
+  // indexhtml.txt (alternate filename used in this repo).  Having both
+  // ensures offline functionality regardless of which filename the
+  // server is serving.
+  './index.html',
   './indexhtml.txt',
   './manifest.webmanifest',
   './icon-192.png',
@@ -54,8 +59,11 @@ self.addEventListener('fetch', evt => {
           return res;
         })
         .catch(() =>
-          // Fall back to the cached HTML entrypoint (indexhtml.txt) when offline
-          caches.match(req).then(r => r || caches.match('./indexhtml.txt'))
+          // Fall back to the cached HTML entrypoints when offline.  First try
+          // the request itself from the cache, then index.html, then indexhtml.txt.
+          caches.match(req).then(r =>
+            r || caches.match('./index.html').then(r2 => r2 || caches.match('./indexhtml.txt'))
+          )
         )
     );
     return;
