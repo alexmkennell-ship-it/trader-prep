@@ -81,8 +81,13 @@
     .spinner{display:inline-block;width:18px;height:18px;border:3px solid #45434c;border-top-color:#ddd;border-radius:50%;animation:spin 1s linear infinite;vertical-align:-3px}
     @keyframes spin{to{transform:rotate(360deg)}}
     .flash{animation:flash .6s ease}@keyframes flash{0%{color:var(--ok)}100%{color:var(--muted)}}
-    .sliderrow{display:flex;align-items:center;gap:10px}
+    .sliderrow{display:flex;align-items:center;gap:10px;position:relative}
     .sliderrow input[type=range]{width:200px}
+    /* Position the candles label over the slider knob.  We use absolute
+       positioning so the pill follows the knob as the user moves the
+       slider.  The JS below computes the left offset based on the
+       current slider value. */
+    #riskCandlesLabel{position:absolute;top:-32px;transform:translateX(-50%);white-space:nowrap}
 
     /* Mobile tweaks */
     @media (max-width:520px){
@@ -743,6 +748,23 @@
     let riskCandlesN=3;
     const riskCandles=document.getElementById('riskCandles'), riskCandlesLabel=document.getElementById('riskCandlesLabel');
 
+    // Update the position of the candles label so it sits above the slider
+    // knob.  Called whenever the slider value or layout changes.
+    function updateSliderBubble(){
+      if(!riskCandles || !riskCandlesLabel) return;
+      const min = parseInt(riskCandles.min,10)||0;
+      const max = parseInt(riskCandles.max,10)||1;
+      const val = parseInt(riskCandles.value,10)||min;
+      const percent = (val - min) / Math.max(1, (max - min));
+      // Compute horizontal offset relative to the slider input.  Use offsetWidth
+      // of the input so the bubble stays in sync when the slider is resized.
+      const sliderRect = riskCandles.getBoundingClientRect();
+      const rowRect = riskCandles.parentElement.getBoundingClientRect();
+      const width = riskCandles.offsetWidth;
+      const left = riskCandles.offsetLeft + percent * width;
+      riskCandlesLabel.style.left = `${left}px`;
+    }
+
     if(riskModeSeg){
       riskModeSeg.addEventListener('click',e=>{
         const btn=e.target.closest('.segbtn'); if(!btn) return;
@@ -752,10 +774,21 @@
       });
     }
     if(riskCandles){
-      const syncLabel=()=>riskCandlesLabel.textContent=`${riskCandles.value} candles`;
-      riskCandles.addEventListener('input',()=>{riskCandlesN=parseInt(riskCandles.value,10)||3;syncLabel()});
-      riskCandles.addEventListener('change',()=>{riskCandlesN=parseInt(riskCandles.value,10)||3;const m=getSelectedFutures();buildRisk(m.length?m:['ES'])});
+      const syncLabel=()=>{ riskCandlesLabel.textContent=`${riskCandles.value} candles`; };
+      riskCandles.addEventListener('input',()=>{
+        riskCandlesN=parseInt(riskCandles.value,10)||3;
+        syncLabel();
+        updateSliderBubble();
+      });
+      riskCandles.addEventListener('change',()=>{
+        riskCandlesN=parseInt(riskCandles.value,10)||3;
+        const m=getSelectedFutures();
+        buildRisk(m.length?m:['ES']);
+        updateSliderBubble();
+      });
+      // Initial sync and bubble position
       syncLabel();
+      updateSliderBubble();
     }
 
     function lastNSignal(bars,N){
