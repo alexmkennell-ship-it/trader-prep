@@ -2,7 +2,7 @@
   "name": "Trader Prep",
   "short_name": "Trader Prep",
   "description": "Fast pre‑market prep: headlines sentiment + prior‑day snapshot for your selected markets.",
-  "start_url": "./indexhtml.txt?source=pwa",
+  "start_url": "./index.html?source=pwa",
   "display": "standalone",
   "background_color": "#1b191b",
   "theme_color": "#1b191b",
