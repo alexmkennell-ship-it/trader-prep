@@ -446,6 +446,7 @@
     }
 
     function drawCandleChart(canvas, bars, opts={}){
+      const progressLast = Math.max(0, Math.min(1, Number(opts.progressFracLast||1)));
       const {ctx,w,h} = sizeCanvas(canvas);
       ctx.clearRect(0,0,w,h);
       if(!bars || bars.length<2) return;
@@ -474,15 +475,17 @@
         const yC = h - pad - ((b.c - min)/range)*(h - pad*2);
         const up = b.c >= b.o;
 
-        // wick
+        // wick (always full so you still see range)
         ctx.strokeStyle = up ? '#6abd74' : '#e05d5d';
         ctx.lineWidth = 2;
         ctx.beginPath(); ctx.moveTo(x, yH); ctx.lineTo(x, yL); ctx.stroke();
 
-        // body
+        // body (last bar can render partially by time progress)
         const top = Math.min(yO, yC), bot = Math.max(yO, yC);
         ctx.fillStyle = up ? '#6abd74' : '#e05d5d';
-        ctx.fillRect(x - bodyW/2, top, bodyW, Math.max(2, bot-top));
+        const widthScale = (i === bars.length-1) ? (progressLast || 1) : 1;
+        const wBody = Math.max(2, bodyW * widthScale);
+        ctx.fillRect(x - bodyW/2, top, wBody, Math.max(2, bot-top));
       }
 
       // overlays: VWAP across closes (proxy). Draw after candles.
@@ -601,6 +604,14 @@
       return bars.slice(-MAX_MIN);
     }
 
+    function lastBarProgress(bars){
+      if(!bars || !bars.length) return 1;
+      const last = bars.at(-1);
+      const ageMs = Date.now() - (last.t||Date.now());
+      const frac = ageMs/60000; // minute progress
+      if(!isFinite(frac)) return 1;
+      return Math.max(0.05, Math.min(1, frac)); // min visual width
+    }
     function selectWindow(bars,minutes){
       if(!bars.length) return [];
       const cutoff=Date.now()-minutes*60*1000;
@@ -626,7 +637,7 @@
       return {ok:true,pct,delta,std,volRatio,slopePctPerHour,direction,dirClass,busyLabel,busyClass,closes,bars:windowBars}
     }
 
-    function drawTrend(canvas,bars){ drawCandleChart(canvas,bars,{vwap:true,closeLine:true}); }
+    function drawTrend(canvas,bars,progressFrac){ drawCandleChart(canvas,bars,{vwap:true,closeLine:true,progressFracLast:progressFrac}); }
 
     function tradeSuggestion(info){
       if(!info?.ok) return {text:'—',action:'Wait'};
@@ -689,7 +700,7 @@
         const slopeStr=`${info.slopePctPerHour>=0?'+':''}${info.slopePctPerHour.toFixed(2)}%/hr slope`;
         const volStr=`σ(1m) ${(info.std*100).toFixed(3)}% • Vol ratio ${info.volRatio.toFixed(2)}×`;
         trendSummaryEl.innerHTML=`${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} • ${slopeStr} • ${volStr}</div>`;
-        drawTrend(trendCanvas,win);
+        drawTrend(trendCanvas,win, lastBarProgress(win));
         setLegend(trendLegend);
         const advice=tradeSuggestion(info);
         trendAdviceEl.innerHTML=`<div class="pill autoscroll" id="trendRecPill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941"><i class="fa-solid fa-lightbulb"></i>&nbsp; ${advice.text}</div><div class="muted" style="margin-top:6px;font-size:12px">Disclaimer: This summary is generated solely from current market data in this app and is for informational purposes only. It is not financial advice.</div>`; if (window.matchMedia('(max-width: 520px)').matches) { applyMarquee(document.getElementById('trendRecPill')); }
@@ -766,7 +777,7 @@
         const slopeStr=`${info.slopePctPerHour>=0?'+':''}${info.slopePctPerHour.toFixed(2)}%/hr slope`;
         const volStr=`σ(1m) ${(info.std*100).toFixed(3)}% • Vol ratio ${info.volRatio.toFixed(2)}×`;
         riskSummaryEl.innerHTML=`${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} • ${slopeStr} • ${volStr}</div>`;
-        drawTrend(riskCanvas,win);
+        drawTrend(riskCanvas,win, lastBarProgress(win));
         setLegend(riskLegend);
 
         const N = Math.max(3, Math.min(15, riskCandlesN||3));
@@ -884,9 +895,14 @@
       t.textContent=title; b.innerHTML=html;
       m.style.display='flex';
     }
-    (function(){const m=document.getElementById('explainModal'); if(!m) return;
-      const c=document.getElementById('explainClose'); if(c) c.onclick=()=>m.style.display='none';
-      m.addEventListener('click',e=>{ if(e.target===m) m.style.display='none'; });
+    (function(){
+      const m=document.getElementById('explainModal'); if(!m) return;
+      const c=document.getElementById('explainClose');
+      if(c){
+        c.addEventListener('click', (e)=>{ e.stopPropagation(); m.style.display='none'; });
+      }
+      // click outside the dialog closes
+      m.addEventListener('click', (e)=>{ if(e.target===m) m.style.display='none'; });
     })();
 
     /* ======= Auto-scroll utilities ======= */
