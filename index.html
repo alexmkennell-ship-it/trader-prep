@@ -250,7 +250,7 @@
 
     // ===== PnL API =====
     const PNL_API   = 'https://script.google.com/macros/s/AKfycbz2b9H8BLD7BvWfbtWaPnaThvUHM66MsnBcDb0_siM5L_xxqj1MrfqSPk1uOjvbbNx0/exec'; // <-- no ?url=
-    const PNL_TOKEN = 'CHANGE_ME_32CHAR';
+    const PNL_TOKEN = "7c0f2b14c7b94c219dc0a7a9d24e38ff";
 
     /* ---- Custom Proxy + Fallbacks ---- */
     function getCustomProxy(){ return (localStorage.getItem('CUSTOM_PROXY')||'').trim(); }
@@ -1034,7 +1034,48 @@
     /* ---------------- PnL chips ---------------- */
     const chipAK=document.getElementById('chipAK'), chipBG=document.getElementById('chipBG'), chipAKAll=document.getElementById('chipAKAll'), chipBGAll=document.getElementById('chipBGAll'), chipAKWrap=document.getElementById('chipAKWrap'), chipBGWrap=document.getElementById('chipBGWrap');
     function setChipColor(elWrap,amount){elWrap.classList.remove('ok','bad','warn');const a=Number(amount)||0;if(a>0.005)elWrap.classList.add('ok');else if(a<-0.005)elWrap.classList.add('bad');else elWrap.classList.add('warn')}
-    async function pnlGetTotals(){if(!PNL_API||!PNL_TOKEN){chipAK.textContent='N/A';chipBG.textContent='N/A';return}try{const r=await fetch(`${PNL_API}?token=${encodeURIComponent(PNL_TOKEN)}`,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();if(!j.ok)throw new Error(j.error||'bad');const ak=Number(j.today?.AK||0),bg=Number(j.today?.BG||0),aka=Number(j.all?.AK||0),bga=Number(j.all?.BG||0);chipAK.textContent=`$${ak.toFixed(2)}`;chipBG.textContent=`$${bg.toFixed(2)}`;chipAKAll.textContent=`$${aka.toFixed(2)}`;chipBGAll.textContent=`$${bga.toFixed(2)}`;setChipColor(chipAKWrap,ak);setChipColor(chipBGWrap,bg)}catch(e){chipAK.textContent='N/A';chipBG.textContent='N/A';chipAKAll.textContent='N/A';chipBGAll.textContent='N/A';chipAKWrap.classList.add('warn');chipBGWrap.classList.add('warn')}}
+    async function pnlGetTotals(){
+      const {url, token} = pnlConfig();
+      const c1=document.getElementById('conn1'), c2=document.getElementById('conn2');
+      const setChip=(chip,cls,text)=>{ if(!chip) return; chip.classList.remove('ok','bad','warn'); chip.classList.add(cls); chip.innerHTML=text; };
+
+      // Test PROXY by fetching a tiny RSS (fast)
+      try{
+        await fetchTextProxied('https://news.google.com/rss?q=ES&hl=en-US&gl=US&ceid=US:en');
+        setChip(c1,'ok','<i class="fa-solid fa-signal"></i> Network OK');
+      }catch(e){
+        setChip(c1,'bad','<i class="fa-solid fa-signal"></i> Network FAIL');
+      }
+
+      if(!url || !token || token==='CHANGE_ME_32CHAR'){
+        setChip(c2,'warn','<i class="fa-solid fa-chart-line"></i> P&L setup needed');
+        const chipAK=document.getElementById('chipAK'); const chipBG=document.getElementById('chipBG'); const chipAKAll=document.getElementById('chipAKAll'); const chipBGAll=document.getElementById('chipBGAll');
+        if(chipAK) chipAK.textContent='N/A'; if(chipBG) chipBG.textContent='N/A'; if(chipAKAll) chipAKAll.textContent='N/A'; if(chipBGAll) chipBGAll.textContent='N/A';
+        return;
+      }
+      try{
+        const j = await fetchJsonProxied(url + '?token=' + encodeURIComponent(token));
+        if(!j || j.ok!==true) throw new Error(j && j.error || 'bad');
+        const ak=Number(j.today?.AK||0),bg=Number(j.today?.BG||0),aka=Number(j.all?.AK||0),bga=Number(j.all?.BG||0);
+        const chipAK=document.getElementById('chipAK'); const chipBG=document.getElementById('chipBG'); const chipAKAll=document.getElementById('chipAKAll'); const chipBGAll=document.getElementById('chipBGAll');
+        if(chipAK) chipAK.textContent='$'+ak.toFixed(2); if(chipBG) chipBG.textContent='$'+bg.toFixed(2);
+        if(chipAKAll) chipAKAll.textContent='$'+aka.toFixed(2); if(chipBGAll) chipBGAll.textContent='$'+bga.toFixed(2);
+        setChip(c2,'ok','<i class="fa-solid fa-chart-line"></i> P&L OK');
+        // color chips by today P&L
+        const chipAKWrap=document.getElementById('chipAKWrap'); const chipBGWrap=document.getElementById('chipBGWrap');
+        const setWrap=(wrap,val)=>{ if(!wrap) return; wrap.classList.remove('ok','bad','warn'); if(val>0.005) wrap.classList.add('ok'); else if(val<-0.005) wrap.classList.add('bad'); else wrap.classList.add('warn'); };
+        setWrap(chipAKWrap,ak); setWrap(chipBGWrap,bg);
+      }catch(e){
+        setChip(c2,'bad','<i class="fa-solid fa-chart-line"></i> P&L FAIL');
+      }
+    }try{const r=await fetch(`${PNL_API}?token=${encodeURIComponent(PNL_TOKEN)}`,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();if(!j.ok)throw new Error(j.error||'bad');const ak=Number(j.today?.AK||0),bg=Number(j.today?.BG||0),aka=Number(j.all?.AK||0),bga=Number(j.all?.BG||0);chipAK.textContent=`$${ak.toFixed(2)}`;chipBG.textContent=`$${bg.toFixed(2)}`;chipAKAll.textContent=`$${aka.toFixed(2)}`;chipBGAll.textContent=`$${bga.toFixed(2)}`;setChipColor(chipAKWrap,ak);setChipColor(chipBGWrap,bg)}catch(e){chipAK.textContent='N/A';chipBG.textContent='N/A';chipAKAll.textContent='N/A';chipBGAll.textContent='N/A';chipAKWrap.classList.add('warn');chipBGWrap.classList.add('warn')}}
+
+    
+    function pnlConfig(){
+      const url = (localStorage.getItem('PNL_API_URL')||'').trim() || PNL_API;
+      const token = (localStorage.getItem('PNL_TOKEN_STR')||'').trim() || PNL_TOKEN;
+      return {url, token};
+    }
 
     /* ---------------- Prep flow ---------------- */
     function startAnalyze({linksOnly=false}={}){const sel=getSelectedFutures();const markets=sel.length?sel:['ES','NQ'];showPrepHeader(markets);makeLinks(markets);if(!linksOnly)buildSummary(markets);else summaryEl.innerHTML=`<span class="muted">Quick-links mode. Tap Analyze for auto-summary.</span>`;window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})}
@@ -1091,6 +1132,9 @@
 
       // Start aligned refresh loop
       scheduleAlignedRefresh();
+      const tbtn=document.getElementById('testConn'), tmsg=document.getElementById('testMsg');
+      if(tbtn){ tbtn.addEventListener('click', async ()=>{ tmsg.textContent='Testing...'; try{ await pnlGetTotals(); tmsg.textContent='Done ✓'; setTimeout(()=>tmsg.textContent='',1200);}catch(e){ tmsg.textContent='Error: '+(e.message||e); } }); }
+
       // Fallback delegation in case early errors prevented binding
       document.addEventListener('click', (e)=>{
         const id = (e.target && e.target.id) || (e.target && e.target.closest && (e.target.closest('#start,#runTrend,#runRisk')?.id));
