@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -645,22 +646,73 @@
       if(recent.length<Math.min(15,minutes)) return bars.slice(-Math.max(15,minutes));
       return recent;
     }
-    function statsTrend(windowBars){
-      if(windowBars.length<5) return {ok:false,reason:'not enough bars'};
-      const closes=windowBars.map(b=>b.c), vols=windowBars.map(b=>b.v);
-      const first=closes[0], last=closes.at(-1);
-      const pct=(last-first)/first*100, delta=last-first;
-      const rets=[]; for(let i=1;i<closes.length;i++){ const r=(closes[i]-closes[i-1])/closes[i-1]; if(isFinite(r)) rets.push(r); }
-      const mean=rets.reduce((a,b)=>a+b,0)/Math.max(1,rets.length);
-      const varr=rets.reduce((a,b)=>a+(b-mean)*(b-mean),0)/Math.max(1,rets.length);
-      const std=Math.sqrt(varr);
-      const median=arr=>{const a=[...arr].sort((x,y)=>x-y); const m=Math.floor(a.length/2); return a.length%2?a[m]:(a[m-1]+a[m])/2;};
-      const volMed=median(vols), volAvg=vols.reduce((a,b)=>a+b,0)/vols.length, volRatio=volMed>0?volAvg/volMed:1;
-      let sx=0,sy=0,sxx=0,sxy=0; for(let i=0;i<closes.length;i++){ sx+=i; sy+=closes[i]; sxx+=i*i; sxy+=i*closes[i]; }
-      const n=closes.length, denom=(n*sxx - sx*sx)||1; const slope=(n*sxy - sx*sy)/denom; const slopePctPerHour=(slope/first)*60*100;
-      let direction='Sideways',dirClass='warn'; if(pct>=0.2||slopePctPerHour>=0.5){direction='Uptrend';dirClass='ok'} else if(pct<=-0.2||slopePctPerHour<=-0.5){direction='Downtrend';dirClass='bad'}
-      const busy=(std>=0.0006)||(volRatio>=1.20); const busyLabel=busy?'Busy':'Calmer',busyClass=busy?'ok':'warn';
-      return {ok:true,pct,delta,std,volRatio,slopePctPerHour,direction,dirClass,busyLabel,busyClass,closes,bars:windowBars}
+function statsTrend(windowBars){
+      // Require at least two bars to compute meaningful statistics.  If fewer
+      // bars are available, indicate that the dataset is insufficient.
+      if (!windowBars || windowBars.length < 2) return { ok:false, reason:'not enough bars' };
+      const closes = windowBars.map(b => b.c), vols = windowBars.map(b => b.v);
+      const first = closes[0], last = closes.at(-1);
+      const pct   = (last - first) / first * 100;
+      const delta = last - first;
+      // Compute one‑minute returns for volatility statistics.  If the
+      // window is very short, there will be few returns; fall back to 0
+      // volatility in that case.
+      const rets = [];
+      for (let i=1; i<closes.length; i++) {
+        const r = (closes[i] - closes[i-1]) / closes[i-1];
+        if (isFinite(r)) rets.push(r);
+      }
+      const mean = rets.reduce((a,b) => a+b, 0) / Math.max(1, rets.length);
+      const varr = rets.reduce((a,b) => a + (b-mean)*(b-mean), 0) / Math.max(1, rets.length);
+      const std  = Math.sqrt(varr);
+      const median = arr => {
+        if (!arr || !arr.length) return 0;
+        const a = [...arr].sort((x,y) => x-y);
+        const m = Math.floor(a.length/2);
+        return a.length % 2 ? a[m] : (a[m-1] + a[m]) / 2;
+      };
+      const volMed  = median(vols);
+      const volAvg  = vols.reduce((a,b) => a+b, 0) / Math.max(1, vols.length);
+      const volRatio = volMed > 0 ? volAvg / volMed : 1;
+      // Simple linear regression to estimate slope.  Even with only a few
+      // points, this provides a rough sense of direction.
+      let sx=0, sy=0, sxx=0, sxy=0;
+      for (let i=0; i<closes.length; i++) {
+        sx  += i;
+        sy  += closes[i];
+        sxx += i * i;
+        sxy += i * closes[i];
+      }
+      const n     = closes.length;
+      const denom = (n * sxx - sx * sx) || 1;
+      const slope = (n * sxy - sx * sy) / denom;
+      const slopePctPerHour = (slope / first) * 60 * 100;
+      let direction = 'Sideways';
+      let dirClass  = 'warn';
+      if (pct >= 0.2 || slopePctPerHour >= 0.5) {
+        direction = 'Uptrend';
+        dirClass  = 'ok';
+      } else if (pct <= -0.2 || slopePctPerHour <= -0.5) {
+        direction = 'Downtrend';
+        dirClass  = 'bad';
+      }
+      const busy      = (std >= 0.0006) || (volRatio >= 1.20);
+      const busyLabel = busy ? 'Busy' : 'Calmer';
+      const busyClass = busy ? 'ok' : 'warn';
+      return {
+        ok: true,
+        pct,
+        delta,
+        std,
+        volRatio,
+        slopePctPerHour,
+        direction,
+        dirClass,
+        busyLabel,
+        busyClass,
+        closes,
+        bars: windowBars
+      };
     }
 
     function drawTrend(canvas,bars,progressFrac){ drawCandleChart(canvas,bars,{vwap:true,closeLine:true,progressFracLast:progressFrac,robustZoom:true}); }
@@ -989,19 +1041,6 @@
       const j = await r.json();
       if(!j.ok) throw new Error(j.error||'save failed');
       return j;
-    }
-
-    /* ---------------- Service worker registration ---------------- */
-    // Register the service worker once the page has loaded.  This enables
-    // offline caching and PWA functionality.  We register "sw.js" rather
-    // than "sw.js.txt" because the file has been copied and renamed in
-    // the repository.  If you rename your service worker file, update
-    // this path accordingly.
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-          .catch(err => console.error('Service worker registration failed:', err));
-      });
     }
   </script>
 
