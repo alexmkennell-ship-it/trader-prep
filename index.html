@@ -1039,10 +1039,29 @@
     /* ---------------- Prep flow ---------------- */
     function startAnalyze({linksOnly=false}={}){const sel=getSelectedFutures();const markets=sel.length?sel:['ES','NQ'];showPrepHeader(markets);makeLinks(markets);if(!linksOnly)buildSummary(markets);else summaryEl.innerHTML=`<span class="muted">Quick-links mode. Tap Analyze for auto-summary.</span>`;window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})}
 
+    
+    /* ======= Safe bind helpers ======= */
+    function safeBindClick(id, handler){
+      const el = document.getElementById(id);
+      if(!el) return false;
+      try{ el.addEventListener('click', handler); return true; }catch(_){ return false; }
+    }
+    function safeBind(id, event, handler){
+      const el = document.getElementById(id);
+      if(!el) return false;
+      try{ el.addEventListener(event, handler); return true; }catch(_){ return false; }
+    }
+
     /* ---------------- Events ---------------- */
-    document.getElementById('start').addEventListener('click',()=>{setNav('nav-prep');setTab('prep');startAnalyze({linksOnly:false})});
-    document.getElementById('runTrend').addEventListener('click',()=>{setNav('nav-trend');setTab('trend');const m=getSelectedFutures();buildTrend(m.length?m:['ES'])});
-    document.getElementById('runRisk').addEventListener('click',()=>{setNav('nav-risk');setTab('risk');const m=getSelectedFutures();buildRisk(m.length?m:['ES'])});
+    safeBindClick('start', ()=>{setNav('nav-prep');setTab('prep');startAnalyze({linksOnly:false})});
+    safeBindClick('runTrend', ()=>{setNav('nav-trend');setTab('trend');const m=getSelectedFutures();buildTrend(m.length?m:['ES'])});
+    safeBindClick('runRisk', ()=>{setNav('nav-risk');setTab('risk');const m=getSelectedFutures();buildRisk(m.length?m:['ES'])});
+
+    
+    /* ======= Global error guard ======= */
+    window.addEventListener('error', (e)=>{
+      try{ console.error('TraderPrep JS error:', e.error || e.message || e); }catch(_){}
+    });
 
     document.addEventListener('DOMContentLoaded',()=>{
 
@@ -1066,12 +1085,21 @@
       const strip=document.querySelector('.statstrip'); if(strip && window.matchMedia('(max-width: 520px)').matches) autoScrollContainer(strip, 18);
       pnlGetTotals(); setInterval(pnlGetTotals,120000);
       const btn=document.getElementById('logPnl'), msg=document.getElementById('pnlMsg');
-      if(btn){btn.addEventListener('click',async()=>{try{const who=(document.querySelector('input[name="who"]:checked')||{}).value||'AK';const amt=(document.getElementById('pnlAmount')||{}).value||'';const note=(document.getElementById('pnlNote')||{}).value||'';if(!amt||isNaN(Number(amt))){msg.textContent='Enter a number (e.g. 125 or -75)';return}msg.textContent='Saving...';await pnlPostLog({user:who,amount:amt,note});msg.textContent='Saved ✓';document.getElementById('pnlAmount').value='';document.getElementById('pnlNote').value='';await pnlGetTotals();setTimeout(()=>msg.textContent='',1200)}catch(e){msg.textContent='Error: '+(e.message||e)}})}
+      if(btn){btn.addEventListener('click',async()=>{try{const who=(document.querySelector('input[name="who"]:checked')||{}).value||'AK';const amt=(document.getElementById('pnlAmount')||{}).value||'';const note=(document.getElementById('pnlNote')||{}).value||'';if(!amt||isNaN(Number(amt))){if(msg) msg.textContent='Enter a number (e.g. 125 or -75)';return}if(msg) msg.textContent='Saving...';await pnlPostLog({user:who,amount:amt,note});if(msg) msg.textContent='Saved ✓';const pa=document.getElementById('pnlAmount'); const pn=document.getElementById('pnlNote'); if(pa) pa.value=''; if(pn) pn.value='';await pnlGetTotals();setTimeout(()=>{if(msg) msg.textContent=''},1200)}catch(e){if(msg) msg.textContent='Error: '+(e.message||e)}})}
       const undoBtn=document.getElementById('undoLast'); if(undoBtn) undoBtn.addEventListener('click',async()=>{try{/* optional undo call */}catch(e){}});
       setTfActive(15);
 
       // Start aligned refresh loop
       scheduleAlignedRefresh();
+      // Fallback delegation in case early errors prevented binding
+      document.addEventListener('click', (e)=>{
+        const id = (e.target && e.target.id) || (e.target && e.target.closest && (e.target.closest('#start,#runTrend,#runRisk')?.id));
+        if(!id) return;
+        if(id==='start'){ setNav('nav-prep'); setTab('prep'); startAnalyze({linksOnly:false}); }
+        if(id==='runTrend'){ setNav('nav-trend'); setTab('trend'); const m=getSelectedFutures(); buildTrend(m.length?m:['ES']); }
+        if(id==='runRisk'){ setNav('nav-risk'); setTab('risk'); const m=getSelectedFutures(); buildRisk(m.length?m:['ES']); }
+      });
+
     });
 
     
@@ -1142,7 +1170,7 @@
   </script>
 
   <!-- Explain Modal -->
-  <div id="explainModal" class="modal" style="display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;background:rgba(0,0,0,.6)">
+  <div id="explainModal" class="modal" style="display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;background:rgba(0,0,0,.6);pointer-events:auto">
     <div class="box" style="max-width:640px;width:calc(100% - 28px);background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:16px">
       <div class="row" style="justify-content:space-between;align-items:center">
         <strong id="explainTitle">Why?</strong>
