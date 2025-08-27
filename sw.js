@@ -1,11 +1,20 @@
 // sw.js — network-first for HTML, cache-first for static assets
-const CACHE = 'trader-prep-v52'; // ← bump this when you ship
+// Increase the cache version whenever assets change.  This forces browsers
+// to discard old caches and pull the latest files.
+const CACHE = 'trader-prep-v53';
+
+// A list of core assets to pre‑cache.  Because our entry point is named
+// `indexhtml.txt` in this repository, include that file explicitly rather
+// than `index.html`.  The manifest and icons have been corrected and
+// included here as well.  If you rename your HTML file to `index.html`
+// later, update this list accordingly.
 const ASSETS = [
   './',
-  './index.html',
+  './indexhtml.txt',
   './manifest.webmanifest',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './favicon-32.png'
 ];
 
 // Install: pre-cache core assets
@@ -45,7 +54,8 @@ self.addEventListener('fetch', evt => {
           return res;
         })
         .catch(() =>
-          caches.match(req).then(r => r || caches.match('./index.html'))
+          // Fall back to the cached HTML entrypoint (indexhtml.txt) when offline
+          caches.match(req).then(r => r || caches.match('./indexhtml.txt'))
         )
     );
     return;
