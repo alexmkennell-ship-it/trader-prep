@@ -112,6 +112,22 @@
     .mobonly{ display:none; }
     @media (max-width:520px){ .mobonly{ display:grid; } }
 
+  
+    /* Mobile header stability */
+    @media (max-width:520px){
+      .topbar{ padding:8px 10px; }
+      .brand h1{ max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .navicons{ gap:8px; flex-wrap:nowrap; }
+      .iconbtn{ min-width:40px; min-height:40px; }
+    }
+
+    /* Mobile statstrip: single-line horizontal scroll (hidden overflow) */
+    @media (max-width:520px){
+      .statstrip{ overflow-x:auto; overflow-y:hidden; white-space:nowrap; scrollbar-width:none; -ms-overflow-style:none; }
+      .statstrip::-webkit-scrollbar{ display:none; }
+      .statstrip .chip{ display:inline-flex; }
+    }
+
   </style>
 </head>
 <body>
