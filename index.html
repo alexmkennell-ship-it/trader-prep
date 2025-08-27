@@ -121,9 +121,11 @@
     <!-- SETTINGS -->
     <div class="card" id="panel-settings" style="display:none">
       <div class="row"><strong>Settings</strong><span class="muted">(Keys optional; proxy fallback built-in)</span></div>
+      <div class="row" style="margin-top:10px"><label class="muted" style="min-width:170px">Custom Proxy</label><input id="customProxy" placeholder="https://script.google.com/macros/s/.../exec?url="></div>
       <div class="row" style="margin-top:10px"><label class="muted" style="min-width:170px">GNews API Key</label><input id="gnews" placeholder="gnews.io token"></div>
       <div class="row" style="margin-top:10px"><label class="muted" style="min-width:170px">Alpha Vantage Key</label><input id="alpha" placeholder="alphavantage.co key"></div>
-      <div class="actions" style="margin-top:10px"><button id="saveKeys" class="primary"><i class="fa-regular fa-floppy-disk"></i>&nbsp;Save Keys</button><span id="saveMsg" class="muted"></span></div>
+      <div class="actions" style="margin-top:10px"><button id="saveKeys" class="primary"><i class="fa-regular fa-floppy-disk"></i>&nbsp;Save Keys</button><button id="testFetch"><i class="fa-solid fa-vial"></i>&nbsp;Test Data Fetch</button><span id="saveMsg" class="muted"></span></div>
+<div id="diag" class="muted" style="margin-top:8px;font-size:13px"></div>
     </div>
 
     <!-- PNL -->
@@ -236,6 +238,70 @@
     // ===== PnL API =====
     const PNL_API   = 'https://script.google.com/macros/s/AKfycbz2b9H8BLD7BvWfbtWaPnaThvUHM66MsnBcDb0_siM5L_xxqj1MrfqSPk1uOjvbbNx0/exec'; // <-- no ?url=
     const PNL_TOKEN = 'CHANGE_ME_32CHAR';
+
+    /* ---- Custom Proxy + Fallbacks ---- */
+    function getCustomProxy(){ return (localStorage.getItem('CUSTOM_PROXY')||'').trim(); }
+    const PROXIES = [
+      () => (PROXY_RAW || '').trim(),  // your hardcoded Apps Script
+      () => getCustomProxy(),          // user-provided Apps Script
+      'https://api.allorigins.win/raw?url=' // public fallback
+    ];
+    function wrapUrl(u, idx){
+      const p = PROXIES[idx];
+      const v = (typeof p === 'function') ? p() : p;
+      if(!v) return null;
+      if(v.endsWith('?url=') || v.endsWith('%3Furl%3D')) return v + encodeURIComponent(u);
+      return v + encodeURIComponent(u);
+    }
+    async function fetchWithFallback(url, type='json', timeout=10000){
+      let lastErr=null, used='';
+      for(let i=0;i<PROXIES.length;i++){
+        const wrapped = wrapUrl(url, i);
+        if(!wrapped) continue;
+        try{
+          const c = new AbortController(); const to = setTimeout(()=>c.abort('timeout'), timeout);
+          const res = await fetch(wrapped, {signal:c.signal, cache:'no-store'});
+          clearTimeout(to);
+          if(!res.ok) throw new Error('HTTP '+res.status);
+          used = (typeof PROXIES[i] === 'function') ? (PROXIES[i]===PROXIES[0]?'PROXY_RAW':'customProxy') : 'allorigins';
+          const data = type==='json' ? await res.json() : await res.text();
+          return {ok:true, used, data};
+        }catch(e){ lastErr=e; }
+      }
+      return {ok:false, error:String(lastErr||'unknown'), used};
+    }
+
+    // Settings load/save + Test button
+    const customProxyEl = document.getElementById('customProxy');
+    const testBtn = document.getElementById('testFetch');
+    const diagEl = document.getElementById('diag');
+    (function setupSettings(){
+      if(customProxyEl){ customProxyEl.value = getCustomProxy(); }
+      const save = document.getElementById('saveKeys');
+      if(save){
+        save.addEventListener('click', ()=>{
+          localStorage.setItem('GNEWS_KEY', (document.getElementById('gnews')||{}).value?.trim()||'');
+          localStorage.setItem('ALPHA_KEY', (document.getElementById('alpha')||{}).value?.trim()||'');
+          if(customProxyEl) localStorage.setItem('CUSTOM_PROXY', customProxyEl.value.trim());
+          const sm=document.getElementById('saveMsg'); if(sm){ sm.textContent='Saved ✓'; setTimeout(()=>sm.textContent='',1200); }
+        });
+      }
+      if(testBtn){
+        testBtn.addEventListener('click', async()=>{
+          if(diagEl) diagEl.textContent = 'Testing Yahoo 1m via fallbacks...';
+          const url='https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=1d&interval=1m&includePrePost=true';
+          const r = await fetchWithFallback(url,'json',10000);
+          if(r.ok){
+            if(diagEl) diagEl.innerHTML = `<span class="chip ok">OK via <b>${r.used}</b></span>`;
+            const c2=document.getElementById('conn2'); if(c2){ c2.className='chip ok'; c2.innerHTML='<i class="fa-solid fa-chart-line"></i> Data OK'; }
+          }else{
+            if(diagEl) diagEl.innerHTML = `<span class="chip bad">Failed: ${r.error}</span> • Try a Custom Proxy (Apps Script).`;
+            const c2=document.getElementById('conn2'); if(c2){ c2.className='chip bad'; c2.innerHTML='<i class="fa-solid fa-chart-line"></i> Data FAIL'; }
+          }
+        });
+      }
+    })();
+
 
     /* ---------------- Nav / Tabs ---------------- */
     const panelSettings=document.getElementById('panel-settings');
@@ -494,7 +560,8 @@
     /* ---------------- Intraday fetch ---------------- */
     async function fetchIntraday(etf){
       const u = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(etf)}?range=1d&interval=1m&includePrePost=true&t=${Date.now()}`;
-      const data = await fetchJsonRetry(PROXY_RAW + encodeURIComponent(u), 2);
+      const _r = (typeof fetchWithFallback==='function') ? await fetchWithFallback(u,'json',12000) : null;
+      const data = (_r && _r.ok) ? _r.data : await fetchJsonRetry(PROXY_RAW + encodeURIComponent(u), 2);
       const r = data?.chart?.result?.[0];
       const q = r?.indicators?.quote?.[0];
       const ts = r?.timestamp || [];
