@@ -775,10 +775,10 @@
         riskSummaryEl.innerHTML=`${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} &bull; ${slopeStr} &bull; ${volStr}</div>`;
         drawTrend(riskCanvas,win);
         setLegend(riskLegend);
-        window.__lastRisk = {info, bars: win, pred: null, mode: riskMode, N: N};
 
         const N = Math.max(3, Math.min(15, riskCandlesN||3));
-        let rec; if(riskMode==='aggressive'){ rec = lastNSignal(win, N); } else { rec = conservativeSignal(info, win, N); }
+                window.__lastRisk = {info, bars: win, pred: null, mode: riskMode, N: N};
+let rec; if(riskMode==='aggressive'){ rec = lastNSignal(win, N); } else { rec = conservativeSignal(info, win, N); }
         const pred = marketPredictionSafe(info, win);
         riskAdviceEl.innerHTML = `<div class="pill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941" data-explain="rec"><i class="fa-solid fa-lightbulb"></i>&nbsp; ${rec.text} <span class="muted" style="margin-left:8px; text-decoration:underline; cursor:pointer">Why?</span></div><div class="muted" style="margin-top:6px;font-size:12px">Disclaimer: This is an automated summary and not financial advice.</div>`;
 
