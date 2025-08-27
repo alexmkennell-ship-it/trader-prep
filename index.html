@@ -436,6 +436,16 @@
     function drawSparkline(container,values){if(!values||values.length<2)return;const c=document.createElement('canvas');c.className='chart';container.appendChild(c);drawLineChart(c,values.map((v,i)=>({c:v,t:i})))}
 
     /* ---------------- Charts ---------------- */
+
+    function quantile(arr, q){
+      if(!arr || !arr.length) return NaN;
+      const a=[...arr].sort((x,y)=>x-y); 
+      const pos=(a.length-1)*q;
+      const base=Math.floor(pos), rest=pos-base;
+      if(a[base+1]!==undefined) return a[base]+rest*(a[base+1]-a[base]);
+      return a[base];
+    }
+
     function sizeCanvas(canvas){
       const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
       const cssW = canvas.clientWidth || 700;
@@ -447,12 +457,28 @@
 
     function drawCandleChart(canvas, bars, opts={}){
       const progressLast = Math.max(0, Math.min(1, Number(opts.progressFracLast||1)));
+      const robustZoom = opts.robustZoom !== false;
       const {ctx,w,h} = sizeCanvas(canvas);
       ctx.clearRect(0,0,w,h);
       if(!bars || bars.length<2) return;
       const pad = 12;
       const highs = bars.map(b=>b.h), lows = bars.map(b=>b.l);
-      const min = Math.min(...lows), max = Math.max(...highs), range = (max-min)||1;
+      let min = Math.min(...lows), max = Math.max(...highs);
+      if(robustZoom && bars.length>=5){
+        const ql = quantile(lows, 0.05), qh = quantile(highs, 0.95);
+        min = Math.min(min, ql); max = Math.max(max, qh);
+        // ensure a minimum relative range to keep candles visible
+        const mid = (min+max)/2; const rel = (max-min)/Math.max(1e-9, mid);
+        const minRel = 0.0015; // 0.15%
+        if(rel < minRel){
+          const pad = mid*minRel/2;
+          min = mid - pad; max = mid + pad;
+        }
+        // small padding
+        const pad2 = (max-min)*0.001;
+        min -= pad2; max += pad2;
+      }
+      const range = (max-min)||1;
       const step = (w - pad*2) / (bars.length-1);
       const bodyFrac = 0.55; // candle body width fraction (mobile-friendly)
       const bodyW = Math.max(2, step * bodyFrac);
@@ -637,7 +663,7 @@
       return {ok:true,pct,delta,std,volRatio,slopePctPerHour,direction,dirClass,busyLabel,busyClass,closes,bars:windowBars}
     }
 
-    function drawTrend(canvas,bars,progressFrac){ drawCandleChart(canvas,bars,{vwap:true,closeLine:true,progressFracLast:progressFrac}); }
+    function drawTrend(canvas,bars,progressFrac){ drawCandleChart(canvas,bars,{vwap:true,closeLine:true,progressFracLast:progressFrac,robustZoom:true}); }
 
     function tradeSuggestion(info){
       if(!info?.ok) return {text:'—',action:'Wait'};
