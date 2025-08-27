@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -778,16 +779,19 @@
       riskCandles.addEventListener('input',()=>{
         riskCandlesN=parseInt(riskCandles.value,10)||3;
         syncLabel();
-        updateSliderBubble();
+        // Do not reposition the candles bubble on each slider movement;
+        // we want the label to remain stationary relative to the slider row.
       });
       riskCandles.addEventListener('change',()=>{
         riskCandlesN=parseInt(riskCandles.value,10)||3;
         const m=getSelectedFutures();
         buildRisk(m.length?m:['ES']);
-        updateSliderBubble();
+        // Do not reposition on change; keep the bubble fixed.
       });
       // Initial sync and bubble position
       syncLabel();
+      // Position the label once when the risk panel becomes visible; this
+      // ensures it’s stationary relative to the slider row.
       updateSliderBubble();
     }
 
