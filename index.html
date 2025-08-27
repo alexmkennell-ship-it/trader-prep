@@ -5,11 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <meta name="theme-color" content="#1b191b"/>
   <meta name="color-scheme" content="dark"/>
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
-  <meta http-equiv="Pragma" content="no-cache"/>
-  <meta http-equiv="Expires" content="0"/>
   <title>Trader Prep</title>
-  <!-- build:v2025-08-26.1 -->
 
   <!-- Icons / Manifest -->
   <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
@@ -95,39 +91,6 @@
       .tabbtn,button{padding:10px 12px}
       .legend{font-size:11px}
     }
-  
-    /* (removed) Mobile-only reload button */
-    .mreload_removed{
-      position:fixed;right:14px;bottom:14px;
-      width:46px;height:46px;display:none;place-items:center;
-      border-radius:12px;border:1px solid var(--line);
-      background:var(--accent);color:#0b0b10;box-shadow:var(--shadow);
-      z-index:60;cursor:pointer;
-    }
-    .mreload_removed i{font-size:18px}
-    @media (max-width:520px){ .mreload_removed{display:grid;} }
-
-  
-    /* Mobile-only display helper */
-    .mobonly{ display:none; }
-    @media (max-width:520px){ .mobonly{ display:grid; } }
-
-  
-    /* Mobile header stability */
-    @media (max-width:520px){
-      .topbar{ padding:8px 10px; }
-      .brand h1{ max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-      .navicons{ gap:8px; flex-wrap:nowrap; }
-      .iconbtn{ min-width:40px; min-height:40px; }
-    }
-
-    /* Mobile statstrip: single-line horizontal scroll (hidden overflow) */
-    @media (max-width:520px){
-      .statstrip{ overflow-x:auto; overflow-y:hidden; white-space:nowrap; scrollbar-width:none; -ms-overflow-style:none; }
-      .statstrip::-webkit-scrollbar{ display:none; }
-      .statstrip .chip{ display:inline-flex; }
-    }
-
   </style>
 </head>
 <body>
@@ -143,7 +106,6 @@
       <div class="iconbtn" id="nav-risk" title="Risk"><i class="fa-solid fa-fire-flame-curved"></i></div>
       <div class="iconbtn" id="nav-pnl" title="Profit Log"><i class="fa-solid fa-dollar-sign"></i></div>
       <div class="iconbtn" id="nav-settings" title="Settings"><i class="fa-solid fa-gear"></i></div>
-          <div class="iconbtn mobonly" id="mobileReloadTop" title="Reload (cache-bust)"><i class="fa-solid fa-rotate-right"></i></div>
     </nav>
   </header>
 
@@ -171,7 +133,7 @@
       <div class="row" style="margin-top:10px"><label class="muted" style="min-width:170px">Amount ($)</label><input id="pnlAmount" placeholder="e.g. 125.50 or -75"></div>
       <div class="row" style="margin-top:10px"><label class="muted" style="min-width:170px">Note (optional)</label><input id="pnlNote" placeholder="scalp NQ open, etc."></div>
       <div class="actions" style="margin-top:10px"><button id="logPnl" class="primary"><i class="fa-solid fa-plus"></i>&nbsp;Log Profit</button><span id="pnlMsg" class="muted"></span></div>
-      <details style="margin-top:12px"><summary>Today’s entries</summary><div id="pnlTodayTable" class="muted" style="margin-top:8px">—</div><div class="actions" style="margin-top:8px"><button id="undoLast"><i class="fa-solid fa-rotate-left"></i>&nbsp;Undo last entry</button></div></details>
+      <details style="margin-top:12px"><summary>Todayâs entries</summary><div id="pnlTodayTable" class="muted" style="margin-top:8px">â</div><div class="actions" style="margin-top:8px"><button id="undoLast"><i class="fa-solid fa-rotate-left"></i>&nbsp;Undo last entry</button></div></details>
     </div>
 
     <!-- MARKET PICKER -->
@@ -192,14 +154,14 @@
         <div>
           <label class="muted">Futures/markets</label>
           <select id="futures" multiple size="8" aria-label="Futures and markets">
-            <option value="ES">ES – S&P 500</option>
-            <option value="NQ">NQ – Nasdaq 100</option>
-            <option value="YM">YM – Dow</option>
-            <option value="RTY">RTY – Russell 2000</option>
-            <option value="CL">CL – Crude Oil</option>
-            <option value="GC">GC – Gold</option>
-            <option value="ZN">ZN – 10-Yr Note</option>
-            <option value="6E">6E – EUR/USD</option>
+            <option value="ES">ES â S&P 500</option>
+            <option value="NQ">NQ â Nasdaq 100</option>
+            <option value="YM">YM â Dow</option>
+            <option value="RTY">RTY â Russell 2000</option>
+            <option value="CL">CL â Crude Oil</option>
+            <option value="GC">GC â Gold</option>
+            <option value="ZN">ZN â 10-Yr Note</option>
+            <option value="6E">6E â EUR/USD</option>
           </select>
         </div>
         <div>
@@ -209,7 +171,7 @@
             <button class="segbtn" data-tf="30">30m</button>
             <button class="segbtn" data-tf="60">60m</button>
           </div>
-          <div class="muted" style="margin-top:6px">Trend/Risk use 1-minute Yahoo bars (via your proxy), mapped futures → ETFs.</div>
+          <div class="muted" style="margin-top:6px">Trend/Risk use 1-minute Yahoo bars (via your proxy), mapped futures â ETFs.</div>
         </div>
       </div>
 
@@ -223,7 +185,7 @@
     <!-- PREP -->
     <div id="prepOut" class="card">
       <div class="row"><strong>Trader Prep</strong><span class="muted">Now: <span id="now"></span></span></div>
-      <div class="muted">Focus: <span id="focus"></span> • <span id="keyStatus"></span></div>
+      <div class="muted">Focus: <span id="focus"></span> â¢ <span id="keyStatus"></span></div>
       <div id="summary" style="margin-top:12px"></div>
       <h3 style="margin-top:16px">Quick Links</h3>
       <ul id="links"></ul>
@@ -232,14 +194,14 @@
     <!-- TREND -->
     <div id="trendOut" class="card" style="display:none">
       <div class="row"><strong>Current Trend</strong><span class="muted">Window: <span id="trendWin">15m</span></span></div>
-      <div class="muted">Primary: <span id="trendSym"></span> (mapped ETF) • <span id="trendTime"></span></div>
+      <div class="muted">Primary: <span id="trendSym"></span> (mapped ETF) â¢ <span id="trendTime"></span></div>
       <div id="trendSummary" style="margin-top:12px"></div>
       <canvas id="trendChart" class="chart"></canvas>
       <div id="trendLegend" class="legend"></div>
       <div id="trendAdvice" style="margin-top:12px"></div>
-      <div class="muted" style="margin-top:6px;font-size:12px">Last refreshed: <span id="trendRef">—</span></div>
-      <details style="margin-top:10px"><summary>How we decide “busy”</summary>
-        <div class="muted" style="margin-top:6px">We compute 1-minute returns and flag as <b>Busy</b> when realized vol in the window is elevated (≥ ~0.06% std-dev) or average volume is above the window’s median (≥ 1.2×).</div>
+      <div class="muted" style="margin-top:6px;font-size:12px">Last refreshed: <span id="trendRef">â</span></div>
+      <details style="margin-top:10px"><summary>How we decide âbusyâ</summary>
+        <div class="muted" style="margin-top:6px">We compute 1-minute returns and flag as <b>Busy</b> when realized vol in the window is elevated (â¥ ~0.06% std-dev) or average volume is above the windowâs median (â¥ 1.2Ã).</div>
       </details>
     </div>
 
@@ -258,12 +220,12 @@
         <span class="pill" id="riskCandlesLabel">3 candles</span>
       </div>
 
-      <div class="muted">Primary: <span id="riskSym"></span> (mapped ETF) • <span id="riskTime"></span></div>
+      <div class="muted">Primary: <span id="riskSym"></span> (mapped ETF) â¢ <span id="riskTime"></span></div>
       <div id="riskSummary" style="margin-top:12px"></div>
       <canvas id="riskChart" class="chart"></canvas>
       <div id="riskLegend" class="legend"></div>
       <div id="riskAdvice" style="margin-top:12px"></div>
-      <div class="muted" style="margin-top:6px;font-size:12px">Last refreshed: <span id="riskRef">—</span></div>
+      <div class="muted" style="margin-top:6px;font-size:12px">Last refreshed: <span id="riskRef">â</span></div>
     </div>
   </div>
 
@@ -326,7 +288,7 @@
 
     /* ---------------- Keys ---------------- */
     function loadKeys(){gnewsEl.value=localStorage.getItem('GNEWS_KEY')||'';alphaEl.value=localStorage.getItem('ALPHA_KEY')||''}
-    function saveKeys(){localStorage.setItem('GNEWS_KEY',gnewsEl.value.trim());localStorage.setItem('ALPHA_KEY',alphaEl.value.trim());saveMsg.textContent='Saved ✓';setTimeout(()=>saveMsg.textContent='',1500)}
+    function saveKeys(){localStorage.setItem('GNEWS_KEY',gnewsEl.value.trim());localStorage.setItem('ALPHA_KEY',alphaEl.value.trim());saveMsg.textContent='Saved â';setTimeout(()=>saveMsg.textContent='',1500)}
     if(saveBtn){loadKeys(); saveBtn.addEventListener('click',saveKeys);}
 
     /* ---------------- Futures helpers ---------------- */
@@ -368,7 +330,7 @@
       return Array.from(scores.entries()).sort((a,b)=>b[1]-a[1]).slice(0,max).map(([key,score])=>({key,score,label:CAUSE_RULES.find(rr=>rr.key===key).label,sample:examples[key]}))
     }
     function moveDescriptor(pct){const ap=Math.abs(pct);if(ap>=2)return'surging';if(ap>=1)return'up solidly';if(ap>=0.5)return'firm';if(ap>=0.2)return'slightly higher';return'little changed'}
-    function buildWhyNarrative({dayRes,headlines}){const parts=[];if(dayRes?.ok){const dir=dayRes.pct>=0?'higher':'lower',tone=moveDescriptor(dayRes.pct);parts.push(`Markets are ${tone} (${dayRes.pct.toFixed(2)}% ${dir} for ${dayRes.etf} at the last close).`)}const causes=topCausesFromHeadlines(headlines,3);if(causes.length){parts.push(`Likely drivers: ${causes.map(c=>c.label).join(', ')}.`);const s=causes[0].sample;if(s)parts.push(`e.g., “${s.replace(/"/g,'')}”.`)}else parts.push(`No dominant driver detected; tone appears mixed.`);return parts.join(' ')}
+    function buildWhyNarrative({dayRes,headlines}){const parts=[];if(dayRes?.ok){const dir=dayRes.pct>=0?'higher':'lower',tone=moveDescriptor(dayRes.pct);parts.push(`Markets are ${tone} (${dayRes.pct.toFixed(2)}% ${dir} for ${dayRes.etf} at the last close).`)}const causes=topCausesFromHeadlines(headlines,3);if(causes.length){parts.push(`Likely drivers: ${causes.map(c=>c.label).join(', ')}.`);const s=causes[0].sample;if(s)parts.push(`e.g., â${s.replace(/"/g,'')}â.`)}else parts.push(`No dominant driver detected; tone appears mixed.`);return parts.join(' ')}
 
     /* ---------------- Fetch helpers ---------------- */
     async function fetchJsonOnce(u,t=9000){const c=new AbortController();const to=setTimeout(()=>c.abort('timeout'),t);try{const r=await fetch(u,{signal:c.signal,cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}finally{clearTimeout(to)}}
@@ -383,7 +345,7 @@
       const q=encodeURIComponent(markets.join(' '));const rss=`https://news.google.com/rss/search?q=${q}&hl=en-US&gl=US&ceid=US:en&t=${Date.now()}`;
       try{const xml=await fetchTextRetry(PROXY_RAW+encodeURIComponent(rss),2);const doc=new DOMParser().parseFromString(xml,'text/xml');const items=Array.from(doc.querySelectorAll('item>title'));const heads=items.map(n=>n.textContent||'').filter(Boolean);return {ok:heads.length>0,source:'rss-proxy',headlines:heads}}catch(e){return {ok:false,source:'rss-proxy',reason:String(e)}}}
 
-    /* ---------------- Last day (Alpha→Yahoo→Stooq) ---------------- */
+    /* ---------------- Last day (AlphaâYahooâStooq) ---------------- */
     async function getLastDayMove(markets){
       const akey=(localStorage.getItem('ALPHA_KEY')||'').trim();
       const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
@@ -512,8 +474,8 @@
         parts.push(`<div class="muted"><i class="fa-regular fa-newspaper"></i> News sentiment unavailable${newsRes.reason?' ('+newsRes.reason+')':''}</div>`);
       }
       if(dayRes.ok){
-        const dir=dayRes.pct>=0?'▲':'▼',cls=dayRes.pct>=0?'ok':'bad';
-        let weekendHint=''; try{const dL=new Date(dayRes.latest).getDay(),dP=new Date(dayRes.prior).getDay(); if(dL===1&&dP===5) weekendHint=' (Fri → Mon)';}catch(_){ }
+        const dir=dayRes.pct>=0?'â²':'â¼',cls=dayRes.pct>=0?'ok':'bad';
+        let weekendHint=''; try{const dL=new Date(dayRes.latest).getDay(),dP=new Date(dayRes.prior).getDay(); if(dL===1&&dP===5) weekendHint=' (Fri â Mon)';}catch(_){ }
         parts.push(`<div class="pill ${cls}" style="margin-top:8px"><i class="fa-solid fa-chart-line"></i> Prev day (${dayRes.etf}, ${dayRes.source}): ${dir} ${dayRes.pct.toFixed(2)}% (close ${dayRes.latest}${weekendHint})</div>`);
       } else {
         parts.push(`<div class="muted" style="margin-top:8px">Last day summary unavailable${dayRes.reason?' ('+dayRes.reason+')':''}</div>`);
@@ -613,42 +575,7 @@
       return ssTot? 1 - (ssRes/ssTot) : 0;
     }
     function marketPredictionSafe(info,bars){
-      if(!info?.ok || !bars?.length) return {label:'Range/Neutral',conf:0.55,why:'Insufficient data',hLo:8,hHi:12};
-      const N=Math.min(30, bars.length);
-      const lastN=bars.slice(-N);
-      const closes=lastN.map(b=>b.c);
-      const vwap=computeVWAP(lastN).at(-1);
-      const rsi=computeRSI(closes,14);
-      const r2=linRegR2(closes);
-
-      let score=0;
-      if(info.direction==='Uptrend') score+=0.9;
-      else if(info.direction==='Downtrend') score-=0.9;
-
-      score += Math.tanh(info.slopePctPerHour/1.2);
-      if(closes.at(-1)>vwap) score+=0.5; else score-=0.5;
-
-      let ups=0,downs=0; for(let i=1;i<closes.length;i++){ const d=closes[i]-closes[i-1]; if(d>0) ups++; else if(d<0) downs++;}
-      if(ups>downs) score+=0.25; else if(downs>ups) score-=0.25;
-
-      // Mild RSI tilt
-      score += (rsi-50)/200;
-
-      // Confidence and horizon
-      const strength = Math.max(0.5, Math.min(1, 0.6 + r2*0.4));
-      const conf = Math.max(0.55, Math.min(0.9, (0.6 + Math.abs(score)/3) * (info.busyLabel==='Busy'?1:0.8) * strength));
-
-      const label = score>0.35? 'Bullish' : (score<-0.35? 'Bearish' : 'Range/Neutral');
-      const why = `dir=${info.direction}, slope=${info.slopePctPerHour.toFixed(2)}%/hr, aboveVWAP=${closes.at(-1)>vwap}, RSI=${rsi.toFixed(1)}, R²=${r2.toFixed(2)}`;
-
-      // Horizon in minutes: base 10 + R² + slope + busy
-      const slopeAbs = Math.min(3, Math.max(0, Math.abs(info.slopePctPerHour))); // cap extreme
-      let base = 10 + r2*30 + slopeAbs*4 + (info.busyLabel==='Busy'?6:0) + (conf-0.55)*40;
-      base = Math.max(6, Math.min(60, base));
-      const hLo = Math.round(base*0.7);
-      const hHi = Math.round(base*1.3);
-      return {label, conf, why, hLo, hHi};
-    };
+      if(!info?.ok || !bars?.length) return {label:'Range/Neutral',conf:0.55,why:'Insufficient data'};
       const N=Math.min(30, bars.length);
       const lastN=bars.slice(-N);
       const closes=lastN.map(b=>b.c);
@@ -673,7 +600,7 @@
       const strength = Math.max(0.5, Math.min(1, 0.6 + r2*0.4));
       const conf = Math.max(0.55, Math.min(0.9, (0.6 + Math.abs(score)/3) * (info.busyLabel==='Busy'?1:0.8) * strength));
       const label = score>0.35? 'Bullish' : (score<-0.35? 'Bearish' : 'Range/Neutral');
-      const why = `dir=${info.direction}, slope=${info.slopePctPerHour.toFixed(2)}%/hr, aboveVWAP=${closes.at(-1)>vwap}, RSI=${rsi.toFixed(1)}, R²=${r2.toFixed(2)}`;
+      const why = `dir=${info.direction}, slope=${info.slopePctPerHour.toFixed(2)}%/hr, aboveVWAP=${closes.at(-1)>vwap}, RSI=${rsi.toFixed(1)}, RÂ²=${r2.toFixed(2)}`;
       return {label, conf, why};
     }
     function tradeSuggestionSafe(info){
@@ -695,10 +622,10 @@
         if(!info.ok){trendSummaryEl.innerHTML=`<span class="muted">Trend unavailable (${info.reason})</span>`;drawTrend(trendCanvas,[]);return}
         const dirPill=`<span class="pill ${info.dirClass}"><i class="fa-solid fa-arrow-trend-${info.direction==='Downtrend'?'down':'up'}"></i> ${info.direction}</span>`;
         const busyPill=`<span class="pill ${info.busyClass}"><i class="fa-solid fa-bolt"></i> ${info.busyLabel}</span>`;
-        const pctStr=`${info.pct>=0?'▲':'▼'} ${info.pct.toFixed(2)}%`;
+        const pctStr=`${info.pct>=0?'â²':'â¼'} ${info.pct.toFixed(2)}%`;
         const slopeStr=`${info.slopePctPerHour>=0?'+':''}${info.slopePctPerHour.toFixed(2)}%/hr slope`;
-        const volStr=`σ(1m) ${(info.std*100).toFixed(3)}% • Vol ratio ${info.volRatio.toFixed(2)}×`;
-        trendSummaryEl.innerHTML=`${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} • ${slopeStr} • ${volStr}</div>`;
+        const volStr=`Ï(1m) ${(info.std*100).toFixed(3)}% â¢ Vol ratio ${info.volRatio.toFixed(2)}Ã`;
+        trendSummaryEl.innerHTML=`${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} â¢ ${slopeStr} â¢ ${volStr}</div>`;
         drawTrend(trendCanvas,win);
         setLegend(trendLegend);
         const rec=tradeSuggestionSafe(info);
@@ -734,8 +661,8 @@
       let up=true,dn=true; for(let i=1;i<seg.length;i++){if(!(seg[i].c>seg[i-1].c)) up=false; if(!(seg[i].c<seg[i-1].c)) dn=false;}
       const pct=((seg.at(-1).c - seg[0].c)/seg[0].c)*100;
       const base=0.05, thresh=base*(N/3);
-      if(up && pct>=thresh) return {text:`Recommend: <b>Buy</b> (Aggressive: last ${N} ↑, +${pct.toFixed(2)}%)`,action:'Buy',pct,up:true,dn:false};
-      if(dn && pct<=-thresh) return {text:`Recommend: <b>Sell</b> (Aggressive: last ${N} ↓, ${pct.toFixed(2)}%)`,action:'Sell',pct,up:false,dn:true};
+      if(up && pct>=thresh) return {text:`Recommend: <b>Buy</b> (Aggressive: last ${N} â, +${pct.toFixed(2)}%)`,action:'Buy',pct,up:true,dn:false};
+      if(dn && pct<=-thresh) return {text:`Recommend: <b>Sell</b> (Aggressive: last ${N} â, ${pct.toFixed(2)}%)`,action:'Sell',pct,up:false,dn:true};
       return {text:`Recommend: <b>Wait</b> (Aggressive: mixed/insufficient move)`,action:'Wait',pct,up:false,dn:false};
     }
 
@@ -784,10 +711,10 @@
 
         const dirPill=`<span class="pill ${info.dirClass}"><i class="fa-solid fa-arrow-trend-${info.direction==='Downtrend'?'down':'up'}"></i> ${info.direction}</span>`;
         const busyPill=`<span class="pill ${info.busyClass}"><i class="fa-solid fa-bolt"></i> ${info.busyLabel}</span>`;
-        const pctStr=`${info.pct>=0?'▲':'▼'} ${info.pct.toFixed(2)}%`;
+        const pctStr=`${info.pct>=0?'â²':'â¼'} ${info.pct.toFixed(2)}%`;
         const slopeStr=`${info.slopePctPerHour>=0?'+':''}${info.slopePctPerHour.toFixed(2)}%/hr slope`;
-        const volStr=`σ(1m) ${(info.std*100).toFixed(3)}% • Vol ratio ${info.volRatio.toFixed(2)}×`;
-        riskSummaryEl.innerHTML=`${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} • ${slopeStr} • ${volStr}</div>`;
+        const volStr=`Ï(1m) ${(info.std*100).toFixed(3)}% â¢ Vol ratio ${info.volRatio.toFixed(2)}Ã`;
+        riskSummaryEl.innerHTML=`${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} â¢ ${slopeStr} â¢ ${volStr}</div>`;
         drawTrend(riskCanvas,win);
         setLegend(riskLegend);
 
@@ -833,10 +760,9 @@
     document.getElementById('runRisk').addEventListener('click',()=>{setNav('nav-risk');setTab('risk');const m=getSelectedFutures();buildRisk(m.length?m:['ES'])});
 
     document.addEventListener('DOMContentLoaded',()=>{
-      console.log('TraderPrep build:v2025-08-26.1 loaded');
       pnlGetTotals(); setInterval(pnlGetTotals,120000);
       const btn=document.getElementById('logPnl'), msg=document.getElementById('pnlMsg');
-      if(btn){btn.addEventListener('click',async()=>{try{const who=(document.querySelector('input[name="who"]:checked')||{}).value||'AK';const amt=(document.getElementById('pnlAmount')||{}).value||'';const note=(document.getElementById('pnlNote')||{}).value||'';if(!amt||isNaN(Number(amt))){msg.textContent='Enter a number (e.g. 125 or -75)';return}msg.textContent='Saving...';await pnlPostLog({user:who,amount:amt,note});msg.textContent='Saved ✓';document.getElementById('pnlAmount').value='';document.getElementById('pnlNote').value='';await pnlGetTotals();setTimeout(()=>msg.textContent='',1200)}catch(e){msg.textContent='Error: '+(e.message||e)}})}
+      if(btn){btn.addEventListener('click',async()=>{try{const who=(document.querySelector('input[name="who"]:checked')||{}).value||'AK';const amt=(document.getElementById('pnlAmount')||{}).value||'';const note=(document.getElementById('pnlNote')||{}).value||'';if(!amt||isNaN(Number(amt))){msg.textContent='Enter a number (e.g. 125 or -75)';return}msg.textContent='Saving...';await pnlPostLog({user:who,amount:amt,note});msg.textContent='Saved â';document.getElementById('pnlAmount').value='';document.getElementById('pnlNote').value='';await pnlGetTotals();setTimeout(()=>msg.textContent='',1200)}catch(e){msg.textContent='Error: '+(e.message||e)}})}
       const undoBtn=document.getElementById('undoLast'); if(undoBtn) undoBtn.addEventListener('click',async()=>{try{/* optional undo call */}catch(e){}});
       setTfActive(15);
 
@@ -859,8 +785,5 @@
       return j;
     }
   </script>
-
-  <!-- Mobile hard-reload (cache-buster) -->
-  
 </body>
 </html>
