@@ -721,7 +721,13 @@
       const conf = Math.max(0.5, Math.min(0.95, (0.6 + Math.abs(score)/3) * volAdj));
       const label = score>0.25? 'Bullish' : (score<-0.25? 'Bearish' : 'Range/Neutral');
       const text = label==='Bullish' ? 'likely to stay bullish' : (label==='Bearish' ? 'may turn/continue bearish' : 'likely range-bound');
-      return {label,conf,text};
+      // Forecast the next 5-minute candle body based on the bias strength relative to volatility.
+      let forecast;
+      const absScore = Math.abs(score);
+      if(absScore>1.2) forecast = (score>0 ? 'strong green' : 'strong red');
+      else if(absScore>0.5) forecast = (score>0 ? 'green' : 'red');
+      else forecast = 'doji/small candle';
+      return {label,conf,text,forecast};
     }
 
     async function buildTrend(markets){
@@ -750,6 +756,13 @@
     const riskModeSeg=document.getElementById('riskModeSeg');
     let riskCandlesN=3;
     const riskCandles=document.getElementById('riskCandles'), riskCandlesLabel=document.getElementById('riskCandlesLabel');
+    // Elements for slider confirmation modal
+    const sliderConfirm=document.getElementById('sliderConfirm');
+    const sliderAccept=document.getElementById('sliderAccept');
+    const sliderCancel=document.getElementById('sliderCancel');
+    // Track previous and pending values for the candles slider
+    let prevSliderValue=parseInt(riskCandles?.value||'3',10)||3;
+    let pendingSliderValue=null;
 
     // Update the position of the candles label so it sits above the slider
     // knob.  Called whenever the slider value or layout changes.
@@ -778,20 +791,48 @@
     }
     if(riskCandles){
       const syncLabel=()=>{ riskCandlesLabel.textContent=`${riskCandles.value} candles`; };
+      // Update label but do not commit value until confirmed
       riskCandles.addEventListener('input',()=>{
-        riskCandlesN=parseInt(riskCandles.value,10)||3;
+        // Revert slider to previous value on drag to prevent unconfirmed changes
+        riskCandles.value = prevSliderValue;
         syncLabel();
-        // Do not reposition the candles bubble on each slider movement;
-        // we want the label to remain stationary relative to the slider row.
       });
-      riskCandles.addEventListener('change',()=>{
-        riskCandlesN=parseInt(riskCandles.value,10)||3;
-        const m=getSelectedFutures();
-        buildRisk(m.length?m:['ES']);
-        // Do not reposition on change; keep the bubble fixed.
+      riskCandles.addEventListener('change',(e)=>{
+        const newVal=parseInt(e.target.value,10)||3;
+        if(newVal===prevSliderValue) { return; }
+        // Save pending value and revert slider display back to previous
+        pendingSliderValue=newVal;
+        riskCandles.value=prevSliderValue;
+        syncLabel();
+        // Show confirmation modal
+        if(sliderConfirm){ sliderConfirm.style.display='flex'; }
       });
       // Initial sync
       syncLabel();
+    }
+
+    // Handle slider confirmation buttons
+    if(sliderAccept){
+      sliderAccept.addEventListener('click',()=>{
+        if(sliderConfirm) sliderConfirm.style.display='none';
+        if(pendingSliderValue!==null){
+          prevSliderValue=pendingSliderValue;
+          riskCandles.value=prevSliderValue;
+          riskCandlesN=prevSliderValue;
+          pendingSliderValue=null;
+          // Update label with new value
+          riskCandlesLabel.textContent=`${riskCandles.value} candles`;
+          const m=getSelectedFutures();
+          buildRisk(m.length?m:['ES']);
+        }
+      });
+    }
+    if(sliderCancel){
+      sliderCancel.addEventListener('click',()=>{
+        if(sliderConfirm) sliderConfirm.style.display='none';
+        // Clear pending without changing value
+        pendingSliderValue=null;
+      });
     }
 
     function lastNSignal(bars,N){
@@ -850,6 +891,36 @@
         const M = Math.max(2, Math.min(N, trendMinutes));
 
         let rec; if(riskMode==='aggressive'){ rec = lastNSignal(win, N); } else { rec = conservativeSignal(info, win, N); }
+        // After computing the basic recommendation, perform breakout failure checks and append trade plan.
+        {
+          const seg=(win||[]).slice(-N);
+          if(seg.length===N && rec && (rec.action==='Buy' || rec.action==='Sell')){
+            let trigger=false;
+            // Determine if the move has retraced beyond a volatility-scaled threshold; if so, revert to Wait.
+            if(rec.action==='Buy'){
+              let maxClose=-Infinity,lastClose=-Infinity;
+              for(const b of seg){ if(b.c>maxClose) maxClose=b.c; }
+              lastClose=seg.at(-1).c;
+              const thresh=(info.std||0.0008)*3; // volatility-scaled threshold
+              if(maxClose>0 && ((maxClose-lastClose)/maxClose)>thresh) trigger=true;
+            } else if(rec.action==='Sell'){
+              let minClose=Infinity,lastClose=Infinity;
+              for(const b of seg){ if(b.c<minClose) minClose=b.c; }
+              lastClose=seg.at(-1).c;
+              const thresh=(info.std||0.0008)*3;
+              if(minClose>0 && ((lastClose-minClose)/minClose)>thresh) trigger=true;
+            }
+            if(trigger){
+              rec.action='Wait';
+              rec.text=`Recommend: <b>Wait</b> (breakout retraced)`;
+            }
+            // Append trade management plan if still actionable
+            if(rec.action==='Buy' || rec.action==='Sell'){
+              const plan = riskMode==='aggressive' ? 'tight stop; partial profit & runner management' : 'loose stop; scaled targets';
+              rec.text += ` – Plan: ${plan}`;
+            }
+          }
+        }
         // Insert the recommendation pill and disclaimer.  Center the pill horizontally
         // within the advice container by using auto margins.
         // Build only the recommendation pill inside riskAdvice.  We'll move the disclaimer
@@ -867,7 +938,7 @@
         const pctConf = Math.round(pred.conf*100);
         const predEl = document.createElement('div');
         predEl.className='pill accent'; predEl.id='riskPredPill'; predEl.style.cursor='pointer'; predEl.title='Tap to see why';
-        predEl.innerHTML = `<i class="fa-solid fa-crystal-ball"></i>&nbsp; Prediction: <b>${pred.text}</b> <span class="muted" style="margin-left:6px">(${pctConf}% conf)</span>`;
+        predEl.innerHTML = `<i class="fa-solid fa-crystal-ball"></i>&nbsp; Prediction: <b>${pred.text}</b> <span class="muted" style="margin-left:6px">(${pctConf}% conf)</span> <span class="muted" style="margin-left:6px">Next 5m: ${pred.forecast}</span>`;
 
         // Container for prediction and lean pills on the same line
         const pillRow = document.createElement('div');
@@ -1067,6 +1138,17 @@
         <button id="explainClose" class="iconbtn" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div id="explainBody" class="muted" style="margin-top:10px;line-height:1.5"></div>
+    </div>
+  </div>
+
+  <!-- Slider adjustment confirmation -->
+  <div id="sliderConfirm" style="display:none;position:fixed;inset:0;z-index:300;align-items:center;justify-content:center;background:rgba(0,0,0,0.65)">
+    <div style="background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:14px;padding:20px;max-width:320px;width:calc(100% - 40px);color:var(--fg)">
+      <div class="muted">Moving the candles slider will look at more bars and may change the recommendation.</div>
+      <div class="actions" style="margin-top:14px;justify-content:flex-end;gap:10px">
+        <button id="sliderAccept" class="primary">Accept</button>
+        <button id="sliderCancel">Cancel</button>
+      </div>
     </div>
   </div>
 
