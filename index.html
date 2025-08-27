@@ -756,12 +756,12 @@
       const max = parseInt(riskCandles.max,10)||1;
       const val = parseInt(riskCandles.value,10)||min;
       const percent = (val - min) / Math.max(1, (max - min));
-      // Compute horizontal offset relative to the slider input.  Use offsetWidth
-      // of the input so the bubble stays in sync when the slider is resized.
+      // Compute horizontal offset relative to the slider row.  We use
+      // boundingClientRect so that we subtract the row’s left position.
       const sliderRect = riskCandles.getBoundingClientRect();
-      const rowRect = riskCandles.parentElement.getBoundingClientRect();
-      const width = riskCandles.offsetWidth;
-      const left = riskCandles.offsetLeft + percent * width;
+      const rowRect    = riskCandles.parentElement.getBoundingClientRect();
+      const width      = sliderRect.width;
+      const left       = (sliderRect.left - rowRect.left) + percent * width;
       riskCandlesLabel.style.left = `${left}px`;
     }
 
@@ -825,6 +825,10 @@
     async function buildRisk(markets){
       const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
       riskSymEl.textContent=etf; riskTimeEl.textContent=new Date().toLocaleString();
+      // Ensure the candles label is positioned correctly now that the risk
+      // panel is visible.  Without this, the bubble may be misaligned
+      // because its offset is computed while the panel is hidden.
+      if(typeof updateSliderBubble === 'function'){ updateSliderBubble(); }
       riskSummaryEl.innerHTML='<span class="spinner"></span> Loading 1-minute bars...'; riskAdviceEl.innerHTML='';
       try{
         const all=await fetchIntraday(etf);
