@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
   <meta name="theme-color" content="#1b191b"/>
   <meta name="color-scheme" content="dark"/>
@@ -91,6 +92,22 @@
       .tabbtn,button{padding:10px 12px}
       .legend{font-size:11px}
     }
+  
+    /* Mobile-only display helper */
+    .mobonly{ display:none; }
+    @media (max-width:520px){ .mobonly{ display:grid; } }
+    
+  
+    /* Mobile dropdown for header buttons */
+    @media (max-width:520px){
+      .topbar{ position:sticky; top:0; }
+      .navicons{ display:none; position:absolute; top:58px; right:10px;
+                 background:var(--panel); border:1px solid var(--line);
+                 padding:8px; border-radius:12px; box-shadow:var(--shadow);
+                 gap:8px; }
+      .navicons.show{ display:flex; }
+    }
+
   </style>
 </head>
 <body>
@@ -100,12 +117,14 @@
       <div class="logo"><img src="icon-192.png" alt="Trader Prep Logo" style="width:100%;height:100%;object-fit:contain"></div>
       <h1>Trader Prep</h1>
     </div>
-    <nav class="navicons">
+    <div class="iconbtn mobonly" id="mobileMenu" title="Menu"><i class="fa-solid fa-bars"></i></div>
+    <nav class="navicons" id="navicons">
       <div class="iconbtn active" id="nav-prep" title="Prep"><i class="fa-solid fa-bars-staggered"></i></div>
       <div class="iconbtn" id="nav-trend" title="Trend"><i class="fa-solid fa-wave-square"></i></div>
       <div class="iconbtn" id="nav-risk" title="Risk"><i class="fa-solid fa-fire-flame-curved"></i></div>
       <div class="iconbtn" id="nav-pnl" title="Profit Log"><i class="fa-solid fa-dollar-sign"></i></div>
       <div class="iconbtn" id="nav-settings" title="Settings"><i class="fa-solid fa-gear"></i></div>
+          <div class="iconbtn mobonly" id="mobileReloadTop" title="Reload (cache-bust)"><i class="fa-solid fa-rotate-right"></i></div>
     </nav>
   </header>
 
@@ -133,7 +152,7 @@
       <div class="row" style="margin-top:10px"><label class="muted" style="min-width:170px">Amount ($)</label><input id="pnlAmount" placeholder="e.g. 125.50 or -75"></div>
       <div class="row" style="margin-top:10px"><label class="muted" style="min-width:170px">Note (optional)</label><input id="pnlNote" placeholder="scalp NQ open, etc."></div>
       <div class="actions" style="margin-top:10px"><button id="logPnl" class="primary"><i class="fa-solid fa-plus"></i>&nbsp;Log Profit</button><span id="pnlMsg" class="muted"></span></div>
-      <details style="margin-top:12px"><summary>Todayâs entries</summary><div id="pnlTodayTable" class="muted" style="margin-top:8px">â</div><div class="actions" style="margin-top:8px"><button id="undoLast"><i class="fa-solid fa-rotate-left"></i>&nbsp;Undo last entry</button></div></details>
+      <details style="margin-top:12px"><summary>Today&rsquo;s entries</summary><div id="pnlTodayTable" class="muted" style="margin-top:8px">&mdash;</div><div class="actions" style="margin-top:8px"><button id="undoLast"><i class="fa-solid fa-rotate-left"></i>&nbsp;Undo last entry</button></div></details>
     </div>
 
     <!-- MARKET PICKER -->
@@ -154,14 +173,14 @@
         <div>
           <label class="muted">Futures/markets</label>
           <select id="futures" multiple size="8" aria-label="Futures and markets">
-            <option value="ES">ES â S&P 500</option>
-            <option value="NQ">NQ â Nasdaq 100</option>
-            <option value="YM">YM â Dow</option>
-            <option value="RTY">RTY â Russell 2000</option>
-            <option value="CL">CL â Crude Oil</option>
-            <option value="GC">GC â Gold</option>
-            <option value="ZN">ZN â 10-Yr Note</option>
-            <option value="6E">6E â EUR/USD</option>
+            <option value="ES">ES &ndash; S&P 500</option>
+            <option value="NQ">NQ &ndash; Nasdaq 100</option>
+            <option value="YM">YM &ndash; Dow</option>
+            <option value="RTY">RTY &ndash; Russell 2000</option>
+            <option value="CL">CL &ndash; Crude Oil</option>
+            <option value="GC">GC &ndash; Gold</option>
+            <option value="ZN">ZN &ndash; 10-Yr Note</option>
+            <option value="6E">6E &ndash; EUR/USD</option>
           </select>
         </div>
         <div>
@@ -171,7 +190,7 @@
             <button class="segbtn" data-tf="30">30m</button>
             <button class="segbtn" data-tf="60">60m</button>
           </div>
-          <div class="muted" style="margin-top:6px">Trend/Risk use 1-minute Yahoo bars (via your proxy), mapped futures â ETFs.</div>
+          <div class="muted" style="margin-top:6px">Trend/Risk use 1-minute Yahoo bars (via your proxy), mapped futures &rarr; ETFs.</div>
         </div>
       </div>
 
@@ -185,7 +204,7 @@
     <!-- PREP -->
     <div id="prepOut" class="card">
       <div class="row"><strong>Trader Prep</strong><span class="muted">Now: <span id="now"></span></span></div>
-      <div class="muted">Focus: <span id="focus"></span> â¢ <span id="keyStatus"></span></div>
+      <div class="muted">Focus: <span id="focus"></span> &bull; <span id="keyStatus"></span></div>
       <div id="summary" style="margin-top:12px"></div>
       <h3 style="margin-top:16px">Quick Links</h3>
       <ul id="links"></ul>
@@ -194,14 +213,14 @@
     <!-- TREND -->
     <div id="trendOut" class="card" style="display:none">
       <div class="row"><strong>Current Trend</strong><span class="muted">Window: <span id="trendWin">15m</span></span></div>
-      <div class="muted">Primary: <span id="trendSym"></span> (mapped ETF) â¢ <span id="trendTime"></span></div>
+      <div class="muted">Primary: <span id="trendSym"></span> (mapped ETF) &bull; <span id="trendTime"></span></div>
       <div id="trendSummary" style="margin-top:12px"></div>
       <canvas id="trendChart" class="chart"></canvas>
       <div id="trendLegend" class="legend"></div>
       <div id="trendAdvice" style="margin-top:12px"></div>
-      <div class="muted" style="margin-top:6px;font-size:12px">Last refreshed: <span id="trendRef">â</span></div>
-      <details style="margin-top:10px"><summary>How we decide âbusyâ</summary>
-        <div class="muted" style="margin-top:6px">We compute 1-minute returns and flag as <b>Busy</b> when realized vol in the window is elevated (â¥ ~0.06% std-dev) or average volume is above the windowâs median (â¥ 1.2Ã).</div>
+      <div class="muted" style="margin-top:6px;font-size:12px">Last refreshed: <span id="trendRef">&mdash;</span></div>
+      <details style="margin-top:10px"><summary>How we decide &ldquo;busy&rdquo;</summary>
+        <div class="muted" style="margin-top:6px">We compute 1-minute returns and flag as <b>Busy</b> when realized vol in the window is elevated (â¥ ~0.06% std-dev) or average volume is above the window&rsquo;s median (â¥ 1.2&times;).</div>
       </details>
     </div>
 
@@ -220,12 +239,12 @@
         <span class="pill" id="riskCandlesLabel">3 candles</span>
       </div>
 
-      <div class="muted">Primary: <span id="riskSym"></span> (mapped ETF) â¢ <span id="riskTime"></span></div>
+      <div class="muted">Primary: <span id="riskSym"></span> (mapped ETF) &bull; <span id="riskTime"></span></div>
       <div id="riskSummary" style="margin-top:12px"></div>
       <canvas id="riskChart" class="chart"></canvas>
       <div id="riskLegend" class="legend"></div>
       <div id="riskAdvice" style="margin-top:12px"></div>
-      <div class="muted" style="margin-top:6px;font-size:12px">Last refreshed: <span id="riskRef">â</span></div>
+      <div class="muted" style="margin-top:6px;font-size:12px">Last refreshed: <span id="riskRef">&mdash;</span></div>
     </div>
   </div>
 
@@ -288,7 +307,7 @@
 
     /* ---------------- Keys ---------------- */
     function loadKeys(){gnewsEl.value=localStorage.getItem('GNEWS_KEY')||'';alphaEl.value=localStorage.getItem('ALPHA_KEY')||''}
-    function saveKeys(){localStorage.setItem('GNEWS_KEY',gnewsEl.value.trim());localStorage.setItem('ALPHA_KEY',alphaEl.value.trim());saveMsg.textContent='Saved â';setTimeout(()=>saveMsg.textContent='',1500)}
+    function saveKeys(){localStorage.setItem('GNEWS_KEY',gnewsEl.value.trim());localStorage.setItem('ALPHA_KEY',alphaEl.value.trim());saveMsg.textContent='Saved &#10003;';setTimeout(()=>saveMsg.textContent='',1500)}
     if(saveBtn){loadKeys(); saveBtn.addEventListener('click',saveKeys);}
 
     /* ---------------- Futures helpers ---------------- */
@@ -330,7 +349,7 @@
       return Array.from(scores.entries()).sort((a,b)=>b[1]-a[1]).slice(0,max).map(([key,score])=>({key,score,label:CAUSE_RULES.find(rr=>rr.key===key).label,sample:examples[key]}))
     }
     function moveDescriptor(pct){const ap=Math.abs(pct);if(ap>=2)return'surging';if(ap>=1)return'up solidly';if(ap>=0.5)return'firm';if(ap>=0.2)return'slightly higher';return'little changed'}
-    function buildWhyNarrative({dayRes,headlines}){const parts=[];if(dayRes?.ok){const dir=dayRes.pct>=0?'higher':'lower',tone=moveDescriptor(dayRes.pct);parts.push(`Markets are ${tone} (${dayRes.pct.toFixed(2)}% ${dir} for ${dayRes.etf} at the last close).`)}const causes=topCausesFromHeadlines(headlines,3);if(causes.length){parts.push(`Likely drivers: ${causes.map(c=>c.label).join(', ')}.`);const s=causes[0].sample;if(s)parts.push(`e.g., â${s.replace(/"/g,'')}â.`)}else parts.push(`No dominant driver detected; tone appears mixed.`);return parts.join(' ')}
+    function buildWhyNarrative({dayRes,headlines}){const parts=[];if(dayRes?.ok){const dir=dayRes.pct>=0?'higher':'lower',tone=moveDescriptor(dayRes.pct);parts.push(`Markets are ${tone} (${dayRes.pct.toFixed(2)}% ${dir} for ${dayRes.etf} at the last close).`)}const causes=topCausesFromHeadlines(headlines,3);if(causes.length){parts.push(`Likely drivers: ${causes.map(c=>c.label).join(', ')}.`);const s=causes[0].sample;if(s)parts.push(`e.g., &ldquo;${s.replace(/"/g,'')}&rdquo;.`)}else parts.push(`No dominant driver detected; tone appears mixed.`);return parts.join(' ')}
 
     /* ---------------- Fetch helpers ---------------- */
     async function fetchJsonOnce(u,t=9000){const c=new AbortController();const to=setTimeout(()=>c.abort('timeout'),t);try{const r=await fetch(u,{signal:c.signal,cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json()}finally{clearTimeout(to)}}
@@ -345,7 +364,7 @@
       const q=encodeURIComponent(markets.join(' '));const rss=`https://news.google.com/rss/search?q=${q}&hl=en-US&gl=US&ceid=US:en&t=${Date.now()}`;
       try{const xml=await fetchTextRetry(PROXY_RAW+encodeURIComponent(rss),2);const doc=new DOMParser().parseFromString(xml,'text/xml');const items=Array.from(doc.querySelectorAll('item>title'));const heads=items.map(n=>n.textContent||'').filter(Boolean);return {ok:heads.length>0,source:'rss-proxy',headlines:heads}}catch(e){return {ok:false,source:'rss-proxy',reason:String(e)}}}
 
-    /* ---------------- Last day (AlphaâYahooâStooq) ---------------- */
+    /* ---------------- Last day (Alpha&rarr;Yahoo&rarr;Stooq) ---------------- */
     async function getLastDayMove(markets){
       const akey=(localStorage.getItem('ALPHA_KEY')||'').trim();
       const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
@@ -474,8 +493,8 @@
         parts.push(`<div class="muted"><i class="fa-regular fa-newspaper"></i> News sentiment unavailable${newsRes.reason?' ('+newsRes.reason+')':''}</div>`);
       }
       if(dayRes.ok){
-        const dir=dayRes.pct>=0?'â²':'â¼',cls=dayRes.pct>=0?'ok':'bad';
-        let weekendHint=''; try{const dL=new Date(dayRes.latest).getDay(),dP=new Date(dayRes.prior).getDay(); if(dL===1&&dP===5) weekendHint=' (Fri â Mon)';}catch(_){ }
+        const dir=dayRes.pct>=0?'&#9650;':'&#9660;',cls=dayRes.pct>=0?'ok':'bad';
+        let weekendHint=''; try{const dL=new Date(dayRes.latest).getDay(),dP=new Date(dayRes.prior).getDay(); if(dL===1&&dP===5) weekendHint=' (Fri &rarr; Mon)';}catch(_){ }
         parts.push(`<div class="pill ${cls}" style="margin-top:8px"><i class="fa-solid fa-chart-line"></i> Prev day (${dayRes.etf}, ${dayRes.source}): ${dir} ${dayRes.pct.toFixed(2)}% (close ${dayRes.latest}${weekendHint})</div>`);
       } else {
         parts.push(`<div class="muted" style="margin-top:8px">Last day summary unavailable${dayRes.reason?' ('+dayRes.reason+')':''}</div>`);
@@ -622,10 +641,10 @@
         if(!info.ok){trendSummaryEl.innerHTML=`<span class="muted">Trend unavailable (${info.reason})</span>`;drawTrend(trendCanvas,[]);return}
         const dirPill=`<span class="pill ${info.dirClass}"><i class="fa-solid fa-arrow-trend-${info.direction==='Downtrend'?'down':'up'}"></i> ${info.direction}</span>`;
         const busyPill=`<span class="pill ${info.busyClass}"><i class="fa-solid fa-bolt"></i> ${info.busyLabel}</span>`;
-        const pctStr=`${info.pct>=0?'â²':'â¼'} ${info.pct.toFixed(2)}%`;
+        const pctStr=`${info.pct>=0?'&#9650;':'&#9660;'} ${info.pct.toFixed(2)}%`;
         const slopeStr=`${info.slopePctPerHour>=0?'+':''}${info.slopePctPerHour.toFixed(2)}%/hr slope`;
-        const volStr=`Ï(1m) ${(info.std*100).toFixed(3)}% â¢ Vol ratio ${info.volRatio.toFixed(2)}Ã`;
-        trendSummaryEl.innerHTML=`${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} â¢ ${slopeStr} â¢ ${volStr}</div>`;
+        const volStr=`Ï(1m) ${(info.std*100).toFixed(3)}% &bull; Vol ratio ${info.volRatio.toFixed(2)}&times;`;
+        trendSummaryEl.innerHTML=`${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} &bull; ${slopeStr} &bull; ${volStr}</div>`;
         drawTrend(trendCanvas,win);
         setLegend(trendLegend);
         const rec=tradeSuggestionSafe(info);
@@ -711,10 +730,10 @@
 
         const dirPill=`<span class="pill ${info.dirClass}"><i class="fa-solid fa-arrow-trend-${info.direction==='Downtrend'?'down':'up'}"></i> ${info.direction}</span>`;
         const busyPill=`<span class="pill ${info.busyClass}"><i class="fa-solid fa-bolt"></i> ${info.busyLabel}</span>`;
-        const pctStr=`${info.pct>=0?'â²':'â¼'} ${info.pct.toFixed(2)}%`;
+        const pctStr=`${info.pct>=0?'&#9650;':'&#9660;'} ${info.pct.toFixed(2)}%`;
         const slopeStr=`${info.slopePctPerHour>=0?'+':''}${info.slopePctPerHour.toFixed(2)}%/hr slope`;
-        const volStr=`Ï(1m) ${(info.std*100).toFixed(3)}% â¢ Vol ratio ${info.volRatio.toFixed(2)}Ã`;
-        riskSummaryEl.innerHTML=`${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} â¢ ${slopeStr} â¢ ${volStr}</div>`;
+        const volStr=`Ï(1m) ${(info.std*100).toFixed(3)}% &bull; Vol ratio ${info.volRatio.toFixed(2)}&times;`;
+        riskSummaryEl.innerHTML=`${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} &bull; ${slopeStr} &bull; ${volStr}</div>`;
         drawTrend(riskCanvas,win);
         setLegend(riskLegend);
 
@@ -762,7 +781,7 @@
     document.addEventListener('DOMContentLoaded',()=>{
       pnlGetTotals(); setInterval(pnlGetTotals,120000);
       const btn=document.getElementById('logPnl'), msg=document.getElementById('pnlMsg');
-      if(btn){btn.addEventListener('click',async()=>{try{const who=(document.querySelector('input[name="who"]:checked')||{}).value||'AK';const amt=(document.getElementById('pnlAmount')||{}).value||'';const note=(document.getElementById('pnlNote')||{}).value||'';if(!amt||isNaN(Number(amt))){msg.textContent='Enter a number (e.g. 125 or -75)';return}msg.textContent='Saving...';await pnlPostLog({user:who,amount:amt,note});msg.textContent='Saved â';document.getElementById('pnlAmount').value='';document.getElementById('pnlNote').value='';await pnlGetTotals();setTimeout(()=>msg.textContent='',1200)}catch(e){msg.textContent='Error: '+(e.message||e)}})}
+      if(btn){btn.addEventListener('click',async()=>{try{const who=(document.querySelector('input[name="who"]:checked')||{}).value||'AK';const amt=(document.getElementById('pnlAmount')||{}).value||'';const note=(document.getElementById('pnlNote')||{}).value||'';if(!amt||isNaN(Number(amt))){msg.textContent='Enter a number (e.g. 125 or -75)';return}msg.textContent='Saving...';await pnlPostLog({user:who,amount:amt,note});msg.textContent='Saved &#10003;';document.getElementById('pnlAmount').value='';document.getElementById('pnlNote').value='';await pnlGetTotals();setTimeout(()=>msg.textContent='',1200)}catch(e){msg.textContent='Error: '+(e.message||e)}})}
       const undoBtn=document.getElementById('undoLast'); if(undoBtn) undoBtn.addEventListener('click',async()=>{try{/* optional undo call */}catch(e){}});
       setTfActive(15);
 
