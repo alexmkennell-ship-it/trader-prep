@@ -98,8 +98,10 @@
     }
 
     /* Marquee / auto-scroll helpers */
-    .autoscroll{overflow:hidden; max-width:100%;}
-    .autoscroll .track{display:inline-block; white-space:nowrap; will-change:transform; animation:marquee var(--dur,12s) linear infinite;}
+    .autoscroll{display:block; overflow:hidden; max-width:100%; box-sizing:border-box; border-radius:999px;}
+    @media (max-width:520px){
+      .autoscroll .track{display:inline-block; white-space:nowrap; will-change:transform; animation:marquee var(--dur,12s) linear infinite;}
+    }
     @keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 
   </style>
@@ -690,7 +692,7 @@
         drawTrend(trendCanvas,win);
         setLegend(trendLegend);
         const advice=tradeSuggestion(info);
-        trendAdviceEl.innerHTML=`<div class="pill autoscroll" id="trendRecPill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941"><i class="fa-solid fa-lightbulb"></i>&nbsp; ${advice.text}</div><div class="muted" style="margin-top:6px;font-size:12px">Disclaimer: This summary is generated solely from current market data in this app and is for informational purposes only. It is not financial advice.</div>`; applyMarquee(document.getElementById('trendRecPill'));
+        trendAdviceEl.innerHTML=`<div class="pill autoscroll" id="trendRecPill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941"><i class="fa-solid fa-lightbulb"></i>&nbsp; ${advice.text}</div><div class="muted" style="margin-top:6px;font-size:12px">Disclaimer: This summary is generated solely from current market data in this app and is for informational purposes only. It is not financial advice.</div>`; if (window.matchMedia('(max-width: 520px)').matches) { applyMarquee(document.getElementById('trendRecPill')); }
         const refEl=document.getElementById('trendRef'); if(refEl){refEl.textContent=new Date().toLocaleTimeString();refEl.classList.remove('flash');void refEl.offsetWidth;refEl.classList.add('flash')}
       }catch(e){trendSummaryEl.innerHTML=`<span class="muted">Trend fetch failed (${String(e.message||e)})</span>`;drawTrend(trendCanvas,[])}
     }
@@ -820,7 +822,7 @@
 
     document.addEventListener('DOMContentLoaded',()=>{
       // auto-scroll the top stat chips like a ticker
-      const strip=document.querySelector('.statstrip'); if(strip) autoScrollContainer(strip, 20);
+      const strip=document.querySelector('.statstrip'); if(strip && window.matchMedia('(max-width: 520px)').matches) autoScrollContainer(strip, 18);
       pnlGetTotals(); setInterval(pnlGetTotals,120000);
       const btn=document.getElementById('logPnl'), msg=document.getElementById('pnlMsg');
       if(btn){btn.addEventListener('click',async()=>{try{const who=(document.querySelector('input[name="who"]:checked')||{}).value||'AK';const amt=(document.getElementById('pnlAmount')||{}).value||'';const note=(document.getElementById('pnlNote')||{}).value||'';if(!amt||isNaN(Number(amt))){msg.textContent='Enter a number (e.g. 125 or -75)';return}msg.textContent='Saving...';await pnlPostLog({user:who,amount:amt,note});msg.textContent='Saved ✓';document.getElementById('pnlAmount').value='';document.getElementById('pnlNote').value='';await pnlGetTotals();setTimeout(()=>msg.textContent='',1200)}catch(e){msg.textContent='Error: '+(e.message||e)}})}
