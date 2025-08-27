@@ -1,15 +1,22 @@
 {
   "name": "Trader Prep",
   "short_name": "Trader Prep",
-  "description": "Fast pre-market prep: headlines sentiment + prior-day snapshot for your selected markets.",
-  "start_url": "./?source=pwa",
+  "description": "Fast pre‑market prep: headlines sentiment + prior‑day snapshot for your selected markets.",
+  "start_url": "./indexhtml.txt?source=pwa",
   "display": "standalone",
-  "background_color": "#0e1013",
-  "theme_color": "#0e1013",
+  "background_color": "#1b191b",
+  "theme_color": "#1b191b",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
-  ]
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
     {
       "src": "icon-192.png",
       "sizes": "192x192",
