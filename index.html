@@ -246,6 +246,30 @@
 
   <script>
     /* ---------------- Config ---------------- */
+
+    // ===== Safe bootstrap to avoid blocking fetch/setup =====
+
+    // (deferred attach to avoid blocking core behavior if anything fails)
+    setTimeout(function(){ try {
+      (function(){
+      if(!window.__TP_SAFE_LOGGED){
+        window.__TP_SAFE_LOGGED = true;
+        window.addEventListener('error', function(e){
+          try{ console.warn('[tp-soft-error]', e.message || e); }catch(_){}
+        }
+    }catch(_){});
+        window.addEventListener('unhandledrejection', function(e){
+          try{ console.warn('[tp-soft-rejection]', e.reason || e); }catch(_){}
+        }
+    }catch(_){});
+      }
+    }catch(_){}
+      }
+    }catch(_){})();
+
+    } catch(e){ try{ console.warn('[tp-explain-init-failed]', e); }catch(_){} } }, 0);
+
+
     const PROXY_RAW = 'https://script.google.com/macros/s/AKfycbztzwYcRxD3mQ2MgD99ubT3-nW-nQJiU-thNoUrdRuMkrTIF1LilnEyCbysHP6Z7HYf/exec?url=';
 
     // ===== PnL API =====
@@ -266,6 +290,7 @@
         panelSettings.style.display = isOpen ? 'none' : 'block';
         if(panelPnL) panelPnL.style.display='none';
       }
+    }catch(_){}
     }
     navSettings && (navSettings.onclick=()=>setNav('nav-settings'));
 
@@ -399,6 +424,7 @@
         const y = pad + (h - pad*2) * (i/4);
         ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(w-pad,y); ctx.stroke();
       }
+    }catch(_){}
 
       // wicks + bodies
       for (let i=0;i<bars.length;i++){
@@ -420,6 +446,7 @@
         ctx.fillStyle = up ? '#6abd74' : '#e05d5d';
         ctx.fillRect(x - bodyW/2, top, bodyW, Math.max(2, bot-top));
       }
+    }catch(_){}
 
       // overlays: VWAP across closes (proxy). Draw after candles.
       if (opts.vwap){
@@ -437,9 +464,11 @@
           const y = h - pad - ((vwap - min)/range)*(h - pad*2);
           if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
         }
+    }catch(_){}
         ctx.stroke();
         ctx.setLineDash([]);
       }
+    }catch(_){}
 
       // optional close line for clarity
       if (opts.closeLine){
@@ -452,8 +481,10 @@
           const y = h - pad - ((b.c - min)/range)*(h - pad*2);
           if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
         }
+    }catch(_){}
         ctx.stroke();
       }
+    }catch(_){}
     }
 
     // Simple tiny line chart for sparkline in Prep (unchanged)
@@ -485,23 +516,29 @@
         parts.push(`<p style="margin-top:8px">According to current news, <b>${markets.join(', ')}</b> ${overall} as of now.</p>`);
         const top=newsRes.headlines.slice(0,5).map(h=>`<li>${h}</li>`).join('');
         parts.push(`<details style="margin-top:6px"><summary>Top headlines</summary><ul>${top}</ul></details>`);
-      } else {
+      }
+    }catch(_){} else {
         parts.push(`<div class="muted"><i class="fa-regular fa-newspaper"></i> News sentiment unavailable${newsRes.reason?' ('+newsRes.reason+')':''}</div>`);
       }
+    }catch(_){}
       if(dayRes.ok){
         const dir=dayRes.pct>=0?'&#9650;':'&#9660;',cls=dayRes.pct>=0?'ok':'bad';
         let weekendHint=''; try{const dL=new Date(dayRes.latest).getDay(),dP=new Date(dayRes.prior).getDay(); if(dL===1&&dP===5) weekendHint=' (Fri &rarr; Mon)';}catch(_){ }
         parts.push(`<div class="pill ${cls}" style="margin-top:8px"><i class="fa-solid fa-chart-line"></i> Prev day (${dayRes.etf}, ${dayRes.source}): ${dir} ${dayRes.pct.toFixed(2)}% (close ${dayRes.latest}${weekendHint})</div>`);
-      } else {
+      }
+    }catch(_){} else {
         parts.push(`<div class="muted" style="margin-top:8px">Last day summary unavailable${dayRes.reason?' ('+dayRes.reason+')':''}</div>`);
       }
+    }catch(_){}
       try{
         const showWhy=dayRes?.ok&&Math.abs(dayRes.pct)>=WHY_PCT;
         if(showWhy){
           const why=buildWhyNarrative({dayRes,headlines:(newsRes.ok?newsRes.headlines:[])});
           parts.push(`<p style="margin-top:10px"><strong>Why?</strong> ${why}</p>`);
         }
-      }catch(_){ }
+    }catch(_){}
+      }
+    }catch(_){}catch(_){ }
       summaryEl.innerHTML=parts.join('');
       if(dayRes.ok&&dayRes.closes?.length) drawSparkline(summaryEl,dayRes.closes);
     }
@@ -518,6 +555,7 @@
         const o=q?.open?.[i], h=q?.high?.[i], l=q?.low?.[i], c = q?.close?.[i], v = q?.volume?.[i];
         if (c != null && h!=null && l!=null && o!=null && v != null) out.push({ t: ts[i] * 1000, o, h, l, c, v });
       }
+    }catch(_){}
 
       // Pull regular trading period from Yahoo meta (NYSE session for ETFs)
       const reg = r?.meta?.currentTradingPeriod?.regular;
@@ -530,6 +568,7 @@
       if (regStart && regEnd) {
         return bars.filter(b => b.t >= regStart && b.t <= Math.min(Date.now(), regEnd));
       }
+    }catch(_){}
       const MAX_MIN = 390; // fallback: last day
       return bars.slice(-MAX_MIN);
     }
@@ -577,6 +616,7 @@
         const g=d>0?d:0, l=d<0?-d:0;
         avgG=(avgG*(period-1)+g)/period; avgL=(avgL*(period-1)+l)/period;
       }
+    }catch(_){}
       const rs=avgL===0?99:avgG/avgL; return 100-(100/(1+rs));
     }
     function linRegR2(values){
@@ -648,7 +688,8 @@
         trendAdviceEl.innerHTML = `<div class="pill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941" data-explain="rec"><i class="fa-solid fa-lightbulb"></i>&nbsp; ${advice.text} <span class="muted" style="margin-left:8px; text-decoration:underline; cursor:pointer">Why?</span></div><div class="muted" style="margin-top:6px;font-size:12px">Disclaimer: This summary is generated solely from current market data in this app and is for informational purposes only. It is not financial advice.</div>`;
         const refEl=document.getElementById('trendRef'); if(refEl){refEl.textContent=new Date().toLocaleTimeString();refEl.classList.remove('flash');void refEl.offsetWidth;refEl.classList.add('flash')}
         if(window.bindExplainers) window.bindExplainers();
-      }catch(e){trendSummaryEl.innerHTML=`<span class="muted">Trend fetch failed (${String(e.message||e)})</span>`;drawTrend(trendCanvas,[])}
+      }
+    }catch(_){}catch(e){trendSummaryEl.innerHTML=`<span class="muted">Trend fetch failed (${String(e.message||e)})</span>`;drawTrend(trendCanvas,[])}
     }
 
     /* ---------------- Risk ---------------- */
@@ -663,7 +704,8 @@
         riskMode=btn.dataset.mode||'conservative';
         Array.from(riskModeSeg.querySelectorAll('.segbtn')).forEach(b=>b.classList.toggle('active',b===btn));
         const m=getSelectedFutures(); buildRisk(m.length?m:['ES']);
-      });
+      }
+    }catch(_){});
     }
     if(riskCandles){
       const syncLabel=()=>riskCandlesLabel.textContent=`${riskCandles.value} candles`;
@@ -749,10 +791,12 @@
           extra.innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i>&nbsp; Last <b>${Math.max(2, Math.min(N, trendMinutes))} minutes</b>: leaning <b>${lean.dir}</b> (${pctStr2}).`;
           riskAdviceEl.appendChild(extra);
         }
+    }catch(_){}
         const refEl=document.getElementById('riskRef'); if(refEl){refEl.textContent=new Date().toLocaleTimeString();refEl.classList.remove('flash');void refEl.offsetWidth;refEl.classList.add('flash')}
         if(window.bindExplainers) window.bindExplainers();
         riskWinEl.textContent=`${trendMinutes}m`;
-      }catch(e){riskSummaryEl.innerHTML=`<span class="muted">Risk fetch failed (${String(e.message||e)})</span>`;drawTrend(riskCanvas,[])}
+      }
+    }catch(_){}catch(e){riskSummaryEl.innerHTML=`<span class="muted">Risk fetch failed (${String(e.message||e)})</span>`;drawTrend(riskCanvas,[])}
     }
 
     /* ---------------- P&L chips ---------------- */
@@ -780,7 +824,8 @@
         const m=getSelectedFutures();
         if(trendOut.style.display!=='none') buildTrend(m.length?m:['ES']);
         if(riskOut.style.display!=='none')  buildRisk(m.length?m:['ES']);
-      }, 30000);
+      }
+    }catch(_){}, 30000);
     });
 
     // ======== Minimal P&L logger post (same as original) ========
