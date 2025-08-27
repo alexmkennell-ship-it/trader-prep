@@ -645,8 +645,9 @@
         setLegend(trendLegend);
         const rec=tradeSuggestionSafe(info);
         const pred=marketPredictionSafe(info, win);
-        trendAdviceEl.innerHTML=`<div class="pill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941"><i class="fa-solid fa-lightbulb"></i>&nbsp; ${rec.text}</div><div class="pill accent" style="margin-top:8px"><i class="fa-solid fa-crystal-ball"></i>&nbsp; Prediction: <b>${pred.label}</b> <span class="muted" style="margin-left:6px">(${Math.round(pred.conf*100)}% conf)</span></div><div class="muted" style="margin-top:6px;font-size:12px">Why: ${pred.why}. Not financial advice.</div>`;
+        trendAdviceEl.innerHTML = `<div class="pill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941" data-explain="rec"><i class="fa-solid fa-lightbulb"></i>&nbsp; ${advice.text} <span class="muted" style="margin-left:8px; text-decoration:underline; cursor:pointer">Why?</span></div><div class="muted" style="margin-top:6px;font-size:12px">Disclaimer: This summary is generated solely from current market data in this app and is for informational purposes only. It is not financial advice.</div>`;
         const refEl=document.getElementById('trendRef'); if(refEl){refEl.textContent=new Date().toLocaleTimeString();refEl.classList.remove('flash');void refEl.offsetWidth;refEl.classList.add('flash')}
+        if(window.bindExplainers) window.bindExplainers();
       }catch(e){trendSummaryEl.innerHTML=`<span class="muted">Trend fetch failed (${String(e.message||e)})</span>`;drawTrend(trendCanvas,[])}
     }
 
@@ -732,20 +733,12 @@
         riskSummaryEl.innerHTML=`${dirPill} ${busyPill}<div style="margin-top:8px" class="muted">${pctStr} &bull; ${slopeStr} &bull; ${volStr}</div>`;
         drawTrend(riskCanvas,win);
         setLegend(riskLegend);
+        window.__lastRisk = {info, bars: win, pred: null, mode: riskMode, N: N};
 
         const N = Math.max(3, Math.min(15, riskCandlesN||3));
         let rec; if(riskMode==='aggressive'){ rec = lastNSignal(win, N); } else { rec = conservativeSignal(info, win, N); }
         const pred = marketPredictionSafe(info, win);
-        riskAdviceEl.innerHTML = `
-          <div class="pill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941">
-            <i class="fa-solid fa-lightbulb"></i>&nbsp; ${rec.text}
-          </div>
-          <div class="pill accent" style="margin-top:8px">
-            <i class="fa-solid fa-crystal-ball"></i>&nbsp; Prediction: <b>${pred.label}</b>
-            <span class="muted" style="margin-left:6px">(${Math.round(pred.conf*100)}% conf)</span>
-          </div>
-          <div class="muted" style="margin-top:6px;font-size:12px">Why: ${pred.why}. Not financial advice.</div>
-        `;
+        riskAdviceEl.innerHTML = `<div class="pill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941" data-explain="rec"><i class="fa-solid fa-lightbulb"></i>&nbsp; ${rec.text} <span class="muted" style="margin-left:8px; text-decoration:underline; cursor:pointer">Why?</span></div><div class="muted" style="margin-top:6px;font-size:12px">Disclaimer: This is an automated summary and not financial advice.</div>`;
 
         const lean = leanWindow(win, Math.max(2, Math.min(N, trendMinutes)));
         if(lean){
@@ -757,6 +750,7 @@
           riskAdviceEl.appendChild(extra);
         }
         const refEl=document.getElementById('riskRef'); if(refEl){refEl.textContent=new Date().toLocaleTimeString();refEl.classList.remove('flash');void refEl.offsetWidth;refEl.classList.add('flash')}
+        if(window.bindExplainers) window.bindExplainers();
         riskWinEl.textContent=`${trendMinutes}m`;
       }catch(e){riskSummaryEl.innerHTML=`<span class="muted">Risk fetch failed (${String(e.message||e)})</span>`;drawTrend(riskCanvas,[])}
     }
@@ -800,5 +794,17 @@
       return j;
     }
   </script>
+
+  <!-- Explain Modal -->
+  <div id="whyModal" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:1200;background:rgba(0,0,0,.45)">
+    <div style="max-width:560px;width:92%;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:14px;position:relative">
+      <button id="whyClose" title="Close" style="position:absolute;right:10px;top:8px;border:1px solid var(--line);border-radius:10px;background:var(--panel-2);color:var(--fg);padding:6px 8px;cursor:pointer">
+        &times;
+      </button>
+      <div id="whyTitle" style="font-weight:700;margin:4px 0 8px">Details</div>
+      <div id="whyBody" class="muted" style="white-space:pre-wrap;line-height:1.4"></div>
+    </div>
+  </div>
+
 </body>
 </html>
