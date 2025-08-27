@@ -623,10 +623,13 @@
     }
     function filterToSession(bars, regStart, regEnd){
       if (regStart) {
-        // Include post-market data; just enforce lower bound from regular session start
-        return bars.filter(b => b.t >= regStart);
+        // Include post‑market data; just enforce lower bound from regular session start.
+        // If there are no bars yet in the regular session (e.g. before market opens),
+        // fall back to the full intraday history so pre‑market bars can be used.
+        const sessionBars = bars.filter(b => b.t >= regStart);
+        return sessionBars.length > 0 ? sessionBars : bars;
       }
-      const MAX_MIN = 390; // fallback: last day
+      const MAX_MIN = 390; // fallback: last day of 1‑min bars
       return bars.slice(-MAX_MIN);
     }
 
@@ -646,12 +649,7 @@
       return recent;
     }
     function statsTrend(windowBars){
-      // Allow risk/trend calculations with as few as two bars instead of five so the
-      // graph can render even when only a small amount of intraday data is available.
-      // Previously this returned early for <5 bars which made the risk panel show
-      // "not enough bars" too often. Two bars are sufficient to compute a
-      // direction, slope and volatility.
-      if(windowBars.length<2) return {ok:false,reason:'not enough bars'};
+      if(windowBars.length<5) return {ok:false,reason:'not enough bars'};
       const closes=windowBars.map(b=>b.c), vols=windowBars.map(b=>b.v);
       const first=closes[0], last=closes.at(-1);
       const pct=(last-first)/first*100, delta=last-first;
