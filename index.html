@@ -756,10 +756,6 @@
     const riskModeSeg=document.getElementById('riskModeSeg');
     let riskCandlesN=3;
     const riskCandles=document.getElementById('riskCandles'), riskCandlesLabel=document.getElementById('riskCandlesLabel');
-    // Elements for slider confirmation modal
-    const sliderConfirm=document.getElementById('sliderConfirm');
-    const sliderAccept=document.getElementById('sliderAccept');
-    const sliderCancel=document.getElementById('sliderCancel');
     // Track previous and pending values for the candles slider
     let prevSliderValue=parseInt(riskCandles?.value||'3',10)||3;
     let pendingSliderValue=null;
@@ -804,36 +800,38 @@
         pendingSliderValue=newVal;
         riskCandles.value=prevSliderValue;
         syncLabel();
-        // Show confirmation modal
-        if(sliderConfirm){ sliderConfirm.style.display='flex'; }
+        // Show confirmation modal when adjusting the slider
+        const modal=document.getElementById('sliderConfirm');
+        if(modal){
+          modal.style.display='flex';
+          // Bind click handlers to Accept and Cancel when modal shows.
+          const acc=document.getElementById('sliderAccept');
+          const can=document.getElementById('sliderCancel');
+          if(acc){
+            acc.onclick = () => {
+              // commit the pending value
+              if(typeof pendingSliderValue==='number') prevSliderValue = pendingSliderValue;
+              riskCandles.value = prevSliderValue;
+              if(riskCandlesLabel) riskCandlesLabel.textContent = `${prevSliderValue} candles`;
+              modal.style.display='none';
+              const sel=getSelectedFutures();
+              buildRisk(sel.length? sel : ['ES']);
+            };
+          }
+          if(can){
+            can.onclick = () => {
+              modal.style.display='none';
+              riskCandles.value = prevSliderValue;
+              if(riskCandlesLabel) riskCandlesLabel.textContent = `${prevSliderValue} candles`;
+            };
+          }
+        }
       });
       // Initial sync
       syncLabel();
     }
 
-    // Handle slider confirmation buttons
-    if(sliderAccept){
-      sliderAccept.addEventListener('click',()=>{
-        if(sliderConfirm) sliderConfirm.style.display='none';
-        if(pendingSliderValue!==null){
-          prevSliderValue=pendingSliderValue;
-          riskCandles.value=prevSliderValue;
-          riskCandlesN=prevSliderValue;
-          pendingSliderValue=null;
-          // Update label with new value
-          riskCandlesLabel.textContent=`${riskCandles.value} candles`;
-          const m=getSelectedFutures();
-          buildRisk(m.length?m:['ES']);
-        }
-      });
-    }
-    if(sliderCancel){
-      sliderCancel.addEventListener('click',()=>{
-        if(sliderConfirm) sliderConfirm.style.display='none';
-        // Clear pending without changing value
-        pendingSliderValue=null;
-      });
-    }
+    // (Removed direct binding of sliderAccept/sliderCancel here; handlers are bound when the modal opens.)
 
     function lastNSignal(bars,N){
       const seg=(bars||[]).slice(-N); if(seg.length<N) return {text:'Recommend: <b>Wait</b> (need more bars)',action:'Wait',pct:0,up:false,dn:false};
@@ -946,44 +944,27 @@
         pillRow.style.gap = '8px';
         pillRow.style.flexWrap = 'wrap';
         pillRow.style.marginTop = '8px';
+        // Attach click handler directly to the prediction pill before appending
+        predEl.addEventListener('click', () => {
+          const lastN = win.slice(-Math.min(15, win.length));
+          const vwapArr = computeVWAP(lastN);
+          const last = lastN.at(-1)?.c;
+          const vwapVal = vwapArr.at(-1);
+          let parts = [];
+          parts.push(`Trend bias: <b>${info.direction}</b> (${info.direction==='Uptrend'?'+1':'Downtrend'==='Downtrend'?'-1':'0'} to score)`);
+          parts.push(`Slope contribution: <b>${info.slopePctPerHour.toFixed(2)}%/hr</b> (tanh scaled)`);
+          parts.push(`Price vs VWAP: <b>${last>vwapVal?'above':'below'}</b> VWAP`);
+          let ups=0, downs=0;
+          for(let i=1;i<lastN.length;i++){
+            const d = lastN[i].c - lastN[i-1].c;
+            if(d>0) ups++; else if(d<0) downs++;
+          }
+          parts.push(`Recent momentum: <b>${ups} up</b> vs <b>${downs} down</b>`);
+          parts.push(`Confidence adjustment: tape is <b>${info.busyLabel}</b>`);
+          openExplain({ title:'Why this prediction?', html:`<p>Prediction: <b>${pred.label}</b> (${Math.round(pred.conf*100)}% confidence)</p><ul style='margin-top:6px'>${parts.map(p=>`<li>${p}</li>`).join('')}</ul>` });
+        });
         pillRow.appendChild(predEl);
-        /*__RISK_EXPLAIN_INSERTED__*/
-        (function(){
-          const recEl = document.getElementById('riskRecPill');
-          if(recEl){ 
-            recEl.addEventListener('click', ()=>{
-              let logic='';
-              if(riskMode==='aggressive'){
-                logic = `Mode: <b>Aggressive</b> • Last <b>${N}</b> bars checked for consecutive moves.<br>
-                         Δ over window: <b>${rec.pct>=0?'+':''}${(rec.pct||0).toFixed(2)}%</b>.`;
-              } else {
-                logic = `Mode: <b>Conservative</b> • Aligns with window trend & tape.<br>
-                         Direction: <b>${info.direction}</b> • Tape: <b>${info.busyLabel}</b> • Δ window: <b>${info.pct>=0?'+':''}${info.pct.toFixed(2)}%</b>.`;
-              }
-              openExplain({title:'Why this recommendation?', html:`<p>${rec.text}</p><p class='muted'>${logic}</p>`});
-            });
-          }
-          const predEl2 = document.getElementById('riskPredPill');
-          if(predEl2){
-            predEl2.addEventListener('click', ()=>{
-              // Recompute parts used in marketPrediction for a human explanation
-              const lastN = win.slice(-Math.min(15, win.length));
-              const vwapArr = computeVWAP(lastN);
-              const last = lastN.at(-1)?.c, vwapVal = vwapArr.at(-1);
-              let parts = [];
-              parts.push(`Trend bias: <b>${info.direction}</b> (${info.direction==='Uptrend'?'+1':'Downtrend'==='Downtrend'?'-1':'0'} to score)`);
-              parts.push(`Slope contribution: <b>${info.slopePctPerHour.toFixed(2)}%/hr</b> (tanh scaled)`);
-              parts.push(`Price vs VWAP: <b>${last>vwapVal?'above':'below'}</b> VWAP`);
-              // momentum
-              let ups=0,downs=0; for(let i=1;i<lastN.length;i++){const d=lastN[i].c-lastN[i-1].c; if(d>0) ups++; else if(d<0) downs++;}
-              parts.push(`Recent momentum: <b>${ups} up</b> vs <b>${downs} down</b>`);
-              parts.push(`Confidence adjustment: tape is <b>${info.busyLabel}</b>`);
-              openExplain({title:'Why this prediction?', html:`<p>Prediction: <b>${pred.label}</b> (${Math.round(pred.conf*100)}% confidence)</p><ul style='margin-top:6px'>${parts.map(p=>`<li>${p}</li>`).join('')}</ul>`});
-            });
-          }
-          // mobile marquee for the rec pill
-          if (window.matchMedia('(max-width: 520px)').matches) { applyMarquee(recEl); }
-        })();
+        // We'll attach the recommendation pill handler after appending the pill row
     
 
         const lean = leanWindow(win, M);
@@ -996,6 +977,26 @@
         }
         // Append the row of prediction/lean pills to the advice container
         riskAdviceEl.appendChild(pillRow);
+
+        // Attach click handler to the recommendation pill after it exists.  We bind
+        // this here because the element is inserted via innerHTML above.  When
+        // clicked, it explains why the recommendation was given.
+        {
+          const recEl2 = document.getElementById('riskRecPill');
+          if(recEl2){
+            recEl2.onclick = () => {
+              let logic='';
+              if(riskMode==='aggressive'){
+                logic = `Mode: <b>Aggressive</b> • Last <b>${N}</b> bars checked for consecutive moves.<br>Δ over window: <b>${rec.pct>=0?'+':''}${(rec.pct||0).toFixed(2)}%</b>.`;
+              } else {
+                logic = `Mode: <b>Conservative</b> • Aligns with window trend & tape.<br>Direction: <b>${info.direction}</b> • Tape: <b>${info.busyLabel}</b> • Δ window: <b>${info.pct>=0?'+':''}${info.pct.toFixed(2)}%</b>.`;
+              }
+              openExplain({ title:'Why this recommendation?', html:`<p>${rec.text}</p><p class='muted'>${logic}</p>` });
+            };
+            // Reapply marquee on mobile if needed after binding
+            if(window.matchMedia('(max-width: 520px)').matches) { applyMarquee(recEl2); }
+          }
+        }
 
         // Move the disclaimer to just above the last refreshed row.  We create or update
         // a dedicated element with id=riskDisclaimer for this.
