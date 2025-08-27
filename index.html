@@ -31,7 +31,7 @@
     a{color:inherit}
 
     /* Top bar */
-    .topbar{position:sticky;top:0;z-index:80;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,#201f25 0%,#1a191f 100%);border-bottom:1px solid var(--line);padding:10px 14px}
+    .topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,#201f25 0%,#1a191f 100%);border-bottom:1px solid var(--line);padding:10px 14px}
     .brand{display:flex;gap:10px;align-items:center;min-width:0}
     .brand .logo{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:#2f2e36;border:1px solid var(--line);overflow:hidden;flex:0 0 auto}
     .brand h1{font-size:16px;margin:0;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -93,30 +93,11 @@
       .legend{font-size:11px}
     }
   
-    /* Mobile-only display helper */
-    .mobonly{ display:none; }
-    @media (max-width:520px){ .mobonly{ display:grid; } }
-    
-  
-    /* Mobile dropdown for header buttons */
+    /* Minimal header (settings-only) */
+    .navicons{display:flex;gap:10px;align-items:center}
     @media (max-width:520px){
-      .topbar{ position:sticky; top:0; }
-      .navicons{ display:none; position:absolute; top:58px; right:10px;
-                 background:var(--panel); border:1px solid var(--line);
-                 padding:8px; border-radius:12px; box-shadow:var(--shadow);
-                 gap:8px; z-index:70; pointer-events:none; }
-      .navicons.show{ display:flex; pointer-events:auto; }
+      .brand h1{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     }
-
-  
-    /* Tap reliability: raise hamburger + menu above content */
-    #mobileMenu{ position:relative; z-index:200; }
-    #navicons{ z-index:190; }
-
-  
-    /* Mobile menu tap reliability */
-    #mobileMenu{ position:relative; z-index:500; pointer-events:auto; }
-    #navicons{ position:fixed; top:56px; right:10px; z-index:400; }
 
   </style>
 </head>
@@ -127,14 +108,7 @@
       <div class="logo"><img src="icon-192.png" alt="Trader Prep Logo" style="width:100%;height:100%;object-fit:contain"></div>
       <h1>Trader Prep</h1>
     </div>
-    <div class="iconbtn mobonly" id="mobileMenu" title="Menu" role="button" aria-haspopup="true" aria-controls="navicons" aria-expanded="false" onclick="window.__toggleMenu && window.__toggleMenu()"><i class="fa-solid fa-bars"></i></div>
-    <nav class="navicons" id="navicons" role="menu" aria-label="Navigation menu">
-      <div class="iconbtn active" id="nav-prep" title="Prep"><i class="fa-solid fa-bars-staggered"></i></div>
-      <div class="iconbtn" id="nav-trend" title="Trend"><i class="fa-solid fa-wave-square"></i></div>
-      <div class="iconbtn" id="nav-risk" title="Risk"><i class="fa-solid fa-fire-flame-curved"></i></div>
-      <div class="iconbtn" id="nav-pnl" title="Profit Log"><i class="fa-solid fa-dollar-sign"></i></div>
-      <div class="iconbtn" id="nav-settings" title="Settings"><i class="fa-solid fa-gear"></i></div>
-          <div class="iconbtn mobonly" id="mobileReloadTop" title="Reload (cache-bust)"><i class="fa-solid fa-rotate-right"></i></div>
+    <nav class="navicons" id="navicons_min"><div class="iconbtn" id="nav-settings" title="Settings"><i class="fa-solid fa-gear"></i></div>
     </nav>
   </header>
 
@@ -153,6 +127,18 @@
       <div class="row" style="margin-top:10px"><label class="muted" style="min-width:170px">GNews API Key</label><input id="gnews" placeholder="gnews.io token"></div>
       <div class="row" style="margin-top:10px"><label class="muted" style="min-width:170px">Alpha Vantage Key</label><input id="alpha" placeholder="alphavantage.co key"></div>
       <div class="actions" style="margin-top:10px"><button id="saveKeys" class="primary"><i class="fa-regular fa-floppy-disk"></i>&nbsp;Save Keys</button><span id="saveMsg" class="muted"></span></div>
+      <div class="row" style="margin-top:12px"><label class="muted" style="min-width:170px">Auto-refresh (sec)</label><input id="autoRefreshInterval" type="number" min="10" step="5" placeholder="30"></div>
+      <div class="row" style="margin-top:10px"><label class="muted" style="min-width:170px">Theme</label>
+        <select id="themeSelect">
+          <option value="dark" selected>Dark</option>
+          <option value="light">Light</option>
+        </select>
+      </div>
+      <div class="actions" style="margin-top:10px">
+        <button id="applyAdj" class="primary"><i class="fa-solid fa-sliders"></i>&nbsp;Apply Adjustments</button>
+        <span id="adjMsg" class="muted"></span>
+      </div>
+    
     </div>
 
     <!-- PNL -->
@@ -269,19 +255,19 @@
     /* ---------------- Nav / Tabs ---------------- */
     const panelSettings=document.getElementById('panel-settings');
     const panelPnL=document.getElementById('panel-pnl');
-    const navPrep=document.getElementById('nav-prep'),navTrend=document.getElementById('nav-trend'),navSettings=document.getElementById('nav-settings'),navPnL=document.getElementById('nav-pnl'),navRisk=document.getElementById('nav-risk');
+    const navSettings=document.getElementById('nav-settings');
 
     function hidePanels(){panelSettings.style.display='none';panelPnL.style.display='none'}
     function setNav(active){
-      [navPrep,navTrend,navSettings,navPnL,navRisk].forEach(n=>n.classList.toggle('active',n.id===active));
-      hidePanels();
-      if(active==='nav-settings') panelSettings.style.display='block';
-      if(active==='nav-pnl') panelPnL.style.display='block';
-      if(active==='nav-prep') setTab('prep');
-      if(active==='nav-trend') setTab('trend');
-      if(active==='nav-risk') setTab('risk');
+      // Only toggle the Settings panel in the minimal header
+      if(!panelSettings) return;
+      const isOpen = panelSettings.style.display !== 'none' && panelSettings.style.display !== '';
+      if(active==='nav-settings'){
+        panelSettings.style.display = isOpen ? 'none' : 'block';
+        if(panelPnL) panelPnL.style.display='none';
+      }
     }
-    navPrep.onclick=()=>setNav('nav-prep'); navTrend.onclick=()=>setNav('nav-trend'); navSettings.onclick=()=>setNav('nav-settings'); navPnL.onclick=()=>setNav('nav-pnl'); navRisk.onclick=()=>setNav('nav-risk');
+    navSettings && (navSettings.onclick=()=>setNav('nav-settings'));
 
     const tabPrep=document.getElementById('tab-prep'), tabTrend=document.getElementById('tab-trend'), tabRisk=document.getElementById('tab-risk');
     const prepOut=document.getElementById('prepOut'), trendOut=document.getElementById('trendOut'), riskOut=document.getElementById('riskOut');
