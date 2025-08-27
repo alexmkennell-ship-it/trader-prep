@@ -96,6 +96,12 @@
       .chip{flex:0 0 auto}
       .navicons{gap:8px}
     }
+
+    /* Marquee / auto-scroll helpers */
+    .autoscroll{overflow:hidden; max-width:100%;}
+    .autoscroll .track{display:inline-block; white-space:nowrap; will-change:transform; animation:marquee var(--dur,12s) linear infinite;}
+    @keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
   </style>
 </head>
 <body>
@@ -684,7 +690,7 @@
         drawTrend(trendCanvas,win);
         setLegend(trendLegend);
         const advice=tradeSuggestion(info);
-        trendAdviceEl.innerHTML=`<div class="pill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941"><i class="fa-solid fa-lightbulb"></i>&nbsp; ${advice.text}</div><div class="muted" style="margin-top:6px;font-size:12px">Disclaimer: This summary is generated solely from current market data in this app and is for informational purposes only. It is not financial advice.</div>`;
+        trendAdviceEl.innerHTML=`<div class="pill autoscroll" id="trendRecPill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941"><i class="fa-solid fa-lightbulb"></i>&nbsp; ${advice.text}</div><div class="muted" style="margin-top:6px;font-size:12px">Disclaimer: This summary is generated solely from current market data in this app and is for informational purposes only. It is not financial advice.</div>`; applyMarquee(document.getElementById('trendRecPill'));
         const refEl=document.getElementById('trendRef'); if(refEl){refEl.textContent=new Date().toLocaleTimeString();refEl.classList.remove('flash');void refEl.offsetWidth;refEl.classList.add('flash')}
       }catch(e){trendSummaryEl.innerHTML=`<span class="muted">Trend fetch failed (${String(e.message||e)})</span>`;drawTrend(trendCanvas,[])}
     }
@@ -766,13 +772,15 @@
 
         let rec; if(riskMode==='aggressive'){ rec = lastNSignal(win, N); } else { rec = conservativeSignal(info, win, N); }
         riskAdviceEl.innerHTML = `
-          <div class="pill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941">
+          <div class="pill autoscroll" id="riskRecPill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941">
             <i class="fa-solid fa-lightbulb"></i>&nbsp; ${rec.text}
           </div>
           <div class="muted" style="margin-top:6px;font-size:12px">
             Disclaimer: This is an automated summary and not financial advice.
           </div>
         `;
+        // Convert long recommendation text into a marquee if overflowing
+        applyMarquee(document.getElementById("riskRecPill"));
 
         // NEW: Prediction blip (purple)
         const pred = marketPrediction(info, win);
@@ -811,6 +819,8 @@
     document.getElementById('runRisk').addEventListener('click',()=>{setNav('nav-risk');setTab('risk');const m=getSelectedFutures();buildRisk(m.length?m:['ES'])});
 
     document.addEventListener('DOMContentLoaded',()=>{
+      // auto-scroll the top stat chips like a ticker
+      const strip=document.querySelector('.statstrip'); if(strip) autoScrollContainer(strip, 20);
       pnlGetTotals(); setInterval(pnlGetTotals,120000);
       const btn=document.getElementById('logPnl'), msg=document.getElementById('pnlMsg');
       if(btn){btn.addEventListener('click',async()=>{try{const who=(document.querySelector('input[name="who"]:checked')||{}).value||'AK';const amt=(document.getElementById('pnlAmount')||{}).value||'';const note=(document.getElementById('pnlNote')||{}).value||'';if(!amt||isNaN(Number(amt))){msg.textContent='Enter a number (e.g. 125 or -75)';return}msg.textContent='Saving...';await pnlPostLog({user:who,amount:amt,note});msg.textContent='Saved ✓';document.getElementById('pnlAmount').value='';document.getElementById('pnlNote').value='';await pnlGetTotals();setTimeout(()=>msg.textContent='',1200)}catch(e){msg.textContent='Error: '+(e.message||e)}})}
@@ -824,6 +834,39 @@
         if(riskOut.style.display!=='none')  buildRisk(m.length?m:['ES']);
       }, 30000);
     });
+
+    
+    /* ======= Auto-scroll utilities ======= */
+    function applyMarquee(el, minDur=10, pxPerSec=50){
+      if(!el) return;
+      // If content fits, skip.
+      const text = el.textContent.trim();
+      if(!text) return;
+      // Duplicate content for seamless loop
+      el.classList.add('autoscroll');
+      el.innerHTML = `<span class="track">${text}&nbsp;&nbsp;•&nbsp;&nbsp;${text}</span>`;
+      // Duration proportional to content width
+      requestAnimationFrame(()=>{
+        const track = el.querySelector('.track');
+        if(!track) return;
+        const halfWidth = track.getBoundingClientRect().width/2;
+        const dur = Math.max(minDur, halfWidth/pxPerSec);
+        track.style.setProperty('--dur', dur+'s');
+      });
+    }
+    function autoScrollContainer(el, pxPerSec=30){
+      if(!el) return;
+      el.style.scrollBehavior = 'auto';
+      el.style.overflowX = 'auto';
+      let last = performance.now();
+      function step(t){
+        const dt = (t-last)/1000; last = t;
+        el.scrollLeft += pxPerSec * dt;
+        if(el.scrollLeft >= el.scrollWidth - el.clientWidth - 1) el.scrollLeft = 0;
+        requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
 
     // ======== Minimal P&L logger post (stubbed same as before) ========
     async function pnlPostLog({user,amount,note}){
