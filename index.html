@@ -58,7 +58,7 @@
     .tabs{display:flex;gap:10px;margin:8px 0 2px;flex-wrap:wrap}
     .tabbtn{border-radius:10px;border:1px solid var(--line);background:#26252b;padding:8px 12px;cursor:pointer}
     .tabbtn.active{background:var(--accent);color:#0b0b10;border-color:transparent}
-    .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 12px;border-radius:999px;background:var(--pill);border:1px solid var(--line);font-size:13px}
+    .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 12px;border-radius:999px;background:var(--pill);border:1px solid var(--line);font-size:13px;white-space:nowrap;line-height:1.1}
     .pill.accent{background:var(--accent);color:#0b0b10;border-color:transparent}
     .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)}
     details summary{cursor:pointer}
@@ -90,6 +90,11 @@
       .chip{font-size:11px}
       .tabbtn,button{padding:10px 12px}
       .legend{font-size:11px}
+
+      .statstrip{overflow-x:auto;flex-wrap:nowrap}
+      .statstrip::-webkit-scrollbar{display:none}
+      .chip{flex:0 0 auto}
+      .navicons{gap:8px}
     }
   </style>
 </head>
@@ -440,8 +445,8 @@
       const highs = bars.map(b=>b.h), lows = bars.map(b=>b.l);
       const min = Math.min(...lows), max = Math.max(...highs), range = (max-min)||1;
       const step = (w - pad*2) / (bars.length-1);
-      const bodyFrac = 0.65; // candle body width fraction
-      const bodyW = Math.max(3, step * bodyFrac);
+      const bodyFrac = 0.55; // candle body width fraction (mobile-friendly)
+      const bodyW = Math.max(2, step * bodyFrac);
 
       // subtle grid
       ctx.strokeStyle = '#2d2d33';
@@ -567,8 +572,9 @@
       const ts = r?.timestamp || [];
       const out = [];
       for (let i = 0; i < ts.length; i++) {
-        const o=q?.open?.[i], h=q?.high?.[i], l=q?.low?.[i], c = q?.close?.[i], v = q?.volume?.[i];
-        if (c != null && h!=null && l!=null && o!=null && v != null) out.push({ t: ts[i] * 1000, o, h, l, c, v });
+        const o=q?.open?.[i], h=q?.high?.[i], l=q?.low?.[i], _c = q?.close?.[i], v = q?.volume?.[i] ?? 0;
+        const c = (_c!=null) ? _c : ((o!=null && h!=null && l!=null) ? (o+h+l)/3 : null);
+        if (c != null && h!=null && l!=null && o!=null) out.push({ t: ts[i] * 1000, o, h, l, c, v });
       }
 
       // Pull regular trading period from Yahoo meta (NYSE session for ETFs)
@@ -579,8 +585,9 @@
       return { bars: out, regStart, regEnd };
     }
     function filterToSession(bars, regStart, regEnd){
-      if (regStart && regEnd) {
-        return bars.filter(b => b.t >= regStart && b.t <= Math.min(Date.now(), regEnd));
+      if (regStart) {
+        // Include post-market data; just enforce lower bound from regular session start
+        return bars.filter(b => b.t >= regStart);
       }
       const MAX_MIN = 390; // fallback: last day
       return bars.slice(-MAX_MIN);
