@@ -6,148 +6,75 @@
   <meta name="theme-color" content="#1b191b"/>
   <meta name="color-scheme" content="dark"/>
   <title>Trader Prep</title>
-
-  <!-- Icons / Manifest -->
   <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
-
-  <!-- Icons (CDN, free) -->
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" referrerpolicy="no-referrer"/>
-
   <style>
-    :root {
-      --bg:#1b191b; --panel:#2a292f; --panel-2:#242328; --line:#35343a;
-      --fg:#f1f2f4; --muted:#a7adbb;
-      --accent:#6424ac;           /* main purple */
-      --accent-graph:#7c5cff;     /* bright line purple */
-      --ok:#6abd74; --bad:#e05d5d; --warn:#d3a54a; --pill:#24252b;
-      --shadow:0 6px 18px rgba(0,0,0,.35); --radius:14px; --pad:16px;
-    }
-    html,body{background:var(--bg);color:var(--fg)}
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;margin:0;line-height:1.35;word-break:break-word}
-    a{color:inherit}
-
-    /* Top bar */
+    :root{--bg:#1b191b;--panel:#2a292f;--panel-2:#242328;--line:#35343a;--fg:#f1f2f4;--muted:#a7adbb;--accent:#6424ac;--accent-graph:#7c5cff;--ok:#6abd74;--bad:#e05d5d;--warn:#d3a54a;--pill:#24252b;--shadow:0 6px 18px rgba(0,0,0,.35);--radius:14px;--pad:16px}
+    html,body{background:var(--bg);color:var(--fg)}body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;margin:0;line-height:1.35;word-break:break-word}
     .topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,#201f25 0%,#1a191f 100%);border-bottom:1px solid var(--line);padding:10px 14px}
-    .brand{display:flex;gap:10px;align-items:center;min-width:0}
-    .brand .logo{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:#2f2e36;border:1px solid var(--line);overflow:hidden;flex:0 0 auto}
-    .brand .logo img{width:100%;height:100%;object-fit:contain}
-    .brand h1{font-size:16px;margin:0;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .navicons{display:flex;gap:10px;align-items:center}
-    .iconbtn{min-width:44px;min-height:44px;display:grid;place-items:center;border-radius:12px;border:1px solid var(--line);background:#26252b;cursor:pointer;color:#cfd3dc}
-    .iconbtn.active{background:var(--accent);color:#090909;border-color:transparent}
-
-    /* Stat strip */
+    .brand{display:flex;gap:10px;align-items:center;min-width:0}.brand .logo{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:#2f2e36;border:1px solid var(--line);overflow:hidden;flex:0 0 auto}.brand .logo img{width:100%;height:100%;object-fit:contain}.brand h1{font-size:16px;margin:0;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .navicons{display:flex;gap:10px;align-items:center}.iconbtn{min-width:44px;min-height:44px;display:grid;place-items:center;border-radius:12px;border:1px solid var(--line);background:#26252b;cursor:pointer;color:#cfd3dc}.iconbtn.active{background:var(--accent);color:#090909;border-color:transparent}
     .statstrip{display:flex;gap:10px;align-items:center;padding:10px 14px;flex-wrap:wrap;border-bottom:1px solid var(--line);background:#1e1d22}
     .chip{display:flex;gap:8px;align-items:center;padding:6px 10px;background:#2a2930;border:1px solid var(--line);border-radius:10px;font-size:12px}
-    .chip.ok{background:#213224;color:var(--ok);border-color:#2a4930}
-    .chip.warn{background:#332d1f;color:var(--warn);border-color:#5a4726}
-    .chip.bad{background:#372325;color:var(--bad);border-color:#5d3439}
-
-    /* Shell */
-    .wrap{max-width:1100px;margin:0 auto;padding:14px}
-    .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:var(--pad);box-shadow:var(--shadow);margin:14px 0}
-    .muted{color:var(--muted)}
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .actions{display:flex;gap:10px;flex-wrap:wrap}
-    button,select,input{font-size:15px}
-    select,input{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:12px 12px;width:100%}
-    button{padding:12px 16px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg);cursor:pointer}
-    .primary{background:var(--accent);color:#0b0b10;border-color:transparent;font-weight:600}
-    .tabs{display:flex;gap:10px;margin:8px 0 2px;flex-wrap:wrap}
-    .tabbtn{border-radius:10px;border:1px solid var(--line);background:#26252b;padding:8px 12px;cursor:pointer}
-    .tabbtn.active{background:var(--accent);color:#0b0b10;border-color:transparent}
-    .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 12px;border-radius:999px;background:var(--pill);border:1px solid var(--line);font-size:13px}
-    .pill.accent{background:var(--accent);color:#0b0b10;border-color:transparent}
-    .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)}
-    details summary{cursor:pointer}
-    .bundles{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-    .bundle{padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:#26252b;font-size:14px;cursor:pointer}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media (max-width:900px){.grid{grid-template-columns:1fr}}
-
-    /* Chart canvas */
+    .chip.ok{background:#213224;color:var(--ok);border-color:#2a4930}.chip.warn{background:#332d1f;color:var(--warn);border-color:#5a4726}.chip.bad{background:#372325;color:var(--bad);border-color:#5d3439}
+    .wrap{max-width:1100px;margin:0 auto;padding:14px}.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:var(--pad);box-shadow:var(--shadow);margin:14px 0}
+    .muted{color:var(--muted)}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.actions{display:flex;gap:10px;flex-wrap:wrap}
+    button,select,input{font-size:15px}select,input{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:12px 12px;width:100%}button{padding:12px 16px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg);cursor:pointer}.primary{background:var(--accent);color:#0b0b10;border-color:transparent;font-weight:600}
+    .tabs{display:flex;gap:10px;margin:8px 0 2px;flex-wrap:wrap}.tabbtn{border-radius:10px;border:1px solid var(--line);background:#26252b;padding:8px 12px;cursor:pointer}.tabbtn.active{background:var(--accent);color:#0b0b10;border-color:transparent}
+    .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 12px;border-radius:999px;background:var(--pill);border:1px solid var(--line);font-size:13px}.pill.accent{background:var(--accent);color:#0b0b10;border-color:transparent}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media (max-width:900px){.grid{grid-template-columns:1fr}}
     .chart{width:100%;height:190px;border-radius:10px;background:#24252b;margin-top:10px;display:block}
-    .legend{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px;font-size:12px;color:var(--muted)}
-    .legend .item{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:#26252b}
-    .swatch{display:inline-block;width:20px;height:10px;border-radius:2px}
-    .swatch.line{width:28px;height:0;border-top:3px solid currentColor}
-    .swatch.dashed{border-top-style:dashed}
-
-    .seg{display:flex;gap:8px;flex-wrap:wrap}
-    .segbtn{padding:8px 12px;border:1px solid var(--line);background:#26252b;border-radius:10px;cursor:pointer}
-    .segbtn.active{background:var(--accent);color:#0b0b10;border-color:transparent}
-    .spinner{display:inline-block;width:18px;height:18px;border:3px solid #45434c;border-top-color:#ddd;border-radius:50%;animation:spin 1s linear infinite;vertical-align:-3px}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .flash{animation:flash .6s ease}@keyframes flash{0%{color:var(--ok)}100%{color:var(--muted)}}
-
-    /* Mobile */
-    #mobileMenu{display:none}
-    @supports(padding:max(0px)){.topbar{padding-top:calc(10px + env(safe-area-inset-top))}}
-    @media (max-width:520px){
-      #mobileMenu{display:grid}
-      #navicons{display:none;position:absolute;right:8px;top:calc(100% + 6px);background:#26252b;border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:var(--shadow);z-index:60}
-      #navicons.show{display:flex}
-      .brand h1{max-width:46vw}
-      .legend{font-size:11px}
-      .chip{font-size:11px}
-      .tabbtn,button{padding:10px 12px}
-      .pill{white-space:nowrap}
-    }
+    .legend{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px;font-size:12px;color:var(--muted)}.legend .item{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:#26252b}
+    .swatch{display:inline-block;width:20px;height:10px;border-radius:2px}.swatch.line{width:28px;height:0;border-top:3px solid currentColor}.swatch.dashed{border-top-style:dashed}
+    #mobileMenu{display:none}@media (max-width:520px){#mobileMenu{display:grid}#navicons{display:none;position:absolute;right:8px;top:calc(100% + 6px);background:#26252b;border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:var(--shadow);z-index:60}#navicons.show{display:flex}}
   </style>
 </head>
-
 <body>
-  <!-- HEADER -->
   <header class="topbar">
-    <div class="brand">
-      <div class="logo"><img src="icon-192.png" alt="Trader Prep Logo"></div>
-      <h1>Trader Prep</h1>
-    </div>
-
+    <div class="brand"><div class="logo"><img src="icon-192.png" alt=""></div><h1>Trader Prep</h1></div>
     <nav class="navicons" id="navicons">
       <div class="iconbtn active" id="nav-prep" title="Prep"><i class="fa-solid fa-bars-staggered"></i></div>
       <div class="iconbtn" id="nav-trend" title="Trend"><i class="fa-solid fa-wave-square"></i></div>
       <div class="iconbtn" id="nav-risk" title="Risk"><i class="fa-solid fa-fire-flame-curved"></i></div>
-      <div class="iconbtn" id="nav-pnl" title="Profit Log"><i class="fa-solid fa-dollar-sign"></i></div>
+      <div class="iconbtn" id="nav-pnl" title="P&L"><i class="fa-solid fa-dollar-sign"></i></div>
       <div class="iconbtn" id="nav-settings" title="Settings"><i class="fa-solid fa-gear"></i></div>
     </nav>
-
-    <button class="iconbtn" id="mobileMenu" title="Menu">
-      <i class="fa-solid fa-ellipsis-vertical"></i>
-    </button>
+    <button class="iconbtn" id="mobileMenu" title="Menu"><i class="fa-solid fa-ellipsis-vertical"></i></button>
   </header>
 
-  <!-- STATS -->
   <div class="statstrip">
     <div class="chip" id="chipAKWrap"><span class="muted">AK$ (today):</span> <strong id="chipAK">$0.00</strong><span class="muted" style="margin-left:8px">/ all:</span> <strong id="chipAKAll">$0.00</strong></div>
     <div class="chip" id="chipBGWrap"><span class="muted">BG$ (today):</span> <strong id="chipBG">$0.00</strong><span class="muted" style="margin-left:8px">/ all:</span> <strong id="chipBGAll">$0.00</strong></div>
-    <div class="chip ok" id="conn1"><i class="fa-solid fa-signal"></i> API OK</div>
-    <div class="chip ok" id="conn2"><i class="fa-solid fa-chart-line"></i> Data OK</div>
+    <div class="chip warn" id="conn1"><i class="fa-solid fa-signal"></i> Unknown</div>
+    <div class="chip warn" id="conn2"><i class="fa-solid fa-chart-line"></i> Unknown</div>
   </div>
 
   <div class="wrap">
-    <!-- SETTINGS -->
     <div class="card" id="panel-settings" style="display:none">
-      <div class="row"><strong>Settings</strong><span class="muted">(Keys optional; proxy fallback built-in)</span></div>
-      <div class="row" style="margin-top:10px"><label class="muted" style="min-width:170px">GNews API Key</label><input id="gnews" placeholder="gnews.io token"></div>
-      <div class="row" style="margin-top:10px"><label class="muted" style="min-width:170px">Alpha Vantage Key</label><input id="alpha" placeholder="alphavantage.co key"></div>
-      <div class="actions" style="margin-top:10px"><button id="saveKeys" class="primary"><i class="fa-regular fa-floppy-disk"></i>&nbsp;Save Keys</button><span id="saveMsg" class="muted"></span></div>
+      <div class="row"><strong>Settings</strong><span class="muted">(Use your proxy if possible for reliability)</span></div>
+      <div class="row" style="margin-top:8px"><label class="muted" style="min-width:180px">Custom Proxy (Apps Script web app)</label><input id="customProxy" placeholder="https://script.google.com/macros/s/.../exec?url="></div>
+      <div class="row" style="margin-top:8px"><label class="muted" style="min-width:180px">GNews API Key</label><input id="gnews" placeholder="gnews.io token"></div>
+      <div class="row" style="margin-top:8px"><label class="muted" style="min-width:180px">Alpha Vantage Key</label><input id="alpha" placeholder="alphavantage.co key"></div>
+      <div class="actions" style="margin-top:8px">
+        <button id="saveKeys" class="primary"><i class="fa-regular fa-floppy-disk"></i>&nbsp;Save</button>
+        <button id="testFetch"><i class="fa-solid fa-vial"></i>&nbsp;Test Data Fetch</button>
+        <span id="saveMsg" class="muted"></span>
+      </div>
+      <div id="diag" class="muted" style="margin-top:10px;font-size:13px"></div>
     </div>
 
-    <!-- PNL -->
     <div class="card" id="panel-pnl" style="display:none">
-      <div class="row"><strong>Daily P&L Log</strong><span class="muted">(updates AK$/BG$ chips for today)</span></div>
+      <div class="row"><strong>Daily P&L Log</strong><span class="muted">(updates chips)</span></div>
       <div class="row" style="margin-top:10px"><label class="muted" style="min-width:170px">Who</label><div class="actions"><label><input type="radio" name="who" value="AK" checked> AK</label><label style="margin-left:10px"><input type="radio" name="who" value="BG"> BG</label></div></div>
       <div class="row" style="margin-top:10px"><label class="muted" style="min-width:170px">Amount ($)</label><input id="pnlAmount" placeholder="e.g. 125.50 or -75"></div>
       <div class="row" style="margin-top:10px"><label class="muted" style="min-width:170px">Note (optional)</label><input id="pnlNote" placeholder="scalp NQ open, etc."></div>
-      <div class="actions" style="margin-top:10px"><button id="logPnl" class="primary"><i class="fa-solid fa-plus"></i>&nbsp;Log Profit</button><span id="pnlMsg" class="muted"></span></div>
-      <details style="margin-top:12px"><summary>Today’s entries</summary><div id="pnlTodayTable" class="muted" style="margin-top:8px">—</div><div class="actions" style="margin-top:8px"><button id="undoLast"><i class="fa-solid fa-rotate-left"></i>&nbsp;Undo last entry</button></div></details>
+      <div class="actions" style="margin-top:10px"><button id="logPnl" class="primary"><i class="fa-solid fa-plus"></i>&nbsp;Log</button><span id="pnlMsg" class="muted"></span></div>
+      <details style="margin-top:12px"><summary>Today’s entries</summary><div id="pnlTodayTable" class="muted" style="margin-top:8px">—</div><div class="actions" style="margin-top:8px"><button id="undoLast"><i class="fa-solid fa-rotate-left"></i>&nbsp;Undo last</button></div></details>
     </div>
 
-    <!-- MARKET PICKER -->
     <div class="card" id="panel-picker">
       <div class="tabs">
         <button class="tabbtn active" id="tab-prep">Prep</button>
@@ -155,37 +82,19 @@
         <button class="tabbtn" id="tab-risk">Risk</button>
       </div>
       <strong>Choose your markets</strong>
-      <div class="bundles">
-        <button class="bundle" data-bundle="ES,NQ,YM,RTY">US Indices</button>
-        <button class="bundle" data-bundle="CL,GC">Energy & Gold</button>
-        <button class="bundle" data-bundle="ZN,6E">Rates / FX</button>
-      </div>
-
       <div class="grid" style="margin-top:10px">
         <div>
           <label class="muted">Futures/markets</label>
           <select id="futures" multiple size="8" aria-label="Futures and markets">
-            <option value="ES">ES – S&P 500</option>
-            <option value="NQ">NQ – Nasdaq 100</option>
-            <option value="YM">YM – Dow</option>
-            <option value="RTY">RTY – Russell 2000</option>
-            <option value="CL">CL – Crude Oil</option>
-            <option value="GC">GC – Gold</option>
-            <option value="ZN">ZN – 10-Yr Note</option>
-            <option value="6E">6E – EUR/USD</option>
+            <option value="ES">ES – S&P 500</option><option value="NQ">NQ – Nasdaq 100</option><option value="YM">YM – Dow</option><option value="RTY">RTY – Russell 2000</option><option value="CL">CL – Crude Oil</option><option value="GC">GC – Gold</option><option value="ZN">ZN – 10-Yr Note</option><option value="6E">6E – EUR/USD</option>
           </select>
         </div>
         <div>
-          <div class="muted">Trend/Risk timeframe</div>
-          <div class="seg" id="tfSeg" style="margin-top:6px">
-            <button class="segbtn active" data-tf="15">15m</button>
-            <button class="segbtn" data-tf="30">30m</button>
-            <button class="segbtn" data-tf="60">60m</button>
-          </div>
-          <div class="muted" style="margin-top:6px">Trend/Risk use 1-minute Yahoo bars (via proxy), mapped futures → ETFs.</div>
+          <div class="muted">Timeframe for Trend/Risk</div>
+          <div class="actions" id="tfSeg" style="margin-top:6px"><button class="tabbtn" data-tf="15">15m</button><button class="tabbtn" data-tf="30">30m</button><button class="tabbtn" data-tf="60">60m</button></div>
+          <div class="muted" style="margin-top:6px">Data: Yahoo 1m via proxy; headlines via GNews or Google News RSS via proxy.</div>
         </div>
       </div>
-
       <div class="actions" style="margin-top:12px">
         <button id="start" class="primary"><i class="fa-solid fa-bolt"></i>&nbsp;Analyze (Prep)</button>
         <button id="runTrend" class="primary"><i class="fa-solid fa-wave-square"></i>&nbsp;Analyze (Trend)</button>
@@ -193,45 +102,26 @@
       </div>
     </div>
 
-    <!-- PREP -->
     <div id="prepOut" class="card">
       <div class="row"><strong>Trader Prep</strong><span class="muted">Now: <span id="now"></span></span></div>
       <div class="muted">Focus: <span id="focus"></span> • <span id="keyStatus"></span></div>
       <div id="summary" style="margin-top:12px"></div>
-      <h3 style="margin-top:16px">Quick Links</h3>
-      <ul id="links"></ul>
+      <h3 style="margin-top:16px">Quick Links</h3><ul id="links"></ul>
     </div>
 
-    <!-- TREND -->
     <div id="trendOut" class="card" style="display:none">
       <div class="row"><strong>Current Trend</strong><span class="muted">Window: <span id="trendWin">15m</span></span></div>
-      <div class="muted">Primary: <span id="trendSym"></span> (mapped ETF) • <span id="trendTime"></span></div>
+      <div class="muted">Primary: <span id="trendSym"></span> • <span id="trendTime"></span></div>
       <div id="trendSummary" style="margin-top:12px"></div>
       <canvas id="trendChart" class="chart"></canvas>
       <div id="trendLegend" class="legend"></div>
       <div id="trendAdvice" style="margin-top:12px"></div>
       <div class="muted" style="margin-top:6px;font-size:12px">Last refreshed: <span id="trendRef">—</span></div>
-      <details style="margin-top:10px"><summary>How we decide “busy”</summary>
-        <div class="muted" style="margin-top:6px">We compute 1-minute returns and flag as <b>Busy</b> when realized vol in the window is elevated (≥ ~0.06% std-dev) or average volume is above the window’s median (≥ 1.2×).</div>
-      </details>
     </div>
 
-    <!-- RISK -->
     <div id="riskOut" class="card" style="display:none">
       <div class="row"><strong>Risk Read</strong><span class="muted">Window: <span id="riskWin">15m</span></span></div>
-
-      <div class="seg" id="riskModeSeg" style="margin:6px 0 2px">
-        <button class="segbtn active" data-mode="conservative">Conservative</button>
-        <button class="segbtn" data-mode="aggressive">Aggressive</button>
-      </div>
-
-      <div class="row sliderrow" style="margin:4px 0 8px">
-        <span class="muted" style="min-width:120px">Candles (1m each)</span>
-        <input id="riskCandles" type="range" min="3" max="15" step="1" value="3" aria-label="Risk candles">
-        <span class="pill" id="riskCandlesLabel">3 candles</span>
-      </div>
-
-      <div class="muted">Primary: <span id="riskSym"></span> (mapped ETF) • <span id="riskTime"></span></div>
+      <div class="muted">Primary: <span id="riskSym"></span> • <span id="riskTime"></span></div>
       <div id="riskSummary" style="margin-top:12px"></div>
       <canvas id="riskChart" class="chart"></canvas>
       <div id="riskLegend" class="legend"></div>
@@ -240,22 +130,180 @@
     </div>
   </div>
 
-  <!-- Why Modal -->
-  <div class="modal" id="whyModal" role="dialog" aria-modal="true" aria-labelledby="whyTitle" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);align-items:center;justify-content:center;z-index:80">
-    <div class="sheet" style="background:var(--panel);border:1px solid var(--line);border-radius:16px;max-width:640px;width:92vw;padding:14px;box-shadow:var(--shadow)">
-      <button class="pill close" style="float:right" id="whyClose">Close</button>
-      <h3 id="whyTitle">Why this suggestion?</h3>
-      <div id="whyBody" class="muted"></div>
-    </div>
-  </div>
-
   <script>
-  /* ---------------- Config ---------------- */
-  const PROXY_RAW = 'https://script.google.com/macros/s/AKfycbztzwYcRxD3mQ2MgD99ubT3-nW-nQJiU-thNoUrdRuMkrTIF1LilnEyCbysHP6Z7HYf/exec?url=';
+  /* ======== Robust proxy fallback ======== */
+  function getCustomProxy(){return (localStorage.getItem('CUSTOM_PROXY')||'').trim()}
+  const PROXIES = [
+    '', // direct (will fail CORS from browser, but try)
+    () => getCustomProxy(), // your Apps Script if set
+    'https://api.allorigins.win/raw?url=' // public fallback
+  ];
+  function wrapUrl(u, idx){
+    const p = PROXIES[idx];
+    if (typeof p === 'function'){ const v = p(); return v ? v + encodeURIComponent(u) : null; }
+    if (!p) return u; // direct
+    return p + encodeURIComponent(u);
+  }
 
-  // ===== PnL API (optional) =====
-  const PNL_API   = 'https://script.google.com/macros/s/AKfycbz2b9H8BLD7BvWfbtWaPnaThvUHM66MsnBcDb0_siM5L_xxqj1MrfqSPk1uOjvbbNx0/exec'; // <-- no ?url=
-  const PNL_TOKEN = 'CHANGE_ME_32CHAR';
+  async function fetchWithFallback(url, type='json', timeout=10000){
+    let lastErr=null, used='';
+    for (let i=0;i<PROXIES.length;i++){
+      const wrapped = wrapUrl(url, i);
+      if (!wrapped) continue;
+      try{
+        const c = new AbortController(); const to = setTimeout(()=>c.abort('timeout'), timeout);
+        const res = await fetch(wrapped, {signal:c.signal, cache:'no-store'});
+        clearTimeout(to);
+        if (!res.ok) throw new Error('HTTP '+res.status);
+        used = (typeof PROXIES[i] === 'function') ? 'customProxy' : (PROXIES[i] || 'direct');
+        return { ok:true, used, data: (type==='json') ? await res.json() : await res.text() };
+      }catch(e){ lastErr=e; }
+    }
+    return { ok:false, error:String(lastErr||'unknown'), used };
+  }
+
+  /* ======== Settings & Diagnostics ======== */
+  const panelSettings=document.getElementById('panel-settings');
+  const panelPnL=document.getElementById('panel-pnl');
+  const navPrep=document.getElementById('nav-prep'),navTrend=document.getElementById('nav-trend'),navSettings=document.getElementById('nav-settings'),navPnL=document.getElementById('nav-pnl'),navRisk=document.getElementById('nav-risk');
+  function hidePanels(){panelSettings.style.display='none';panelPnL.style.display='none'}
+  function setNav(active){
+    [navPrep,navTrend,navSettings,navPnL,navRisk].forEach(n=>n.classList.toggle('active',n.id===active));
+    hidePanels();
+    if(active==='nav-settings') panelSettings.style.display='block';
+    if(active==='nav-pnl') panelPnL.style.display='block';
+    if(active==='nav-prep') setTab('prep');
+    if(active==='nav-trend') setTab('trend');
+    if(active==='nav-risk') setTab('risk');
+  }
+  navPrep.onclick=()=>setNav('nav-prep'); navTrend.onclick=()=>setNav('nav-trend'); navSettings.onclick=()=>setNav('nav-settings'); navPnL.onclick=()=>setNav('nav-pnl'); navRisk.onclick=()=>setNav('nav-risk');
+
+  const tabPrep=document.getElementById('tab-prep'), tabTrend=document.getElementById('tab-trend'), tabRisk=document.getElementById('tab-risk');
+  const prepOut=document.getElementById('prepOut'), trendOut=document.getElementById('trendOut'), riskOut=document.getElementById('riskOut');
+  function setTab(which){
+    tabPrep.classList.toggle('active',which==='prep'); tabTrend.classList.toggle('active',which==='trend'); tabRisk.classList.toggle('active',which==='risk');
+    prepOut.style.display=(which==='prep')?'':'none'; trendOut.style.display=(which==='trend')?'':'none'; riskOut.style.display=(which==='risk')?'':'none';
+  }
+
+  const customProxyEl=document.getElementById('customProxy');
+  const gnewsEl=document.getElementById('gnews'), alphaEl=document.getElementById('alpha'), saveBtn=document.getElementById('saveKeys'), saveMsg=document.getElementById('saveMsg'), testBtn=document.getElementById('testFetch'), diag=document.getElementById('diag');
+  function loadKeys(){gnewsEl.value=localStorage.getItem('GNEWS_KEY')||'';alphaEl.value=localStorage.getItem('ALPHA_KEY')||'';customProxyEl.value=getCustomProxy()}
+  function saveKeys(){localStorage.setItem('GNEWS_KEY',gnewsEl.value.trim());localStorage.setItem('ALPHA_KEY',alphaEl.value.trim());localStorage.setItem('CUSTOM_PROXY',customProxyEl.value.trim());saveMsg.textContent='Saved ✓';setTimeout(()=>saveMsg.textContent='',1500)}
+  saveBtn.onclick=saveKeys; loadKeys();
+  testBtn.onclick=async()=>{
+    diag.textContent='Testing Yahoo 1m via fallback chain...';
+    const url='https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=1d&interval=1m&includePrePost=true';
+    const r=await fetchWithFallback(url,'json',10000);
+    if(r.ok){diag.innerHTML=`<span class="chip ok">OK via <b>${r.used}</b></span>`; document.getElementById('conn2').className='chip ok'; document.getElementById('conn2').innerHTML='<i class="fa-solid fa-chart-line"></i> Data OK';}
+    else {diag.innerHTML=`<span class="chip bad">Failed: ${r.error}</span> • Try adding a custom proxy above.`; document.getElementById('conn2').className='chip bad'; document.getElementById('conn2').innerHTML='<i class="fa-solid fa-chart-line"></i> Data FAIL';}
+  };
+
+  const futuresSel=document.getElementById('futures');
+  const startBtn=document.getElementById('start'), runTrendBtn=document.getElementById('runTrend'), runRiskBtn=document.getElementById('runRisk');
+  const nowEl=document.getElementById('now'), focusEl=document.getElementById('focus'), summaryEl=document.getElementById('summary'), linksEl=document.getElementById('links');
+  const keyStatusEl=document.getElementById('keyStatus');
+  const trendWinEl=document.getElementById('trendWin'), trendSymEl=document.getElementById('trendSym'), trendTimeEl=document.getElementById('trendTime'), trendSummaryEl=document.getElementById('trendSummary'), trendAdviceEl=document.getElementById('trendAdvice'), trendCanvas=document.getElementById('trendChart');
+  const riskWinEl=document.getElementById('riskWin'), riskSymEl=document.getElementById('riskSym'), riskTimeEl=document.getElementById('riskTime'), riskSummaryEl=document.getElementById('riskSummary'), riskAdviceEl=document.getElementById('riskAdvice'), riskCanvas=document.getElementById('riskChart');
+  const trendLegend=document.getElementById('trendLegend'); const riskLegend=document.getElementById('riskLegend');
+  const chipData=document.getElementById('conn2');
+
+  function sigmoid(x){return 1/(1+Math.exp(-x))}
+  function stdev(arr){if(!arr.length)return 0;const m=arr.reduce((a,b)=>a+b,0)/arr.length;const v=arr.reduce((a,b)=>a+(b-m)*(b-m),0)/arr.length;return Math.sqrt(v)}
+  function ema(arr,a=0.25){const out=[];let s=null;for(const x of arr){s=(s==null)?x:a*x+(1-a)*s;out.push(s)}return out}
+
+  const FUTURES_TO_ETF={ES:'SPY',NQ:'QQQ',YM:'DIA',RTY:'IWM',CL:'USO',GC:'GLD',ZN:'IEF','6E':'FXE'};
+
+  function sizeCanvas(canvas){const dpr=Math.max(1,Math.min(2,window.devicePixelRatio||1));const cssW=canvas.clientWidth||700,cssH=canvas.clientHeight||190;canvas.width=Math.floor(cssW*dpr);canvas.height=Math.floor(cssH*dpr);return{ctx:canvas.getContext('2d'),w:canvas.width,h:canvas.height,dpr}}
+  function drawCandleChart(canvas,bars){const {ctx,w,h}=sizeCanvas(canvas);ctx.clearRect(0,0,w,h);if(!bars||bars.length<2)return;const pad=12;const highs=bars.map(b=>b.h),lows=bars.map(b=>b.l);const min=Math.min(...lows),max=Math.max(...highs),range=(max-min)||1;const step=(w-pad*2)/(bars.length-1);const bodyFrac=0.65,bodyW=Math.max(3,step*bodyFrac);ctx.strokeStyle='#2d2d33';ctx.lineWidth=1;for(let i=1;i<=3;i++){const y=pad+(h-pad*2)*(i/4);ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(w-pad,y);ctx.stroke()}for(let i=0;i<bars.length;i++){const b=bars[i],x=pad+step*i;const yH=h-pad-((b.h-min)/range)*(h-pad*2);const yL=h-pad-((b.l-min)/range)*(h-pad*2);const yO=h-pad-((b.o-min)/range)*(h-pad*2);const yC=h-pad-((b.c-min)/range)*(h-pad*2);const up=b.c>=b.o;ctx.strokeStyle=up?'#6abd74':'#e05d5d';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,yH);ctx.lineTo(x,yL);ctx.stroke();const top=Math.min(yO,yC),bot=Math.max(yO,yC);ctx.fillStyle=up?'#6abd74':'#e05d5d';ctx.fillRect(x-bodyW/2,top,bodyW,Math.max(2,bot-top))}}
+  function drawTrend(canvas,bars){drawCandleChart(canvas,bars)}
+  function drawRisk(canvas,bars){drawCandleChart(canvas,bars)}
+
+  function getSelectedFutures(){return Array.from(futuresSel.selectedOptions).map(o=>o.value)}
+  function showPrepHeader(markets){nowEl.textContent=new Date().toLocaleString();focusEl.textContent=markets.join(', ')}
+  function makeLinks(markets){const q=encodeURIComponent(markets.join(' ')||'ES NQ');linksEl.innerHTML=`<li><a target="_blank" href="https://www.google.com/search?q=index+futures">Index Futures Snapshot</a></li><li><a target="_blank" href="https://www.google.com/search?q=today+economic+calendar">Economic Calendar</a></li><li><a target="_blank" href="https://news.google.com/search?q=${q}">News for ${markets.join(', ')}</a></li>`}
+
+  async function fetchIntraday(etf){
+    const u = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(etf)}?range=1d&interval=1m&includePrePost=true`;
+    const r = await fetchWithFallback(u,'json',10000);
+    if(!r.ok) throw new Error(r.error||'fetch failed');
+    const d=r.data?.chart?.result?.[0]; const q=d?.indicators?.quote?.[0]; const ts=d?.timestamp||[];
+    const out=[]; for(let i=0;i<ts.length;i++){const o=q?.open?.[i],h=q?.high?.[i],l=q?.low?.[i],c=q?.close?.[i],v=q?.volume?.[i]; if([o,h,l,c,v].every(x=>x!=null)) out.push({t:ts[i]*1000,o,h,l,c,v})}
+    const reg=d?.meta?.currentTradingPeriod?.regular; const regStart=reg?.start?reg.start*1000:null; const regEnd=reg?.end?reg.end*1000:null;
+    return {bars:out,regStart,regEnd,proxy:r.used};
+  }
+  function filterToSession(bars,regStart,regEnd){if(regStart&&regEnd){return bars.filter(b=>b.t>=regStart && b.t<=Math.min(Date.now(),regEnd))}return bars.slice(-390)}
+  function selectWindow(bars,minutes){if(!bars.length)return[];const desired=Math.max(15,minutes);const cutoff=Date.now()-minutes*60*1000;let recent=bars.filter(b=>b.t>=cutoff);if(recent.length<desired)recent=bars.slice(-desired);if(recent.length>desired+2)recent=recent.slice(-desired);return recent}
+  function statsTrend(windowBars){if(windowBars.length<5) return {ok:false,reason:'not enough bars'};const closes=windowBars.map(b=>b.c),vols=windowBars.map(b=>b.v);const first=closes[0],last=closes.at(-1);const pct=(last-first)/first*100;const rets=[];for(let i=1;i<closes.length;i++){const r=(closes[i]-closes[i-1])/closes[i-1];if(isFinite(r))rets.push(r)}const mean=rets.reduce((a,b)=>a+b,0)/Math.max(1,rets.length);const varr=rets.reduce((a,b)=>a+(b-mean)*(b-mean),0)/Math.max(1,rets.length);const std=Math.sqrt(varr);const volMed=[...vols].sort((a,b)=>a-b)[Math.floor(vols.length/2)]||1;const volAvg=vols.reduce((a,b)=>a+b,0)/vols.length;const volRatio=volAvg/(volMed||1);let sx=0,sy=0,sxx=0,sxy=0;for(let i=0;i<closes.length;i++){sx+=i;sy+=closes[i];sxx+=i*i;sxy+=i*closes[i]}const n=closes.length,den=(n*sxx-sx*sx)||1;const slope=(n*sxy-sx*sy)/den;const slopePctPerHour=(slope/first)*60*100;let direction='Sideways',dirClass='warn';if(pct>=0.2||slopePctPerHour>=0.5){direction='Uptrend';dirClass='ok'}else if(pct<=-0.2||slopePctPerHour<=-0.5){direction='Downtrend';dirClass='bad'}const busy=(std>=0.0006)||(volRatio>=1.2);const busyLabel=busy?'Busy':'Calmer',busyClass=busy?'ok':'warn';return{ok:true,pct,std,volRatio,slopePctPerHour,direction,dirClass,busyLabel,busyClass}}
+  function setLegend(el){el.innerHTML=`<span class="item"><span class="swatch" style="background:#6abd74"></span> Up</span><span class="item"><span class="swatch" style="background:#e05d5d"></span> Down</span>`}
+
+  let trendMinutes=15;
+  document.getElementById('tfSeg').addEventListener('click',e=>{const b=e.target.closest('button[data-tf]');if(!b)return;trendMinutes=parseInt(b.dataset.tf,10)||15;document.querySelectorAll('#tfSeg .tabbtn').forEach(x=>x.classList.toggle('active',x===b));document.getElementById('trendWin').textContent=trendMinutes+'m';document.getElementById('riskWin').textContent=trendMinutes+'m'});
+
+  function getSelected(){const a=getSelectedFutures();return a.length?a:['ES']}
+
+  async function buildTrend(markets){
+    const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY'; trendSymEl.textContent=etf; trendTimeEl.textContent=new Date().toLocaleString();
+    trendSummaryEl.innerHTML='<span class="muted"><span class="chip">Loading Yahoo 1m…</span></span>'; trendAdviceEl.textContent='';
+    try{
+      const all=await fetchIntraday(etf); const bars=selectWindow(filterToSession(all.bars,all.regStart,all.regEnd),trendMinutes);
+      drawTrend(trendCanvas,bars); setLegend(trendLegend);
+      const info=statsTrend(bars);
+      if(!info.ok){trendSummaryEl.innerHTML=`<span class="muted">Trend unavailable (${info.reason})</span>`;return}
+      const dirPill=`<span class="pill ${info.dirClass}">${info.direction}</span>`, busyPill=`<span class="pill ${info.busyClass}">${info.busyLabel}</span>`;
+      trendSummaryEl.innerHTML=`${dirPill} ${busyPill} <span class="muted">via <b>${all.proxy}</b></span>`;
+      document.getElementById('trendRef').textContent=new Date().toLocaleTimeString();
+      chipData.className='chip ok'; chipData.innerHTML='<i class="fa-solid fa-chart-line"></i> Data OK';
+    }catch(e){
+      trendSummaryEl.innerHTML=`<span class="chip bad">Data error</span> ${String(e).slice(0,160)} — try adding a Custom Proxy in Settings.`;
+      chipData.className='chip bad'; chipData.innerHTML='<i class="fa-solid fa-chart-line"></i> Data FAIL';
+    }
+  }
+
+  async function buildRisk(markets){
+    const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY'; riskSymEl.textContent=etf; riskTimeEl.textContent=new Date().toLocaleString();
+    riskSummaryEl.innerHTML='<span class="muted"><span class="chip">Loading Yahoo 1m…</span></span>'; riskAdviceEl.textContent='';
+    try{
+      const all=await fetchIntraday(etf); const bars=selectWindow(filterToSession(all.bars,all.regStart,all.regEnd),trendMinutes);
+      drawRisk(riskCanvas,bars); setLegend(riskLegend);
+      const info=statsTrend(bars); const advice=(info.direction==='Uptrend'&&info.busyLabel==='Busy')?'Buy':'Wait';
+      riskSummaryEl.innerHTML=`<span class="pill ${info.dirClass}">${info.direction}</span> <span class="pill ${info.busyClass}">${info.busyLabel}</span> <span class="muted">via <b>${all.proxy}</b></span>`;
+      riskAdviceEl.innerHTML = `<div class="pill" style="margin-top:10px">${advice}</div>`;
+      document.getElementById('riskRef').textContent=new Date().toLocaleTimeString();
+      chipData.className='chip ok'; chipData.innerHTML='<i class="fa-solid fa-chart-line"></i> Data OK';
+    }catch(e){
+      riskSummaryEl.innerHTML=`<span class="chip bad">Data error</span> ${String(e).slice(0,160)} — try adding a Custom Proxy in Settings.`;
+      chipData.className='chip bad'; chipData.innerHTML='<i class="fa-solid fa-chart-line"></i> Data FAIL';
+    }
+  }
+
+  function getSelectedFutures(){return Array.from(futuresSel.selectedOptions).map(o=>o.value)}
+  function showPrepHeader(markets){nowEl.textContent=new Date().toLocaleString();focusEl.textContent=markets.join(', ')}
+  function makeLinks(markets){const q=encodeURIComponent(markets.join(' ')||'ES NQ');linksEl.innerHTML=`<li><a target="_blank" href="https://www.google.com/search?q=index+futures">Index Futures Snapshot</a></li><li><a target="_blank" href="https://www.google.com/search?q=today+economic+calendar">Economic Calendar</a></li><li><a target="_blank" href="https://news.google.com/search?q=${q}">News for ${markets.join(', ')}</a></li>`}
+  async function handlePrep(){const m=getSelectedFutures();const markets=m.length?m:['ES','NQ'];showPrepHeader(markets);makeLinks(markets);keyStatusEl.textContent='Keys optional; proxy fallback chain active.'}
+
+  document.getElementById('start').onclick=handlePrep;
+  document.getElementById('runTrend').onclick=()=>{setTab('trend'); buildTrend(getSelected())};
+  document.getElementById('runRisk').onclick=()=>{setTab('risk'); buildRisk(getSelected())};
+  document.getElementById('tab-prep').onclick=()=>setTab('prep');
+  document.getElementById('tab-trend').onclick=()=>{setTab('trend'); buildTrend(getSelected())};
+  document.getElementById('tab-risk').onclick=()=>{setTab('risk'); buildRisk(getSelected())};
+
+  (function(){const btn=document.getElementById('mobileMenu');const nav=document.getElementById('navicons');if(btn&&nav){btn.addEventListener('click',()=>nav.classList.toggle('show'))}})();
+
+  function todayStr(){const d=new Date();return d.toISOString().slice(0,10)}
+  function readPnL(){try{return JSON.parse(localStorage.getItem('PNL_LOG')||'[]')}catch(_){return []}}
+  function writePnL(arr){localStorage.setItem('PNL_LOG',JSON.stringify(arr))}
+  function renderTodayPnL(){const rows=readPnL().filter(x=>x.date===todayStr());if(!rows.length){pnlTodayTable.textContent='—';return}const html=['<table style="width:100%;border-collapse:collapse">','<tr class="muted"><td>Date</td><td>Who</td><td>Amount</td><td>Note</td></tr>'];rows.forEach(r=>html.push(`<tr><td>${r.date}</td><td>${r.who}</td><td>${(r.amt>=0?'+':'')+r.amt.toFixed(2)}</td><td>${r.note||''}</td></tr>`));html.push('</table>');pnlTodayTable.innerHTML=html.join('')}
+  function sumPnL(name){return readPnL().filter(x=>x.who===name).reduce((a,b)=>a+b.amt,0)}
+  function sumPnLToday(name){return readPnL().filter(x=>x.who===name && x.date===todayStr()).reduce((a,b)=>a+b.amt,0)}
+  function updatePnLChips(){chipAK.textContent='$'+sumPnLToday('AK').toFixed(2);chipAKAll.textContent='$'+sumPnL('AK').toFixed(2);chipBG.textContent='$'+sumPnLToday('BG').toFixed(2);chipBGAll.textContent='$'+sumPnL('BG').toFixed(2)}
+  const pnlAmount=document.getElementById('pnlAmount'), pnlNote=document.getElementById('pnlNote'), pnlMsg=document.getElementById('pnlMsg'), pnlTodayTable=document.getElementById('pnlTodayTable'), undoLast=document.getElementById('undoLast');
+  document.getElementById('logPnl').onclick=()=>{const who=(document.querySelector('input[name="who"]:checked')||{}).value||'AK';const amt=parseFloat(pnlAmount.value);if(!isFinite(amt)){pnlMsg.textContent='Enter a valid number';setTimeout(()=>pnlMsg.textContent='',1200);return}const entry={date:todayStr(),who,amt,note:pnlNote.value.trim()};const arr=readPnL();arr.push(entry);writePnL(arr);pnlAmount.value='';pnlNote.value='';renderTodayPnL();updatePnLChips();pnlMsg.textContent='Logged ✓';setTimeout(()=>pnlMsg.textContent='',1200)};
+  undoLast.onclick=()=>{const arr=readPnL();if(!arr.length)return;arr.pop();writePnL(arr);renderTodayPnL();updatePnLChips()};
+  window.addEventListener('load',()=>{for(const o of futuresSel.options){o.selected=(o.value==='ES'||o.value==='NQ')}document.querySelector('#tfSeg [data-tf="15"]').classList.add('active');handlePrep();renderTodayPnL();updatePnLChips()});
+  </script>
+</body>
+</html>
 
   /* ---------------- Nav / Tabs ---------------- */
   const panelSettings=document.getElementById('panel-settings');
