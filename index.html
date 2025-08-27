@@ -849,8 +849,10 @@
         const M = Math.max(2, Math.min(N, trendMinutes));
 
         let rec; if(riskMode==='aggressive'){ rec = lastNSignal(win, N); } else { rec = conservativeSignal(info, win, N); }
+        // Insert the recommendation pill and disclaimer.  Center the pill horizontally
+        // within the advice container by using auto margins.
         riskAdviceEl.innerHTML = `
-          <div class="pill autoscroll" id="riskRecPill" style="margin-top:10px;background:#2b2a31;border-color:#3a3941">
+          <div class="pill autoscroll" id="riskRecPill" style="display:block;margin-top:10px;margin-left:auto;margin-right:auto;background:#2b2a31;border-color:#3a3941;width:fit-content">
             <i class="fa-solid fa-lightbulb"></i>&nbsp; ${rec.text}
           </div>
           <div class="muted" style="margin-top:6px;font-size:12px">
@@ -865,7 +867,12 @@
         const pctConf = Math.round(pred.conf*100);
         const predEl = document.createElement('div');
         predEl.className='pill accent'; predEl.id='riskPredPill'; predEl.style.cursor='pointer'; predEl.title='Tap to see why';
+        // Center the prediction pill horizontally within the advice container
         predEl.style.marginTop='8px';
+        predEl.style.marginLeft='auto';
+        predEl.style.marginRight='auto';
+        predEl.style.display='block';
+        predEl.style.width='fit-content';
         predEl.innerHTML = `<i class="fa-solid fa-crystal-ball"></i>&nbsp; Prediction: <b>${pred.text}</b> <span class="muted" style="margin-left:6px">(${pctConf}% conf)</span>`;
         riskAdviceEl.appendChild(predEl);
         /*__RISK_EXPLAIN_INSERTED__*/
@@ -912,7 +919,12 @@
           const pctStr2=`${lean.pct>=0?'+':''}${lean.pct.toFixed(2)}%`;
           const extra=document.createElement('div');
           extra.className=`pill ${lean.cls}`;
+          // Center the lean pill horizontally and space it below previous elements
           extra.style.marginTop='8px';
+          extra.style.marginLeft='auto';
+          extra.style.marginRight='auto';
+          extra.style.display='block';
+          extra.style.width='fit-content';
           extra.innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i>&nbsp; Last <b>${M} minutes</b>: leaning <b>${lean.dir}</b> (${pctStr2}).`;
           riskAdviceEl.appendChild(extra);
         }
