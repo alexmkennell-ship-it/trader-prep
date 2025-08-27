@@ -668,7 +668,7 @@
       return {text:'Recommend: <b>Wait</b> (sideways / mixed)',action:'Wait'};
     }
 
-    async function buildTrend(markets){
+    async function buildTrend(markets){ try {
       const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
       trendSymEl.textContent=etf; trendTimeEl.textContent=new Date().toLocaleString();
       trendSummaryEl.innerHTML='<span class="spinner"></span> Loading 1-minute bars...'; trendAdviceEl.innerHTML='';
@@ -689,7 +689,7 @@
         const refEl=document.getElementById('trendRef'); if(refEl){refEl.textContent=new Date().toLocaleTimeString();refEl.classList.remove('flash');void refEl.offsetWidth;refEl.classList.add('flash')}
         if(window.bindExplainers) window.bindExplainers();
       }
-    }catch(_){}catch(e){trendSummaryEl.innerHTML=`<span class="muted">Trend fetch failed (${String(e.message||e)})</span>`;drawTrend(trendCanvas,[])}
+    }catch(_){}catch(e){ trendSummaryEl.innerHTML=`<span class="muted">Trend fetch failed (${String(e && (e.message||e))})</span>`; try{drawTrend(trendCanvas,[])}catch(_){} }
     }
 
     /* ---------------- Risk ---------------- */
@@ -756,7 +756,7 @@
       const cls=dir==='Bullish'?'ok':'bad'; return {dir,cls,pct};
     }
 
-    async function buildRisk(markets){
+    async function buildRisk(markets){ try {
       const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
       riskSymEl.textContent=etf; riskTimeEl.textContent=new Date().toLocaleString();
       riskSummaryEl.innerHTML='<span class="spinner"></span> Loading 1-minute bars...'; riskAdviceEl.innerHTML='';
