@@ -851,30 +851,30 @@
         let rec; if(riskMode==='aggressive'){ rec = lastNSignal(win, N); } else { rec = conservativeSignal(info, win, N); }
         // Insert the recommendation pill and disclaimer.  Center the pill horizontally
         // within the advice container by using auto margins.
+        // Build only the recommendation pill inside riskAdvice.  We'll move the disclaimer
+        // outside and group the prediction/lean pills together on one line.
         riskAdviceEl.innerHTML = `
-          <div class="pill autoscroll" id="riskRecPill" style="display:block;margin-top:10px;margin-left:auto;margin-right:auto;background:#2b2a31;border-color:#3a3941;width:fit-content">
+          <div class="pill autoscroll" id="riskRecPill" style="display:inline-flex;margin-top:10px;background:#2b2a31;border-color:#3a3941">
             <i class="fa-solid fa-lightbulb"></i>&nbsp; ${rec.text}
-          </div>
-          <div class="muted" style="margin-top:6px;font-size:12px">
-            Disclaimer: This is an automated summary and not financial advice.
           </div>
         `;
         // Convert long recommendation text into a marquee if overflowing
-        applyMarquee(document.getElementById("riskRecPill"));
+        applyMarquee(document.getElementById('riskRecPill'));
 
         // NEW: Prediction blip (purple)
         const pred = marketPrediction(info, win);
         const pctConf = Math.round(pred.conf*100);
         const predEl = document.createElement('div');
         predEl.className='pill accent'; predEl.id='riskPredPill'; predEl.style.cursor='pointer'; predEl.title='Tap to see why';
-        // Center the prediction pill horizontally within the advice container
-        predEl.style.marginTop='8px';
-        predEl.style.marginLeft='auto';
-        predEl.style.marginRight='auto';
-        predEl.style.display='block';
-        predEl.style.width='fit-content';
         predEl.innerHTML = `<i class="fa-solid fa-crystal-ball"></i>&nbsp; Prediction: <b>${pred.text}</b> <span class="muted" style="margin-left:6px">(${pctConf}% conf)</span>`;
-        riskAdviceEl.appendChild(predEl);
+
+        // Container for prediction and lean pills on the same line
+        const pillRow = document.createElement('div');
+        pillRow.style.display = 'flex';
+        pillRow.style.gap = '8px';
+        pillRow.style.flexWrap = 'wrap';
+        pillRow.style.marginTop = '8px';
+        pillRow.appendChild(predEl);
         /*__RISK_EXPLAIN_INSERTED__*/
         (function(){
           const recEl = document.getElementById('riskRecPill');
@@ -919,14 +919,29 @@
           const pctStr2=`${lean.pct>=0?'+':''}${lean.pct.toFixed(2)}%`;
           const extra=document.createElement('div');
           extra.className=`pill ${lean.cls}`;
-          // Center the lean pill horizontally and space it below previous elements
-          extra.style.marginTop='8px';
-          extra.style.marginLeft='auto';
-          extra.style.marginRight='auto';
-          extra.style.display='block';
-          extra.style.width='fit-content';
           extra.innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i>&nbsp; Last <b>${M} minutes</b>: leaning <b>${lean.dir}</b> (${pctStr2}).`;
-          riskAdviceEl.appendChild(extra);
+          pillRow.appendChild(extra);
+        }
+        // Append the row of prediction/lean pills to the advice container
+        riskAdviceEl.appendChild(pillRow);
+
+        // Move the disclaimer to just above the last refreshed row.  We create or update
+        // a dedicated element with id=riskDisclaimer for this.
+        {
+          const refEl=document.getElementById('riskRef');
+          if(refEl){
+            const refRow=refEl.parentElement;
+            let disc=document.getElementById('riskDisclaimer');
+            if(!disc){
+              disc=document.createElement('div');
+              disc.id='riskDisclaimer';
+              disc.className='muted';
+              disc.style.marginTop='10px';
+              disc.style.fontSize='12px';
+              refRow.parentElement.insertBefore(disc, refRow);
+            }
+            disc.textContent='Disclaimer: This is an automated summary and not financial advice.';
+          }
         }
         const refEl=document.getElementById('riskRef'); if(refEl){refEl.textContent=new Date().toLocaleTimeString();refEl.classList.remove('flash');void refEl.offsetWidth;refEl.classList.add('flash')}
         riskWinEl.textContent=`${trendMinutes}m`;
