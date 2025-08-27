@@ -124,6 +124,7 @@
 
   <!-- STATS -->
   <div class="statstrip">
+    <div class="chip warn" id="chipToken"><i class="fa-solid fa-key"></i> Token: —</div>
     <div id="diagPanel" class="chip bad" style="display:none;max-width:100%;overflow:auto"></div>
     <div class="chip" id="chipAKWrap"><span class="muted">AK$ (today):</span> <strong id="chipAK">$0.00</strong><span class="muted" style="margin-left:8px">/ all:</span> <strong id="chipAKAll">$0.00</strong></div>
     <div class="chip" id="chipBGWrap"><span class="muted">BG$ (today):</span> <strong id="chipBG">$0.00</strong><span class="muted" style="margin-left:8px">/ all:</span> <strong id="chipBGAll">$0.00</strong></div>
@@ -1070,6 +1071,45 @@
     async function pnlGetTotals(){
       const {url, token} = pnlConfig();
       const c1=document.getElementById('conn1'), c2=document.getElementById('conn2');
+      const tchip=document.getElementById('chipToken');
+      const setChip=(chip,cls,text)=>{ if(!chip) return; chip.classList.remove('ok','bad','warn'); chip.classList.add(cls); chip.innerHTML=text; };
+      // Token chip
+      if(tchip){
+        const tail = token ? token.slice(-6) : '—';
+        setChip(tchip, token?'ok':'bad', `<i class="fa-solid fa-key"></i> Token: ${token?('••••'+tail):'missing'}`);
+      }
+      // Test PROXY by fetching a tiny RSS (fast)
+      try{
+        await fetchTextSmart('https://news.google.com/rss?q=ES&hl=en-US&gl=US&ceid=US:en');
+        setChip(c1,'ok','<i class="fa-solid fa-signal"></i> Network OK');
+      }catch(e){
+        setChip(c1,'bad','<i class="fa-solid fa-signal"></i> Network FAIL');
+      }
+      if(!url || !token || token==='CHANGE_ME_32CHAR'){
+        setChip(c2,'warn','<i class="fa-solid fa-chart-line"></i> P&L setup needed');
+        const chipAK=document.getElementById('chipAK'); const chipBG=document.getElementById('chipBG'); const chipAKAll=document.getElementById('chipAKAll'); const chipBGAll=document.getElementById('chipBGAll');
+        if(chipAK) chipAK.textContent='N/A'; if(chipBG) chipBG.textContent='N/A'; if(chipAKAll) chipAKAll.textContent='N/A'; if(chipBGAll) chipBGAll.textContent='N/A';
+        return;
+      }
+      try{
+        const j = await fetchJsonSmart(url + '?token=' + encodeURIComponent(token));
+        if(!j || j.ok!==true) throw new Error(j && j.error || 'bad');
+        const ak=Number(j.today?.AK||0),bg=Number(j.today?.BG||0),aka=Number(j.all?.AK||0),bga=Number(j.all?.BG||0);
+        const chipAK=document.getElementById('chipAK'); const chipBG=document.getElementById('chipBG'); const chipAKAll=document.getElementById('chipAKAll'); const chipBGAll=document.getElementById('chipBGAll');
+        if(chipAK) chipAK.textContent = '$' + ak.toFixed(2);
+        if(chipBG) chipBG.textContent = '$' + bg.toFixed(2);
+        if(chipAKAll) chipAKAll.textContent = '$' + aka.toFixed(2);
+        if(chipBGAll) chipBGAll.textContent = '$' + bga.toFixed(2);
+        setChip(c2,'ok','<i class="fa-solid fa-chart-line"></i> P&L OK');
+        // color chips by today P&L
+        const chipAKWrap=document.getElementById('chipAKWrap'); const chipBGWrap=document.getElementById('chipBGWrap');
+        const setWrap=(wrap,val)=>{ if(!wrap) return; wrap.classList.remove('ok','bad','warn'); if(val>0.005) wrap.classList.add('ok'); else if(val<-0.005) wrap.classList.add('bad'); else wrap.classList.add('warn'); };
+        setWrap(chipAKWrap,ak); setWrap(chipBGWrap,bg);
+      }catch(e){
+        setChip(c2,'bad','<i class="fa-solid fa-chart-line"></i> P&L FAIL');
+      }
+    } = pnlConfig();
+      const c1=document.getElementById('conn1'), c2=document.getElementById('conn2');
       const setChip=(chip,cls,text)=>{ if(!chip) return; chip.classList.remove('ok','bad','warn'); chip.classList.add(cls); chip.innerHTML=text; };
 
       // Test PROXY by fetching a tiny RSS (fast)
@@ -1105,8 +1145,11 @@
 
     
     function pnlConfig(){
-      const url = (localStorage.getItem('PNL_API_URL')||'').trim() || PNL_API;
-      const token = (localStorage.getItem('PNL_TOKEN_STR')||'').trim() || PNL_TOKEN;
+      const urlLS = (localStorage.getItem('PNL_API_URL')||'').trim();
+      const tokLS = (localStorage.getItem('PNL_TOKEN_STR')||'').trim();
+      const bad = (s)=> !s || s==='CHANGE_ME_32CHAR' || s==='YOUR_TOKEN_HERE';
+      const url = bad(urlLS) ? PNL_API : urlLS;
+      const token = bad(tokLS) ? PNL_TOKEN : tokLS;
       return {url, token};
     }
 
@@ -1178,7 +1221,7 @@
       try{ console.error('TraderPrep JS error:', e.error || e.message || e); }catch(_){}
     });
 
-    document.addEventListener('DOMContentLoaded',()=>{ runStartupDiag().catch(()=>{});
+    document.addEventListener('DOMContentLoaded',()=>{ runStartupDiag().catch(()=>{}); pnlGetTotals().catch(()=>{}); setInterval(pnlGetTotals, 120000);
 
       // Aligned 30s refresh: fires exactly at :00 and :30 to catch new minute bars
       function refreshAllCharts(){
