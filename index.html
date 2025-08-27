@@ -1069,7 +1069,48 @@
     const chipAK=document.getElementById('chipAK'), chipBG=document.getElementById('chipBG'), chipAKAll=document.getElementById('chipAKAll'), chipBGAll=document.getElementById('chipBGAll'), chipAKWrap=document.getElementById('chipAKWrap'), chipBGWrap=document.getElementById('chipBGWrap');
     function setChipColor(elWrap,amount){elWrap.classList.remove('ok','bad','warn');const a=Number(amount)||0;if(a>0.005)elWrap.classList.add('ok');else if(a<-0.005)elWrap.classList.add('bad');else elWrap.classList.add('warn')}
     async function pnlGetTotals(){
-      const {url, token} = pnlConfig();
+      const {url, token, source, valid} = pnlConfig();
+      const c1=document.getElementById('conn1'), c2=document.getElementById('conn2');
+      const tchip=document.getElementById('chipToken');
+      const setChip=(chip,cls,text)=>{ if(!chip) return; chip.classList.remove('ok','bad','warn'); chip.classList.add(cls); chip.innerHTML=text; };
+      // Token chip
+      if(tchip){
+        const tail = token ? token.slice(-6) : '—';
+        const label = token ? `Token (${source}): <b>••••${tail}</b>` : 'Token: missing';
+        const cls = token ? (valid ? 'ok' : 'warn') : 'bad';
+        setChip(tchip, cls, `<i class="fa-solid fa-key"></i> ${label}`);
+      }
+      // Test PROXY by fetching a tiny RSS (fast)
+      try{
+        await fetchTextSmart('https://news.google.com/rss?q=ES&hl=en-US&gl=US&ceid=US:en');
+        setChip(c1,'ok','<i class="fa-solid fa-signal"></i> Network OK');
+      }catch(e){
+        setChip(c1,'bad','<i class="fa-solid fa-signal"></i> Network FAIL');
+      }
+      if(!url || !token){
+        setChip(c2,'warn','<i class="fa-solid fa-chart-line"></i> P&L setup needed');
+        const chipAK=document.getElementById('chipAK'); const chipBG=document.getElementById('chipBG'); const chipAKAll=document.getElementById('chipAKAll'); const chipBGAll=document.getElementById('chipBGAll');
+        if(chipAK) chipAK.textContent='N/A'; if(chipBG) chipBG.textContent='N/A'; if(chipAKAll) chipAKAll.textContent='N/A'; if(chipBGAll) chipBGAll.textContent='N/A';
+        return;
+      }
+      try{
+        const j = await fetchJsonSmart(url + '?token=' + encodeURIComponent(token));
+        if(!j || j.ok!==true) throw new Error(j && j.error || 'bad');
+        const ak=Number(j.today?.AK||0),bg=Number(j.today?.BG||0),aka=Number(j.all?.AK||0),bga=Number(j.all?.BG||0);
+        const chipAK=document.getElementById('chipAK'); const chipBG=document.getElementById('chipBG'); const chipAKAll=document.getElementById('chipAKAll'); const chipBGAll=document.getElementById('chipBGAll');
+        if(chipAK) chipAK.textContent = '$' + ak.toFixed(2);
+        if(chipBG) chipBG.textContent = '$' + bg.toFixed(2);
+        if(chipAKAll) chipAKAll.textContent = '$' + aka.toFixed(2);
+        if(chipBGAll) chipBGAll.textContent = '$' + bga.toFixed(2);
+        setChip(c2,'ok','<i class="fa-solid fa-chart-line"></i> P&L OK');
+        // color chips by today P&L
+        const chipAKWrap=document.getElementById('chipAKWrap'); const chipBGWrap=document.getElementById('chipBGWrap');
+        const setWrap=(wrap,val)=>{ if(!wrap) return; wrap.classList.remove('ok','bad','warn'); if(val>0.005) wrap.classList.add('ok'); else if(val<-0.005) wrap.classList.add('bad'); else wrap.classList.add('warn'); };
+        setWrap(chipAKWrap,ak); setWrap(chipBGWrap,bg);
+      }catch(e){
+        setChip(c2,'bad','<i class="fa-solid fa-chart-line"></i> P&L FAIL');
+      }
+    } = pnlConfig();
       const c1=document.getElementById('conn1'), c2=document.getElementById('conn2');
       const tchip=document.getElementById('chipToken');
       const setChip=(chip,cls,text)=>{ if(!chip) return; chip.classList.remove('ok','bad','warn'); chip.classList.add(cls); chip.innerHTML=text; };
@@ -1150,7 +1191,9 @@
       const bad = (s)=> !s || s==='CHANGE_ME_32CHAR' || s==='YOUR_TOKEN_HERE';
       const url = bad(urlLS) ? PNL_API : urlLS;
       const token = bad(tokLS) ? PNL_TOKEN : tokLS;
-      return {url, token};
+      const source = bad(tokLS) ? 'hardcoded' : 'custom';
+      const valid = /^[a-fA-F0-9]{32}$/.test(token);
+      return {url, token, source, valid};
     }
 
     
