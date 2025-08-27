@@ -788,10 +788,48 @@
         const pred = marketPrediction(info, win);
         const pctConf = Math.round(pred.conf*100);
         const predEl = document.createElement('div');
-        predEl.className='pill accent';
+        predEl.className='pill accent'; predEl.id='riskPredPill'; predEl.style.cursor='pointer'; predEl.title='Tap to see why';
         predEl.style.marginTop='8px';
         predEl.innerHTML = `<i class="fa-solid fa-crystal-ball"></i>&nbsp; Prediction: <b>${pred.text}</b> <span class="muted" style="margin-left:6px">(${pctConf}% conf)</span>`;
         riskAdviceEl.appendChild(predEl);
+        /*__RISK_EXPLAIN_INSERTED__*/
+        (function(){
+          const recEl = document.getElementById('riskRecPill');
+          if(recEl){ 
+            recEl.addEventListener('click', ()=>{
+              let logic='';
+              if(riskMode==='aggressive'){
+                logic = `Mode: <b>Aggressive</b> • Last <b>${N}</b> bars checked for consecutive moves.<br>
+                         Δ over window: <b>${rec.pct>=0?'+':''}${(rec.pct||0).toFixed(2)}%</b>.`;
+              } else {
+                logic = `Mode: <b>Conservative</b> • Aligns with window trend & tape.<br>
+                         Direction: <b>${info.direction}</b> • Tape: <b>${info.busyLabel}</b> • Δ window: <b>${info.pct>=0?'+':''}${info.pct.toFixed(2)}%</b>.`;
+              }
+              openExplain({title:'Why this recommendation?', html:`<p>${rec.text}</p><p class='muted'>${logic}</p>`});
+            });
+          }
+          const predEl2 = document.getElementById('riskPredPill');
+          if(predEl2){
+            predEl2.addEventListener('click', ()=>{
+              // Recompute parts used in marketPrediction for a human explanation
+              const lastN = win.slice(-Math.min(15, win.length));
+              const vwapArr = computeVWAP(lastN);
+              const last = lastN.at(-1)?.c, vwapVal = vwapArr.at(-1);
+              let parts = [];
+              parts.push(`Trend bias: <b>${info.direction}</b> (${info.direction==='Uptrend'?'+1':'Downtrend'==='Downtrend'?'-1':'0'} to score)`);
+              parts.push(`Slope contribution: <b>${info.slopePctPerHour.toFixed(2)}%/hr</b> (tanh scaled)`);
+              parts.push(`Price vs VWAP: <b>${last>vwapVal?'above':'below'}</b> VWAP`);
+              // momentum
+              let ups=0,downs=0; for(let i=1;i<lastN.length;i++){const d=lastN[i].c-lastN[i-1].c; if(d>0) ups++; else if(d<0) downs++;}
+              parts.push(`Recent momentum: <b>${ups} up</b> vs <b>${downs} down</b>`);
+              parts.push(`Confidence adjustment: tape is <b>${info.busyLabel}</b>`);
+              openExplain({title:'Why this prediction?', html:`<p>Prediction: <b>${pred.label}</b> (${Math.round(pred.conf*100)}% confidence)</p><ul style='margin-top:6px'>${parts.map(p=>`<li>${p}</li>`).join('')}</ul>`});
+            });
+          }
+          // mobile marquee for the rec pill
+          if (window.matchMedia('(max-width: 520px)').matches) { applyMarquee(recEl); }
+        })();
+    
 
         const lean = leanWindow(win, M);
         if(lean){
@@ -838,6 +876,19 @@
     });
 
     
+    
+    /* ======= Explain modal helpers ======= */
+    function openExplain({title='Why?', html=''}){
+      const m=document.getElementById('explainModal'); if(!m) return;
+      const t=document.getElementById('explainTitle'); const b=document.getElementById('explainBody');
+      t.textContent=title; b.innerHTML=html;
+      m.style.display='flex';
+    }
+    (function(){const m=document.getElementById('explainModal'); if(!m) return;
+      const c=document.getElementById('explainClose'); if(c) c.onclick=()=>m.style.display='none';
+      m.addEventListener('click',e=>{ if(e.target===m) m.style.display='none'; });
+    })();
+
     /* ======= Auto-scroll utilities ======= */
     function applyMarquee(el, minDur=10, pxPerSec=50){
       if(!el) return;
@@ -881,5 +932,17 @@
       return j;
     }
   </script>
+
+  <!-- Explain Modal -->
+  <div id="explainModal" class="modal" style="display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;background:rgba(0,0,0,.6)">
+    <div class="box" style="max-width:640px;width:calc(100% - 28px);background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:16px">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <strong id="explainTitle">Why?</strong>
+        <button id="explainClose" class="iconbtn" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="explainBody" class="muted" style="margin-top:10px;line-height:1.5"></div>
+    </div>
+  </div>
+
 </body>
 </html>
