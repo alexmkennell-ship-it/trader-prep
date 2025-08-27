@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -88,7 +87,7 @@
        positioning so the pill follows the knob as the user moves the
        slider.  The JS below computes the left offset based on the
        current slider value. */
-    #riskCandlesLabel{position:absolute;top:-32px;transform:translateX(-50%);white-space:nowrap}
+    #riskCandlesLabel{white-space:nowrap}
 
     /* Mobile tweaks */
     @media (max-width:520px){
@@ -233,12 +232,13 @@
       <div class="seg" id="riskModeSeg" style="margin:6px 0 2px">
         <button class="segbtn active" data-mode="conservative">Conservative</button>
         <button class="segbtn" data-mode="aggressive">Aggressive</button>
+        <!-- Display the current candles count next to the mode buttons -->
+        <span class="pill" id="riskCandlesLabel" style="margin-left:8px">3 candles</span>
       </div>
 
       <div class="sliderrow" style="margin:4px 0 8px">
         <span class="muted" style="min-width:120px">Candles (1m each)</span>
         <input id="riskCandles" type="range" min="3" max="15" step="1" value="3" aria-label="Risk candles">
-        <span class="pill" id="riskCandlesLabel">3 candles</span>
       </div>
 
       <div class="muted">Primary: <span id="riskSym"></span> (mapped ETF) • <span id="riskTime"></span></div>
@@ -788,11 +788,8 @@
         buildRisk(m.length?m:['ES']);
         // Do not reposition on change; keep the bubble fixed.
       });
-      // Initial sync and bubble position
+      // Initial sync
       syncLabel();
-      // Position the label once when the risk panel becomes visible; this
-      // ensures it’s stationary relative to the slider row.
-      updateSliderBubble();
     }
 
     function lastNSignal(bars,N){
@@ -829,10 +826,7 @@
     async function buildRisk(markets){
       const etf=FUTURES_TO_ETF[markets[0]||'ES']||'SPY';
       riskSymEl.textContent=etf; riskTimeEl.textContent=new Date().toLocaleString();
-      // Ensure the candles label is positioned correctly now that the risk
-      // panel is visible.  Without this, the bubble may be misaligned
-      // because its offset is computed while the panel is hidden.
-      if(typeof updateSliderBubble === 'function'){ updateSliderBubble(); }
+      // No need to reposition the candles label; it sits next to the mode buttons.
       riskSummaryEl.innerHTML='<span class="spinner"></span> Loading 1-minute bars...'; riskAdviceEl.innerHTML='';
       try{
         const all=await fetchIntraday(etf);
