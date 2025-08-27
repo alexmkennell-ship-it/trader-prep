@@ -232,12 +232,13 @@
       <div class="seg" id="riskModeSeg" style="margin:6px 0 2px">
         <button class="segbtn active" data-mode="conservative">Conservative</button>
         <button class="segbtn" data-mode="aggressive">Aggressive</button>
-        <!-- Display the current candles count next to the mode buttons -->
-        <span class="pill" id="riskCandlesLabel" style="margin-left:8px">3 candles</span>
+        <!-- The candles count pill is no longer displayed next to the mode buttons; it will appear next to the slider instead -->
       </div>
 
       <div class="sliderrow" style="margin:4px 0 8px">
+        <!-- Candles label and slider: show the candles count pill directly to the left of the slider -->
         <span class="muted" style="min-width:120px">Candles (1m each)</span>
+        <span class="pill" id="riskCandlesLabel" style="margin-left:0">3 candles</span>
         <input id="riskCandles" type="range" min="3" max="15" step="1" value="3" aria-label="Risk candles">
       </div>
 
