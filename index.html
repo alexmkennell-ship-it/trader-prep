@@ -888,22 +888,26 @@
 
     
     
-    /* ======= Explain modal helpers ======= */
+    
+    /* ======= Explain modal helpers (robust binding) ======= */
+    function ensureExplainBindings(){
+      const m=document.getElementById('explainModal'); if(!m||m.dataset.bound==='1') return;
+      m.dataset.bound='1';
+      const c=document.getElementById('explainClose');
+      const close=()=>{ m.style.display='none'; };
+      if(c){ c.addEventListener('click', (e)=>{ e.stopPropagation(); close(); }); }
+      // click outside closes
+      m.addEventListener('click', (e)=>{ if(e.target===m) close(); });
+      // ESC closes
+      window.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && m.style.display!=='none') close(); });
+    }
     function openExplain({title='Why?', html=''}){
       const m=document.getElementById('explainModal'); if(!m) return;
+      ensureExplainBindings();
       const t=document.getElementById('explainTitle'); const b=document.getElementById('explainBody');
       t.textContent=title; b.innerHTML=html;
       m.style.display='flex';
     }
-    (function(){
-      const m=document.getElementById('explainModal'); if(!m) return;
-      const c=document.getElementById('explainClose');
-      if(c){
-        c.addEventListener('click', (e)=>{ e.stopPropagation(); m.style.display='none'; });
-      }
-      // click outside the dialog closes
-      m.addEventListener('click', (e)=>{ if(e.target===m) m.style.display='none'; });
-    })();
 
     /* ======= Auto-scroll utilities ======= */
     function applyMarquee(el, minDur=10, pxPerSec=50){
