@@ -31,7 +31,7 @@
     a{color:inherit}
 
     /* Top bar */
-    .topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,#201f25 0%,#1a191f 100%);border-bottom:1px solid var(--line);padding:10px 14px}
+    .topbar{position:sticky;top:0;z-index:80;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,#201f25 0%,#1a191f 100%);border-bottom:1px solid var(--line);padding:10px 14px}
     .brand{display:flex;gap:10px;align-items:center;min-width:0}
     .brand .logo{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:#2f2e36;border:1px solid var(--line);overflow:hidden;flex:0 0 auto}
     .brand h1{font-size:16px;margin:0;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -104,8 +104,8 @@
       .navicons{ display:none; position:absolute; top:58px; right:10px;
                  background:var(--panel); border:1px solid var(--line);
                  padding:8px; border-radius:12px; box-shadow:var(--shadow);
-                 gap:8px; }
-      .navicons.show{ display:flex; }
+                 gap:8px; z-index:70; pointer-events:none; }
+      .navicons.show{ display:flex; pointer-events:auto; }
     }
 
   </style>
@@ -117,8 +117,8 @@
       <div class="logo"><img src="icon-192.png" alt="Trader Prep Logo" style="width:100%;height:100%;object-fit:contain"></div>
       <h1>Trader Prep</h1>
     </div>
-    <div class="iconbtn mobonly" id="mobileMenu" title="Menu"><i class="fa-solid fa-bars"></i></div>
-    <nav class="navicons" id="navicons">
+    <div class="iconbtn mobonly" id="mobileMenu" title="Menu" role="button" aria-haspopup="true" aria-controls="navicons" aria-expanded="false"><i class="fa-solid fa-bars"></i></div>
+    <nav class="navicons" id="navicons" role="menu" aria-label="Navigation menu">
       <div class="iconbtn active" id="nav-prep" title="Prep"><i class="fa-solid fa-bars-staggered"></i></div>
       <div class="iconbtn" id="nav-trend" title="Trend"><i class="fa-solid fa-wave-square"></i></div>
       <div class="iconbtn" id="nav-risk" title="Risk"><i class="fa-solid fa-fire-flame-curved"></i></div>
