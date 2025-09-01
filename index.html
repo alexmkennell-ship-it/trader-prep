@@ -66,7 +66,7 @@
 #riskQuickTabs .tabbtn:hover{ background:#34343a; }
 #riskQuickTabs .tabbtn:active{ transform:translateY(1px); }
 #riskQuickTabs .tabbtn.active{
-  background:var(--accent);
+  background:#7424ac;
   color:#0b0b10;
   box-shadow:0 0 0 2px rgba(120,70,255,.25);
 }
@@ -98,7 +98,7 @@
 /* Quick Tabs + controls */
 #riskQuickTabs{display:flex;gap:10px;margin:8px 0 6px;flex-wrap:wrap;align-items:center}
 #riskQuickTabs .tabbtn{border-radius:10px;border:1px solid var(--line);background:#26252b;padding:6px 10px;cursor:pointer;user-select:none}
-#riskQuickTabs .tabbtn.active{background:var(--accent);color:#0b0b10;border-color:transparent;font-weight:600}
+#riskQuickTabs .tabbtn.active{background:#7424ac;color:#0b0b10;border-color:transparent;font-weight:600}
 #riskQuickTabs .tabbtn[draggable="true"]{ -webkit-user-drag:element }
 #riskQuickTabs .qt-controls{display:flex;align-items:center;gap:8px;margin-left:auto}
 #riskQuickTabs .qt-add{display:inline-flex;gap:6px;align-items:center}
@@ -129,7 +129,7 @@
     .brand h1{font-size:16px;margin:0;letter-spacing:.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .navicons{display:flex;gap:10px;align-items:center}
     .iconbtn{min-width:44px;min-height:44px;display:grid;place-items:center;border-radius:12px;border:1px solid var(--line);background:#26252b;cursor:pointer;color:#cfd3dc}
-    .iconbtn.active{background:var(--accent);color:#090909;border-color:transparent}
+    .iconbtn.active{background:#7424ac;color:#090909;border-color:transparent}
 
     /* Stat strip */
     .statstrip{display:flex;gap:10px;align-items:center;padding:10px 14px;flex-wrap:wrap;border-bottom:1px solid var(--line);background:#1e1d22}
@@ -147,12 +147,12 @@
     button,select,input{font-size:15px}
     select,input{background:var(--panel-2);color:var(--fg);border:1px solid var(--line);border-radius:12px;padding:12px 12px;width:100%}
     button{padding:12px 16px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg);cursor:pointer}
-    .primary{background:var(--accent);color:#0b0b10;border-color:transparent;font-weight:600}
+    .primary{background:#7424ac;color:#0b0b10;border-color:transparent;font-weight:600}
     .tabs{display:flex;gap:10px;margin:8px 0 2px;flex-wrap:wrap}
     .tabbtn{border-radius:10px;border:1px solid var(--line);background:#26252b;padding:8px 12px;cursor:pointer}
-    .tabbtn.active{background:var(--accent);color:#0b0b10;border-color:transparent}
+    .tabbtn.active{background:#7424ac;color:#0b0b10;border-color:transparent}
     .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 12px;border-radius:999px;background:var(--pill);border:1px solid var(--line);font-size:13px;white-space:nowrap;line-height:1.1}
-    .pill.accent{background:var(--accent);color:#0b0b10;border-color:transparent}
+    .pill.accent{background:#7424ac;color:#0b0b10;border-color:transparent}
     .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)}
     details summary{cursor:pointer}
     .bundles{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
@@ -170,7 +170,7 @@
 
     .seg{display:flex;gap:8px;flex-wrap:wrap}
     .segbtn{padding:8px 12px;border:1px solid var(--line);background:#26252b;border-radius:10px;cursor:pointer}
-    .segbtn.active{background:var(--accent);color:#0b0b10;border-color:transparent}
+    .segbtn.active{background:#7424ac;color:#0b0b10;border-color:transparent}
     .spinner{display:inline-block;width:18px;height:18px;border:3px solid #45434c;border-top-color:#ddd;border-radius:50%;animation:spin 1s linear infinite;vertical-align:-3px}
     @keyframes spin{to{transform:rotate(360deg)}}
     .flash{animation:flash .6s ease}@keyframes flash{0%{color:var(--ok)}100%{color:var(--muted)}}
@@ -222,7 +222,24 @@
     }
     @keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 
-  </style>
+  
+/* === Glass active look for bell === */
+.iconbtn#nav-bell.active{
+  color: #fff !important;
+  background: radial-gradient(120% 120% at 50% -10%, rgba(116,36,172,0.30) 0%, rgba(116,36,172,0.10) 45%, rgba(0,0,0,0.0) 60%),
+              linear-gradient(180deg, rgba(116,36,172,0.22) 0%, rgba(116,36,172,0.10) 100%);
+  border: 1px solid rgba(116,36,172,0.70);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    inset 0 -1px 0 rgba(0,0,0,0.35),
+    0 6px 18px rgba(116,36,172,0.35);
+}
+.iconbtn#nav-bell.active i{ color:#fff !important; }
+
+/* PnL radio buttons (AK/BG): use brand purple instead of default blue */
+#panel-pnl input[type="radio"]{ accent-color:#7424ac; }
+#panel-pnl input[type="radio"]:focus{ outline:none; box-shadow:0 0 0 3px rgba(116,36,172,0.25); }
+</style>
 <style id="risk-tabs-qol-css">
 /* Risk tabs QoL */
 #riskTabBar{ display:flex; gap:6px; flex-wrap:wrap; margin:8px 8px 10px; align-items:center; }
@@ -240,7 +257,959 @@
 #riskContext hr{ border:0; border-top:1px solid #2b2b2f; margin:6px 0; }
 .risk-shimmer{ position:relative; overflow:hidden; background:linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 37%, rgba(255,255,255,0.04) 63%); background-size:400% 100%; animation:shimmer 1.1s infinite; border-radius:12px; min-height:160px; }
 @keyframes shimmer{ 0%{background-position:100% 0} 100%{background-position:0 0} }
-</style></head>
+</style>
+<style>
+/* === Statstrip size alignment, keep DOM unchanged === */
+.statstrip #chipAKWrap,
+.statstrip #chipBGWrap{
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1;
+  min-height: 28px;
+}
+
+/* Flatten the inner ALL pill so it doesn't bloat the chip */
+.statstrip #chipAKAllWrap,
+.statstrip #chipBGAllWrap{
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  margin-left: 6px;        /* small separation from today value */
+  background: transparent;
+  border: 0;
+  font-size: 12px;
+  line-height: 1;
+  box-shadow: none;
+}
+
+/* Optional: tighten the muted label to stay on one line */
+.statstrip #chipAKWrap .muted,
+.statstrip #chipBGWrap .muted{
+  white-space: nowrap;
+}
+</style>
+
+<style>
+/* --- Final polish: make AK/BG chips visually mirror status chips --- */
+.statstrip #chipAKWrap,
+.statstrip #chipBGWrap{
+  padding: 6px 10px;     /* identical to status chips */
+  border-radius: 10px;   /* identical radius */
+  font-size: 12px;       /* identical text size */
+  line-height: 1;        /* match compact line-height */
+  min-height: 28px;      /* ensure same height */
+  display: inline-flex;  /* consistent layout */
+  align-items: center;
+}
+
+/* Make the number styling consistent (API/Data use ~600 weight) */
+.statstrip #chipAKWrap strong,
+.statstrip #chipBGWrap strong{
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+
+/* Keep only the total visible; hide any secondary label/today number */
+.statstrip #chipAKWrap .muted,
+.statstrip #chipBGWrap .muted,
+.statstrip #chipAK,
+.statstrip #chipBG { display: none !important; }
+</style>
+
+<style>
+/* Add AK/BG labels back via pseudo-elements (no DOM change) */
+.statstrip #chipAKWrap::before{ content:'AK'; font-weight:600; margin-right:8px; opacity:.9; }
+.statstrip #chipBGWrap::before{ content:'BG'; font-weight:600; margin-right:8px; opacity:.9; }
+</style>
+
+<style>
+/* --- Force AK/BG chip height to match status chips (~30px) --- */
+.statstrip #chipAKWrap,
+.statstrip #chipBGWrap{
+  display: inline-flex;
+  align-items: center;
+  height: 30px;          /* fixed height to mirror API/Data */
+  padding: 0 10px;       /* identical padding pattern */
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+/* Flatten any inner 'pill' blocks inside AK/BG so they don't add height */
+.statstrip #chipAKWrap .pill,
+.statstrip #chipBGWrap .pill{
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  height: auto !important;
+  line-height: 1 !important;
+}
+
+/* Tighten the number style */
+.statstrip #chipAKWrap strong,
+.statstrip #chipBGWrap strong{
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+
+/* Spacing for the pseudo label */
+.statstrip #chipAKWrap::before,
+.statstrip #chipBGWrap::before{ margin-right: 8px; }
+</style>
+
+<style>
+/* ================= Quick Tabs (appearance-only polish) ================= */
+#riskQuickTabs.card{
+  background: rgba(255,255,255,0.03);           /* subtle glass */
+  border: 1px solid #2a2c33;                    /* match other cards */
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02),
+              0 8px 24px rgba(0,0,0,0.12);       /* soft depth */
+}
+
+/* Chips row */
+#riskQuickTabs .tabbtn{
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid #2a2c33;
+  background: #1c1e24;
+  color: #cfd3da;
+  font-size: 12px;
+  letter-spacing: .02em;
+  user-select: none;
+  transition: background .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease;
+  margin-right: 6px;
+}
+#riskQuickTabs .tabbtn:hover{ background:#21252b; border-color:#323542; }
+#riskQuickTabs .tabbtn:active{ background:#262a31; }
+#riskQuickTabs .tabbtn.active{
+  background: rgba(124,92,255,0.15);            /* align with accent graph */
+  border-color: rgba(124,92,255,0.45);
+  color: #e7e5ff;
+  box-shadow: 0 0 0 2px rgba(124,92,255,0.25) inset;
+}
+
+/* Controls strip (SYM / + Add / Clear / Refresh) */
+#riskQuickTabs .qt-controls{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+#riskQuickTabs .qt-add input{
+  height: 30px;
+  padding: 0 10px;
+  width: 80px;
+  border-radius: 10px;
+  border: 1px solid #2a2c33;
+  background: #13151a;
+  color: #e1e5ec;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+#riskQuickTabs .qt-add input::placeholder{ color:#6b7280; }
+#riskQuickTabs .qt-add button,
+#riskQuickTabs .qt-clear{
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid #2a2c33;
+  background: #1c1e24;
+  color: #cfd3da;
+  font-size: 12px;
+}
+#riskQuickTabs .qt-add button:hover,
+#riskQuickTabs .qt-clear:hover{ background:#21252b; border-color:#323542; }
+
+#riskQuickTabs .qt-refresh{
+  height: 30px;
+  padding: 0 28px 0 10px;  /* room for caret */
+  border-radius: 10px;
+  border: 1px solid #2a2c33;
+  background: #1c1e24;
+  color: #cfd3da;
+  font-size: 12px;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #7c5cff 50%),
+                    linear-gradient(135deg, #7c5cff 50%, transparent 50%);
+  background-position: right 10px center, right 6px center;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+
+/* Keep spacing consistent across the whole row */
+#riskQuickTabs .tabbtn, 
+#riskQuickTabs .qt-controls > *{ vertical-align: middle; }
+</style>
+
+<style>
+/* ===== Global “glass” shadow for buttons (appearance only) ===== */
+button,
+.btn,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+.tabbtn,
+.segbtn {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.03),
+    0 8px 24px rgba(0,0,0,0.12);
+  transition: box-shadow .18s ease, transform .18s ease;
+}
+
+button:hover,
+.btn:hover,
+[role="button"]:hover,
+input[type="button"]:hover,
+input[type="submit"]:hover,
+.tabbtn:hover,
+.segbtn:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.04),
+    0 10px 28px rgba(0,0,0,0.18);
+}
+
+button:active,
+.btn:active,
+[role="button"]:active,
+input[type="button"]:active,
+input[type="submit"]:active,
+.tabbtn:active,
+.segbtn:active {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.02),
+    0 6px 16px rgba(0,0,0,0.16);
+  transform: translateY(0.5px);
+}
+
+/* Don’t over-emphasize disabled buttons */
+button:disabled,
+.btn:disabled,
+[role="button"][aria-disabled="true"],
+input[type="button"]:disabled,
+input[type="submit"]:disabled {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02), 0 0 0 rgba(0,0,0,0);
+  transform: none;
+}
+</style>
+
+<style>
+/* === Turn purple primary buttons to black so glass shadow shows === */
+button.primary,
+.btn.primary,
+[role="button"].primary {
+  background: #0f1116 !important;      /* deep black */
+  border: 1px solid #2a2c33 !important;
+  color: #e4e7ee !important;
+}
+button.primary:hover,
+.btn.primary:hover,
+[role="button"].primary:hover {
+  background: #14171d !important;
+  border-color: #323542 !important;
+}
+button.primary:active,
+.btn.primary:active,
+[role="button"].primary:active {
+  background: #0c0e12 !important;
+}
+/* keep icon tint readable */
+button.primary i,
+.btn.primary i,
+[role="button"].primary i { color: inherit !important; opacity: .95; }
+</style>
+
+<style>
+/* === Amplified glass-press effect for ALL buttons === */
+button,
+.btn,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+.tabbtn,
+.segbtn {
+  position: relative;
+  z-index: 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.03),
+    0 8px 24px rgba(0,0,0,0.12);
+  transition: box-shadow .18s ease, transform .18s ease, background .18s ease, color .18s ease;
+  overflow: hidden; /* so the glossy overlay respects rounded corners */
+}
+
+button:hover,
+.btn:hover,
+[role="button"]:hover,
+input[type="button"]:hover,
+input[type="submit"]:hover,
+.tabbtn:hover,
+.segbtn:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    0 10px 28px rgba(0,0,0,0.20);
+}
+
+/* Focus/active: stronger inner glass + glow ring; use !important to win specificity */
+button:active, .btn:active, [role="button"]:active,
+input[type="button"]:active, input[type="submit"]:active,
+.tabbtn:active, .segbtn:active,
+button:focus-visible, .btn:focus-visible, [role="button"]:focus-visible,
+input[type="button"]:focus-visible, input[type="submit"]:focus-visible,
+.tabbtn:focus-visible, .segbtn:focus-visible {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 12px 32px rgba(0,0,0,0.36),
+    0 0 0 2px rgba(124,92,255,0.45) inset !important;
+  transform: translateY(0.5px);
+}
+
+/* Glossy overlay that appears on hover/press */
+button::before, .btn::before, [role="button"]::before,
+input[type="button"]::before, input[type="submit"]::before,
+.tabbtn::before, .segbtn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(120% 60% at 50% -10%, rgba(255,255,255,0.10), rgba(255,255,255,0) 60%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease;
+}
+button:hover::before, .btn:hover::before, [role="button"]:hover::before,
+input[type="button"]:hover::before, input[type="submit"]:hover::before,
+.tabbtn:hover::before, .segbtn:hover::before { opacity: .18; }
+button:active::before, .btn:active::before, [role="button"]:active::before,
+input[type="button"]:active::before, input[type="submit"]:active::before,
+.tabbtn:active::before, .segbtn:active::before { opacity: .35; }
+
+/* Ensure purple primary buttons are black so shadow shows (keeps your prior change) */
+button.primary, .btn.primary, [role="button"].primary {
+  background: #0f1116 !important;
+  border: 1px solid #2a2c33 !important;
+  color: #e4e7ee !important;
+}
+button.primary:hover, .btn.primary:hover, [role="button"].primary:hover {
+  background: #14171d !important;
+  border-color: #323542 !important;
+}
+button.primary:active, .btn.primary:active, [role="button"].primary:active {
+  background: #0c0e12 !important;
+}
+button.primary i, .btn.primary i, [role="button"].primary i { color: inherit !important; opacity: .95; }
+</style>
+
+<style>
+/* ===== Replace purple accent with black across UI (no JS/HTML changes) ===== */
+
+/* 1) Core accent vars to black */
+:root{
+  --accent: #0f1116 !important;        /* primary accent surface (was purple) */
+  --accent-graph: #0f1116 !important;  /* bright line accent (charts/pills) */
+}
+
+/* 2) Accent-styled pills/buttons */
+.pill.accent{
+  background: #0f1116 !important;
+  border: 1px solid #2a2c33 !important;
+  color: #e6e9f0 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.03),
+    0 8px 24px rgba(0,0,0,.12) !important;
+}
+
+/* 3) Quick Tabs active chip (used to be purple) */
+#riskQuickTabs .tabbtn.active{
+  background: #0f1116 !important;
+  border-color: #2a2c33 !important;
+  color: #e7eaf2 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.04),
+    0 10px 28px rgba(0,0,0,.20) !important;
+}
+
+/* 4) Dropdown caret that used purple triangles */
+#riskQuickTabs .qt-refresh{
+  background-image:
+    linear-gradient(45deg, transparent 50%, #000 50%),
+    linear-gradient(135deg, #000 50%, transparent 50%) !important;
+}
+
+/* 5) Focus/active ring used purple—make it deep black */
+button:active, .btn:active, [role="button"]:active,
+input[type="button"]:active, input[type="submit"]:active,
+.tabbtn:active, .segbtn:active,
+button:focus-visible, .btn:focus-visible, [role="button"]:focus-visible,
+input[type="button"]:focus-visible, input[type="submit"]:focus-visible,
+.tabbtn:focus-visible, .segbtn:focus-visible {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 12px 32px rgba(0,0,0,0.36),
+    0 0 0 2px rgba(0,0,0,0.55) inset !important;
+}
+
+/* 6) Any chips/pills that relied on --accent directly */
+.chip.accent, .tag.accent, .btn.accent, .segbtn.accent {
+  background: #0f1116 !important;
+  border-color: #2a2c33 !important;
+  color: #e6e9f0 !important;
+}
+</style>
+
+<style>
+/* ===== Glass look on click (replace solid black with translucent glass) ===== */
+:root{
+  --glass-bg: rgba(15,17,22,.48);
+  --glass-bg-hover: rgba(15,17,22,.58);
+  --glass-bg-active: rgba(12,14,18,.64);
+  --glass-border: #2a2c33;
+}
+
+/* Core interactive surfaces (no change to green/red ok/bad/warn pills) */
+button,
+.btn,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+.tabbtn,
+.segbtn {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  backdrop-filter: saturate(120%) blur(6px);
+  -webkit-backdrop-filter: saturate(120%) blur(6px);
+}
+button:hover, .btn:hover, [role="button"]:hover,
+input[type="button"]:hover, input[type="submit"]:hover,
+.tabbtn:hover, .segbtn:hover {
+  background: var(--glass-bg-hover) !important;
+}
+button:active, .btn:active, [role="button"]:active,
+input[type="button"]:active, input[type="submit"]:active,
+.tabbtn:active, .segbtn:active,
+button:focus-visible, .btn:focus-visible, [role="button"]:focus-visible,
+input[type="button"]:focus-visible, input[type="submit"]:focus-visible,
+.tabbtn:focus-visible, .segbtn:focus-visible {
+  background: var(--glass-bg-active) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 12px 32px rgba(0,0,0,0.36),
+    0 0 0 2px rgba(255,255,255,0.06) inset !important;
+}
+
+/* Accent variants that used purple: make them glass, not opaque */
+.pill.accent,
+.chip.accent,
+.btn.accent,
+.segbtn.accent,
+#riskQuickTabs .tabbtn.active,
+button.primary, .btn.primary, [role="button"].primary {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  color: #e6e9f0 !important;
+  backdrop-filter: saturate(120%) blur(6px);
+  -webkit-backdrop-filter: saturate(120%) blur(6px);
+}
+.pill.accent:hover,
+.chip.accent:hover,
+.btn.accent:hover,
+.segbtn.accent:hover,
+#riskQuickTabs .tabbtn.active:hover,
+button.primary:hover, .btn.primary:hover, [role="button"].primary:hover {
+  background: var(--glass-bg-hover) !important;
+}
+.pill.accent:active,
+.chip.accent:active,
+.btn.accent:active,
+.segbtn.accent:active,
+#riskQuickTabs .tabbtn.active:active,
+button.primary:active, .btn.primary:active, [role="button"].primary:active {
+  background: var(--glass-bg-active) !important;
+}
+
+/* Keep the glossy overlay from previous build */
+button::before, .btn::before, [role="button"]::before,
+input[type="button"]::before, input[type="submit"]::before,
+.tabbtn::before, .segbtn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(120% 60% at 50% -10%, rgba(255,255,255,0.12), rgba(255,255,255,0) 60%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease;
+}
+button:hover::before, .btn:hover::before, [role="button"]:hover::before,
+input[type="button"]:hover::before, input[type="submit"]:hover::before,
+.tabbtn:hover::before, .segbtn:hover::before { opacity: .18; }
+button:active::before, .btn:active::before, [role="button"]:active::before,
+input[type="button"]:active::before, input[type="submit"]:active::before,
+.tabbtn:active::before, .segbtn:active::before { opacity: .32; }
+</style>
+
+<style>
+/* === Improve readability: bright text on all buttons + glass selected state === */
+:root{ --btn-fg: #eef2f9; }
+
+/* Baseline for all interactive button-like controls */
+button,
+.btn,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+.tabbtn,
+.segbtn {
+  color: var(--btn-fg) !important;                    /* strong readable text */
+  text-shadow: 0 1px 0 rgba(0,0,0,0.25);              /* subtle lift on glass */
+}
+
+/* Selected/pressed state stays glass and readable */
+.btn.active, button.active, [role="button"].active,
+.tabbtn.active,
+.segbtn.active,
+[aria-pressed="true"],
+.segbtn[aria-pressed="true"] {
+  background: var(--glass-bg-active) !important;
+  color: var(--btn-fg) !important;
+  border-color: #373a44 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 12px 32px rgba(0,0,0,0.36),
+    0 0 0 2px rgba(255,255,255,0.06) inset !important;
+  backdrop-filter: saturate(120%) blur(6px);
+  -webkit-backdrop-filter: saturate(120%) blur(6px);
+}
+
+/* Segmented controls often have .segbtn; ensure inactive still readable */
+.segbtn { color: var(--btn-fg) !important; }
+.segbtn:hover { color: var(--btn-fg) !important; }
+
+/* Quick tabs: ensure active/inactive both readable and glassy */
+#riskQuickTabs .tabbtn { color: var(--btn-fg) !important; }
+#riskQuickTabs .tabbtn.active {
+  background: var(--glass-bg-active) !important;
+  color: var(--btn-fg) !important;
+  border-color: #373a44 !important;
+}
+
+/* Selects in controls row (refresh select) */
+#riskQuickTabs .qt-refresh {
+  color: var(--btn-fg) !important;
+}
+
+/* Inputs in add-control */
+#riskQuickTabs .qt-add input { color: #f2f5ff !important; }
+#riskQuickTabs .qt-add input::placeholder { color: #b5bcc9 !important; }
+
+</style>
+
+<style>
+/* === Purple-tinted glass accents (#7424ac) for selected/pressed states === */
+:root{
+  --accent-purple: #7424ac;
+  --accent-film: rgba(116, 36, 172, 0.22);
+  --accent-film-hover: rgba(116, 36, 172, 0.28);
+  --accent-film-strong: rgba(116, 36, 172, 0.32);
+  --accent-ring: rgba(116, 36, 172, 0.55);
+}
+
+/* Any accent pill/chip uses a purple glass film */
+.pill.accent,
+.chip.accent,
+.btn.accent,
+.segbtn.accent {
+  background: linear-gradient(0deg, var(--accent-film), var(--accent-film)), var(--glass-bg) !important;
+  border: 1px solid rgba(116,36,172,0.45) !important;
+  color: var(--btn-fg) !important;
+  backdrop-filter: saturate(120%) blur(6px);
+  -webkit-backdrop-filter: saturate(120%) blur(6px);
+}
+.pill.accent:hover,
+.chip.accent:hover,
+.btn.accent:hover,
+.segbtn.accent:hover {
+  background: linear-gradient(0deg, var(--accent-film-hover), var(--accent-film-hover)), var(--glass-bg-hover) !important;
+}
+
+/* Selected/pressed buttons/chips get the purple glass + ring */
+.btn.active, button.active, [role="button"].active,
+.tabbtn.active,
+.segbtn.active,
+[aria-pressed="true"],
+.segbtn[aria-pressed="true"],
+#riskQuickTabs .tabbtn.active {
+  background: linear-gradient(0deg, var(--accent-film), var(--accent-film)), var(--glass-bg-active) !important;
+  color: var(--btn-fg) !important;
+  border-color: rgba(116,36,172,0.45) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 12px 32px rgba(0,0,0,0.36),
+    0 0 0 2px var(--accent-ring) inset !important;
+}
+
+/* Hovered active keeps stronger film */
+.btn.active:hover, button.active:hover, [role="button"].active:hover,
+.tabbtn.active:hover,
+.segbtn.active:hover,
+[aria-pressed="true"]:hover,
+#riskQuickTabs .tabbtn.active:hover {
+  background: linear-gradient(0deg, var(--accent-film-strong), var(--accent-film-strong)), var(--glass-bg-active) !important;
+}
+
+/* Keep the glossy overlay tint subtly purple when pressed */
+button:active::before, .btn:active::before, [role="button"]:active::before,
+input[type="button"]:active::before, input[type="submit"]:active::before,
+.tabbtn:active::before, .segbtn:active::before {
+  background:
+    radial-gradient(120% 60% at 50% -10%, rgba(255,255,255,0.14), rgba(255,255,255,0) 60%),
+    radial-gradient(90% 40% at 50% 0%, rgba(116,36,172,0.10), rgba(116,36,172,0) 60%);
+  opacity: .34;
+}
+</style>
+
+<style>
+/* ========= Header nav buttons: glass baseline + purple active ========= */
+:root{
+  --btn-fg: #eef2f9;
+  --glass-bg: rgba(15,17,22,.48);
+  --glass-bg-hover: rgba(15,17,22,.58);
+  --glass-bg-active: rgba(12,14,18,.64);
+  --glass-border: #2a2c33;
+  --accent-purple: #7424ac;
+  --accent-film: rgba(116, 36, 172, 0.22);
+  --accent-film-hover: rgba(116, 36, 172, 0.28);
+  --accent-ring: rgba(116, 36, 172, 0.55);
+}
+
+/* Make sure header nav buttons look like our glass buttons */
+#nav-prep, #nav-trend, #nav-risk, #nav-settings, #nav-pnl{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  height:32px;
+  padding:0 12px;
+  border-radius:12px;
+  border:1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--btn-fg);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.03),
+    0 8px 24px rgba(0,0,0,.12);
+  transition: background .18s ease, box-shadow .18s ease, transform .18s ease, border-color .18s ease, color .18s ease;
+}
+#nav-prep:hover, #nav-trend:hover, #nav-risk:hover, #nav-settings:hover, #nav-pnl:hover{
+  background: var(--glass-bg-hover);
+}
+#nav-prep:active, #nav-trend:active, #nav-risk:active, #nav-settings:active, #nav-pnl:active{
+  transform: translateY(0.5px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 10px 28px rgba(0,0,0,.20);
+}
+/* Active (selected) nav = purple-tinted glass */
+#nav-prep.active, #nav-trend.active, #nav-risk.active, #nav-settings.active, #nav-pnl.active,
+#nav-prep[aria-pressed="true"], #nav-trend[aria-pressed="true"], #nav-risk[aria-pressed="true"], #nav-settings[aria-pressed="true"], #nav-pnl[aria-pressed="true"]{
+  background: linear-gradient(0deg, var(--accent-film), var(--accent-film)), var(--glass-bg-active) !important;
+  border-color: rgba(116,36,172,0.45) !important;
+  color: var(--btn-fg) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 12px 32px rgba(0,0,0,.36),
+    0 0 0 2px var(--accent-ring) inset;
+}
+
+/* ========= Settings buttons: make Save / Test / Log match ========= */
+#saveKeys, #testFetch, #logPnl{
+  display:inline-flex;
+  align-items:center;
+  height:30px;
+  padding:0 10px;
+  border-radius:10px;
+  border:1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--btn-fg);
+  font-size:12px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.03),
+    0 8px 24px rgba(0,0,0,.12);
+  transition: background .18s ease, box-shadow .18s ease, transform .18s ease, border-color .18s ease;
+}
+#saveKeys:hover, #testFetch:hover, #logPnl:hover{
+  background: var(--glass-bg-hover);
+}
+#saveKeys:active, #testFetch:active, #logPnl:active{
+  transform: translateY(0.5px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 10px 28px rgba(0,0,0,.20);
+}
+
+/* If any of these are toggled as active, give purple-tinted glass */
+#saveKeys.active, #testFetch.active, #logPnl.active,
+#saveKeys[aria-pressed="true"], #testFetch[aria-pressed="true"], #logPnl[aria-pressed="true"]{
+  background: linear-gradient(0deg, var(--accent-film), var(--accent-film)), var(--glass-bg-active);
+  border-color: rgba(116,36,172,0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 12px 32px rgba(0,0,0,.36),
+    0 0 0 2px var(--accent-ring) inset;
+}
+
+/* Make icons (if any) inherit */
+#saveKeys i, #testFetch i, #logPnl i,
+#nav-prep i, #nav-trend i, #nav-risk i, #nav-settings i, #nav-pnl i{
+  color: inherit;
+  opacity: .95;
+}
+</style>
+
+<style>
+/* ================== Refined interaction model ================== */
+/* Goal:
+   - Momentary buttons (e.g., Market bundles, Save/Test/Log) = GLASS baseline always; go slightly darker while pressed.
+   - Toggle buttons (Analyze, Header Nav, Quick Tabs, Timeframe seg buttons) = BLACK baseline; show PURPLE-GLASS only when selected (.active / aria-pressed="true").
+*/
+
+:root{
+  --btn-fg: #eef2f9;
+  --glass-bg: rgba(15,17,22,.48);
+  --glass-bg-hover: rgba(15,17,22,.58);
+  --glass-bg-active: rgba(12,14,18,.64);
+  --glass-border: #2a2c33;
+  --accent-purple: #7424ac;
+  --accent-film: rgba(116, 36, 172, 0.22);
+  --accent-film-hover: rgba(116, 36, 172, 0.28);
+  --accent-ring: rgba(116, 36, 172, 0.55);
+  --black-base: #0f1116;
+  --black-base-hover: #14171d;
+  --black-base-active: #0c0e12;
+}
+
+/* ---------- Momentary controls: glass baseline ---------- */
+.bundle[data-bundle],
+#saveKeys, #testFetch, #logPnl,
+input[type="button"], input[type="submit"]{
+  display:inline-flex; align-items:center;
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--btn-fg) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 8px 24px rgba(0,0,0,.12);
+  backdrop-filter: saturate(120%) blur(6px);
+  -webkit-backdrop-filter: saturate(120%) blur(6px);
+  transition: background .18s ease, box-shadow .18s ease, transform .18s ease, border-color .18s ease, color .18s ease;
+}
+.bundle[data-bundle]:hover,
+#saveKeys:hover, #testFetch:hover, #logPnl:hover,
+input[type="button"]:hover, input[type="submit"]:hover{
+  background: var(--glass-bg-hover) !important;
+}
+.bundle[data-bundle]:active,
+#saveKeys:active, #testFetch:active, #logPnl:active,
+input[type="button"]:active, input[type="submit"]:active{
+  background: var(--glass-bg-active) !important;
+  transform: translateY(0.5px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 10px 28px rgba(0,0,0,.20);
+}
+
+/* ---------- Toggle groups: BLACK baseline when not active ---------- */
+#start, #runTrend, #runRisk,                 /* Analyze buttons */
+#nav-prep, #nav-trend, #nav-risk, #nav-settings, #nav-pnl,  /* Header nav */
+#riskQuickTabs .tabbtn,                      /* Quick Tabs chips */
+.segbtn{                                     /* Timeframe buttons */
+  background: var(--black-base) !important;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--btn-fg) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 8px 24px rgba(0,0,0,.12);
+  transition: background .18s ease, box-shadow .18s ease, transform .18s ease, border-color .18s ease, color .18s ease;
+}
+#start:hover, #runTrend:hover, #runRisk:hover,
+#nav-prep:hover, #nav-trend:hover, #nav-risk:hover, #nav-settings:hover, #nav-pnl:hover,
+#riskQuickTabs .tabbtn:hover,
+.segbtn:hover{
+  background: var(--black-base-hover) !important;
+}
+#start:active, #runTrend:active, #runRisk:active,
+#nav-prep:active, #nav-trend:active, #nav-risk:active, #nav-settings:active, #nav-pnl:active,
+#riskQuickTabs .tabbtn:active,
+.segbtn:active{
+  background: var(--black-base-active) !important;
+  transform: translateY(0.5px);
+}
+
+/* Selected state = PURPLE GLASS */
+#start.active, #runTrend.active, #runRisk.active,
+#nav-prep.active, #nav-trend.active, #nav-risk.active, #nav-settings.active, #nav-pnl.active,
+#riskQuickTabs .tabbtn.active,
+.segbtn.active,
+#start[aria-pressed="true"], #runTrend[aria-pressed="true"], #runRisk[aria-pressed="true"],
+#nav-prep[aria-pressed="true"], #nav-trend[aria-pressed="true"], #nav-risk[aria-pressed="true"], #nav-settings[aria-pressed="true"], #nav-pnl[aria-pressed="true"]{
+  background: linear-gradient(0deg, var(--accent-film), var(--accent-film)), var(--glass-bg-active) !important;
+  border-color: rgba(116,36,172,0.45) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 12px 32px rgba(0,0,0,0.36),
+    0 0 0 2px var(--accent-ring) inset !important;
+  backdrop-filter: saturate(120%) blur(6px);
+  -webkit-backdrop-filter: saturate(120%) blur(6px);
+}
+
+/* ---------- Neutralize previous ".clicked" persistence (momentary buttons shouldn't stick) ---------- */
+button.clicked:not(.active), .btn.clicked:not(.active), [role="button"].clicked:not(.active),
+.tabbtn.clicked:not(.active), .segbtn.clicked:not(.active),
+input[type="button"].clicked:not(.active), input[type="submit"].clicked:not(.active){
+  /* revert to baseline (black for toggles, glass for momentary) */
+  box-shadow: inherit !important;
+  backdrop-filter: inherit !important;
+  -webkit-backdrop-filter: inherit !important;
+}
+
+/* ---------- Keep bright readable text everywhere ---------- */
+button, .btn, [role="button"], .tabbtn, .segbtn,
+#saveKeys, #testFetch, #logPnl{
+  color: var(--btn-fg) !important;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.25);
+}
+</style>
+
+<style>
+/* ===== Header nav icon alignment polish ===== */
+/* Make the header buttons perfectly center their icons, with consistent sizing */
+#nav-prep, #nav-trend, #nav-risk, #nav-settings, #nav-pnl{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;      /* centers single-icon buttons */
+  gap: 8px;                     /* keeps space if text exists */
+  height: 32px;
+  min-width: 40px;              /* avoids over-tight icon boxes */
+  padding: 0 12px;
+  line-height: 1;               /* removes baseline drift */
+}
+
+/* Normalize any icon inside these buttons (Font Awesome <i>, inline SVG, etc.) */
+#nav-prep i, #nav-trend i, #nav-risk i, #nav-settings i, #nav-pnl i,
+#nav-prep svg, #nav-trend svg, #nav-risk svg, #nav-settings svg, #nav-pnl svg{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  font-size: 16px;              /* FA icons */
+  line-height: 1;               /* prevent vertical offset */
+  vertical-align: middle;
+  margin: 0;                    /* kill inherited margins */
+  transform: translateY(0);     /* reset any inherited shifts */
+}
+
+/* If an icon-only button gets too wide due to accidental whitespace, tighten it */
+#nav-prep:has(i):not(:has(span,small)),
+#nav-trend:has(i):not(:has(span,small)),
+#nav-risk:has(i):not(:has(span,small)),
+#nav-settings:has(i):not(:has(span,small)),
+#nav-pnl:has(i):not(:has(span,small)){
+  padding-left: 10px;
+  padding-right: 10px;
+  min-width: 36px;
+}
+
+/* Ensure icon inherits readable color from the button */
+#nav-prep i, #nav-trend i, #nav-risk i, #nav-settings i, #nav-pnl i{ color: inherit; opacity: .95; }
+</style>
+
+<style>
+/* ===== Glass styling for the Futures/markets select ===== */
+:root{
+  --btn-fg: #eef2f9;
+  --glass-bg: rgba(15,17,22,.48);
+  --glass-bg-hover: rgba(15,17,22,.58);
+  --glass-bg-active: rgba(12,14,18,.64);
+  --glass-border: #2a2c33;
+  --accent-purple: #7424ac;
+  --accent-film: rgba(116,36,172,.22);
+  --accent-ring: rgba(116,36,172,.55);
+}
+
+/* The listbox itself */
+#futures{
+  background: var(--glass-bg) !important;
+  color: var(--btn-fg) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 12px !important;
+  padding: 8px 10px !important;
+  outline: none !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.03),
+    0 8px 24px rgba(0,0,0,.12);
+  backdrop-filter: saturate(120%) blur(6px);
+  -webkit-backdrop-filter: saturate(120%) blur(6px);
+}
+#futures:focus{
+  background: var(--glass-bg-hover) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 10px 28px rgba(0,0,0,.20),
+    0 0 0 2px var(--accent-ring) inset;
+  border-color: rgba(116,36,172,.45) !important;
+}
+
+/* Options: base + selected */
+#futures option{
+  background: rgba(15,17,22,.85);
+  color: var(--btn-fg);
+  padding: 4px 6px;
+}
+#futures option:checked{
+  background:
+    linear-gradient(0deg, var(--accent-film), var(--accent-film)),
+    rgba(15,17,22,.9) !important;
+  color: #ffffff;
+}
+
+/* (Optional) nicer scrollbars for WebKit/Blink */
+#futures::-webkit-scrollbar{ width: 10px; }
+#futures::-webkit-scrollbar-track{ background: rgba(0,0,0,.25); border-radius: 8px; }
+#futures::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,.08);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+}
+#futures::-webkit-scrollbar-thumb:hover{ background: rgba(255,255,255,.12); }
+</style>
+
+<style>
+/* ===== Mobile-safe layout for Quick Tabs refresh select ===== */
+/* Allow the select's native dropdown to render without being clipped */
+#riskQuickTabs.card { overflow: visible; }
+
+/* Controls row can wrap on narrow screens */
+#riskQuickTabs .qt-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Keep the refresh select within the viewport width */
+#riskQuickTabs .qt-refresh {
+  min-width: 120px;
+  max-width: min(45vw, 180px);
+  width: auto;
+}
+
+/* Phone tweaks */
+@media (max-width: 520px) {
+  #riskQuickTabs .qt-controls { justify-content: flex-end; }
+  #riskQuickTabs .qt-refresh { order: 3; } /* optional: push to end of row */
+}
+</style>
+</head>
 <body>
 <!-- HEADER -->
 <header class="topbar">
@@ -249,17 +1218,19 @@
 <h1>Trader Prep</h1>
 </div>
 <nav class="navicons">
+  <div class="iconbtn" id="nav-bell" title="Notifications"><i id="bellIcon" class="fa-regular fa-bell"></i></div>
 <div class="iconbtn active" id="nav-prep" title="Prep"><i class="fa-solid fa-bars-staggered"></i></div>
 <div class="iconbtn" id="nav-trend" title="Trend"><i class="fa-solid fa-wave-square"></i></div>
 <div class="iconbtn" id="nav-risk" title="Risk"><i class="fa-solid fa-fire-flame-curved"></i></div>
 <div class="iconbtn" id="nav-pnl" title="Profit Log"><i class="fa-solid fa-dollar-sign"></i></div>
+
 <div class="iconbtn" id="nav-settings" title="Settings"><i class="fa-solid fa-gear"></i></div>
 </nav>
 </header>
 <!-- STATS -->
 <div class="statstrip">
-<div class="chip" id="chipAKWrap"><span class="muted">AK$ (today):</span> <strong id="chipAK">$0.00</strong><span class="muted" style="margin-left:8px">/ all:</span> <span class="pill" id="chipAKAllWrap"><span class="tag">AK</span> <strong id="chipAKAll">$0.00</strong></span></div>
-<div class="chip" id="chipBGWrap"><span class="muted">BG$ (today):</span> <strong id="chipBG">$0.00</strong><span class="muted" style="margin-left:8px">/ all:</span> <span class="pill" id="chipBGAllWrap"><span class="tag">BG</span> <strong id="chipBGAll">$0.00</strong></span></div>
+<div class="chip" id="chipAKWrap"><span class="muted">AK$ (today):</span> <strong id="chipAK">$0.00</strong><span class="muted" style="margin-left:8px">/ all:</span> <span class="pill" id="chipAKAllWrap"> <strong id="chipAKAll">$0.00</strong></span></div>
+<div class="chip" id="chipBGWrap"><span class="muted">BG$ (today):</span> <strong id="chipBG">$0.00</strong><span class="muted" style="margin-left:8px">/ all:</span> <span class="pill" id="chipBGAllWrap"> <strong id="chipBGAll">$0.00</strong></span></div>
 <div class="chip ok" id="conn1"><i class="fa-solid fa-signal"></i> API OK</div>
 <div class="chip ok" id="conn2"><i class="fa-solid fa-chart-line"></i> Data OK</div>
 </div>
@@ -290,7 +1261,7 @@
 <button class="tabbtn" id="tab-trend">Trend</button>
 <button class="tabbtn" id="tab-risk">Risk</button>
 </div>
-<strong>Choose your markets</strong>
+<div class="heading-row" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><strong>Choose your markets</strong><span id="mktStatus" class="pill warn" style="margin-left:6px;">Market hours</span></div>
 <div class="bundles">
 <button class="bundle" data-bundle="ES,NQ,YM,RTY">US Indices</button>
 <button class="bundle" data-bundle="CL,GC">Energy &amp; Gold</button>
@@ -439,6 +1410,8 @@
           }
         });
       }
+    
+      // notifications header bell handles toggle
     })();
 
 
@@ -470,7 +1443,87 @@
       riskOut.style.display=(which==='risk')?'':'none';
     }
 
-    /* ---------------- Elements ---------------- */
+    
+/* ===== Notifications bell (header quick toggle) ===== */
+const bellBtn = document.getElementById('nav-bell');
+const bellIcon = document.getElementById('bellIcon');
+
+function notifIsEnabled(){ return localStorage.getItem('NOTIFY_ENABLED')==='1'; }
+function setNotifEnabled(on){
+  localStorage.setItem('NOTIFY_ENABLED', on ? '1':'0');
+  if(bellBtn){
+    bellBtn.classList.toggle('active', !!on);
+  }
+  if(bellIcon){
+    bellIcon.classList.remove('fa-regular','fa-solid');
+    bellIcon.classList.add(on ? 'fa-solid' : 'fa-regular');
+    bellIcon.classList.add('fa-bell');
+  }
+}
+async function initBell(){
+  if(!bellBtn) return;
+  // initial state
+  const on = notifIsEnabled();
+  setNotifEnabled(on);
+  bellBtn.addEventListener('click', async ()=>{
+    const cur = notifIsEnabled();
+    const next = !cur;
+    if(next && 'Notification' in window){
+      try{
+        if(Notification.permission==='default'){
+          const p = await Notification.requestPermission().catch(()=>{});
+          if(p!=='granted'){ setNotifEnabled(false); return; }
+        } else if(Notification.permission==='denied'){
+          // can't enable in this state
+          setNotifEnabled(false);
+          return;
+        }
+      }catch(_){}
+    }
+    setNotifEnabled(next);
+  }, false);
+}
+/* ---------------- Elements ---------------- */
+/* ===== Market status pill (OPEN/CLOSED) ===== */
+const mktStatusEl = document.getElementById('mktStatus');
+let mktReg = { start: null, end: null, etf: null };
+
+function refreshMarketStatus(){
+  if(!mktStatusEl) return;
+  mktStatusEl.classList.remove('ok','bad','warn');
+  let label = 'Market hours';
+  if(mktReg.start && mktReg.end){
+    const now = Date.now();
+    const open = now >= mktReg.start && now <= mktReg.end;
+    mktStatusEl.classList.add(open ? 'ok' : 'bad');
+    label = open ? 'Market OPEN' : 'Market CLOSED';
+  } else {
+    mktStatusEl.classList.add('warn');
+  }
+  mktStatusEl.textContent = label;
+}
+
+function setMarketStatusFrom(regStart, regEnd, etf){
+  mktReg.start = regStart||null;
+  mktReg.end   = regEnd||null;
+  if(etf) mktReg.etf = etf;
+  refreshMarketStatus();
+}
+
+async function updateMarketStatusInitial(){
+  try{
+    const sel = getSelectedFutures();
+    const etf = FUTURES_TO_ETF[sel[0]||'ES']||'SPY';
+    mktReg.etf = etf;
+    const all = await fetchIntraday(etf);
+    if(all && (all.regStart || all.regEnd)){
+      setMarketStatusFrom(all.regStart, all.regEnd, etf);
+    } else {
+      refreshMarketStatus();
+    }
+  }catch(_){ refreshMarketStatus(); }
+}
+
     const futuresSel=document.getElementById('futures');
     const startBtn=document.getElementById('start'), runTrendBtn=document.getElementById('runTrend'), runRiskBtn=document.getElementById('runRisk');
     const nowEl=document.getElementById('now'), focusEl=document.getElementById('focus'), summaryEl=document.getElementById('summary'), linksEl=document.getElementById('links');
@@ -656,7 +1709,7 @@
       if (opts.vwap){
         let cumPV=0, cumV=0;
         ctx.beginPath();
-        ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#7424ac';
+        ctx.strokeStyle = '#7424ac';
         ctx.setLineDash([5,4]);
         ctx.lineWidth = 2;
         for (let i=0;i<bars.length;i++){
@@ -675,7 +1728,7 @@
       // optional close line for clarity
       if (opts.closeLine){
         ctx.beginPath();
-        ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent-graph').trim()||'#7c5cff';
+        ctx.strokeStyle = '#6424ac';
         ctx.lineWidth = 1.75;
         for (let i=0;i<bars.length;i++){
           const b = bars[i];
@@ -694,7 +1747,7 @@
       const pad=10; const min=Math.min(...points.map(p=>p.c)), max=Math.max(...points.map(p=>p.c)); const range=(max-min)||1;
       const step=(w-pad*2)/(points.length-1);
       ctx.beginPath();
-      ctx.lineWidth=2; ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--accent-graph').trim()||'#7c5cff';
+      ctx.lineWidth=2; ctx.strokeStyle = '#6424ac';
       points.forEach((p,i)=>{const x=pad+step*i; const y=h-pad-((p.c-min)/range)*(h-pad*2); if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y)});
       ctx.stroke();
     }
@@ -737,7 +1790,37 @@
       if(dayRes.ok&&dayRes.closes?.length) drawSparkline(summaryEl,dayRes.closes);
     }
 
-    /* ---------------- Intraday fetch ---------------- */
+    
+/* ===== Notifications & Busy streak tracking ===== */
+function notifyEnabled(){ return localStorage.getItem('NOTIFY_ENABLED')==='1' && ('Notification' in window); }
+async function notifyNow(title, body){
+  if(!notifyEnabled()) return;
+  let perm = Notification.permission;
+  if(perm==='default'){ try{ perm = await Notification.requestPermission(); }catch(_){ } }
+  if(perm!=='granted') return;
+  try{ new Notification(title, { body }); }catch(_){}
+}
+
+// track sustained busy (>= 5 minutes) based on our aligned 30s refresh
+let _busyStreakMs = 0;
+let _busyLastTick = Date.now();
+let _busyNotified = false;
+function busyTrackerTick(isBusy){
+  const now = Date.now();
+  const dt = Math.max(0, now - _busyLastTick);
+  _busyLastTick = now;
+  if(isBusy){
+    _busyStreakMs += dt;
+    if(!_busyNotified && _busyStreakMs >= 5*60*1000){
+      _busyNotified = true;
+      notifyNow('Market is busy!', `Tape has been busy for ${(Math.round(_busyStreakMs/6000)/10).toFixed(1)} min.`);
+    }
+  }else{
+    _busyStreakMs = 0;
+    _busyNotified = false;
+  }
+}
+/* ---------------- Intraday fetch ---------------- */
     async function fetchIntraday(etf){
       const u = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(etf)}?range=1d&interval=1m&includePrePost=true&t=${Date.now()}`;
       const _r = (typeof fetchWithFallback==='function') ? await fetchWithFallback(u,'json',12000) : null;
@@ -820,14 +1903,78 @@
       for(const b of bars){ cumPV+= (b.c||b.o)*(b.v||1); cumV+= (b.v||1); out.push(cumPV/Math.max(1,cumV)); }
       return out;
     }
+// === Smarter lean window: move vs noise, VWAP, consistency, slope ===
+function leanWindowSmart(bars, minutesDesired){
+  const lastN = (bars||[]).slice(-minutesDesired);
+  if(lastN.length < 3) return null;
+
+  const closes = lastN.map(b=>b.c);
+  const first = closes[0], last = closes.at(-1);
+  const pct = ((last-first)/Math.max(1e-9, first))*100;
+
+  // up/down bar consistency
+  let ups=0, downs=0;
+  for(let i=1;i<closes.length;i++){
+    const d = closes[i] - closes[i-1];
+    if(d>0) ups++; else if(d<0) downs++;
+  }
+
+  // slope %/hr (linear regression on closes)
+  let sx=0,sy=0,sxx=0,sxy=0; const n=closes.length;
+  for(let i=0;i<n;i++){ sx+=i; sy+=closes[i]; sxx+=i*i; sxy+=i*closes[i]; }
+  const denom=(n*sxx - sx*sx) || 1;
+  const slope=(n*sxy - sx*sy)/denom;
+  const slopePctPerHour=(slope/Math.max(1e-9, first))*60*100;
+
+  // volatility (1m returns)
+  const rets=[];
+  for(let i=1;i<closes.length;i++){
+    const r=(closes[i]-closes[i-1])/Math.max(1e-9, closes[i-1]);
+    if(isFinite(r)) rets.push(r);
+  }
+  const mean=rets.reduce((a,b)=>a+b,0)/Math.max(1,rets.length);
+  const varr=rets.reduce((a,b)=>a+(b-mean)*(b-mean),0)/Math.max(1,rets.length);
+  const std=Math.sqrt(varr)||0;
+
+  // VWAP alignment over the window
+  const vwapArr = computeVWAP(lastN);
+  const vwap = vwapArr.at(-1);
+  const aboveVWAP = last > vwap;
+
+  // z-score of the net move vs noise (normalized by sqrt(N))
+  const z = std>0 ? Math.abs((last-first)/Math.max(1e-9, first)) / (std*Math.sqrt(lastN.length)) : 0;
+
+  // combine into a micro-trend score
+  let score = 0;
+  score += Math.sign(pct) * Math.min(2, z);                        // net move vs noise
+  score += (aboveVWAP ? 0.7 : -0.7);                               // VWAP anchor
+  score += ((ups-downs)/Math.max(1, lastN.length-1)) * 0.8;        // bar consistency
+  score += Math.tanh(slopePctPerHour/2.0) * 0.6;                   // gentle slope influence
+
+  // classify
+  let dir='Neutral', cls='warn';
+  if(score >= 1.1){ dir='Bullish'; cls='ok'; }
+  else if(score <= -1.1){ dir='Bearish'; cls='bad'; }
+
+  // short reasons string
+  const reasons = [
+    `${pct>=0?'+':''}${pct.toFixed(2)}% / ${minutesDesired}m`,
+    `${aboveVWAP?'above':'below'} VWAP`,
+    `${ups}/${lastN.length-1} up-bars`,
+    `${slopePctPerHour>=0?'+':''}${slopePctPerHour.toFixed(2)}%/hr slope`
+  ].join(' • ');
+
+  return {dir, cls, pct, score, reasons};
+}
+
 
     function setLegend(el){
       if(!el) return;
       el.innerHTML = `
         <span class="item"><span class="swatch" style="background:#6abd74"></span> Up candle</span>
         <span class="item"><span class="swatch" style="background:#e05d5d"></span> Down candle</span>
-        <span class="item" style="color:var(--accent-graph)"><span class="swatch line" style="color:var(--accent-graph)"></span> Close line</span>
-        <span class="item" style="color:var(--accent)"><span class="swatch line dashed" style="color:var(--accent)"></span> VWAP (proxy)</span>`;
+        <span class="item"><span class="swatch line" style="color:#6424ac"></span> Close line</span>
+        <span class="item"><span class="swatch line dashed" style="color:#7424ac"></span> VWAP (proxy)</span>`;
     }
 
     /* ---------------- Prediction (new purple blip) ---------------- */
@@ -865,8 +2012,11 @@
       trendSymEl.textContent=etf; trendTimeEl.textContent=new Date().toLocaleString();
       trendSummaryEl.innerHTML='<span class="spinner"></span> Loading 1-minute bars...'; trendAdviceEl.innerHTML='';
       try{
-        const all=await fetchIntraday(etf); const sessionBars=filterToSession(all.bars, all.regStart, all.regEnd); const win=selectWindow(sessionBars,trendMinutes); const info=statsTrend(win);
-        if(!info.ok){trendSummaryEl.innerHTML=`<span class="muted">Trend unavailable (${info.reason})</span>`;drawTrend(trendCanvas,[]);return}
+        const all=await fetchIntraday(etf); try{ setMarketStatusFrom(all.regStart, all.regEnd, etf); }catch(_){} const sessionBars=filterToSession(all.bars, all.regStart, all.regEnd); const win=selectWindow(sessionBars,trendMinutes); const info=statsTrend(win);
+        if(!info.ok){trendSummaryEl.innerHTML=`<span class="muted">Trend unavailable (${info.reason}
+        // Busy notification tracker
+        try{ busyTrackerTick(info.busyLabel==='Busy'); }catch(_){}
+)</span>`;drawTrend(trendCanvas,[]);return}
         const dirPill=`<span class="pill ${info.dirClass}"><i class="fa-solid fa-arrow-trend-${info.direction==='Downtrend'?'down':'up'}"></i> ${info.direction}</span>`;
         const busyPill=`<span class="pill ${info.busyClass}"><i class="fa-solid fa-bolt"></i> ${info.busyLabel}</span>`;
         const pctStr=`${info.pct>=0?'▲':'▼'} ${info.pct.toFixed(2)}%`;
@@ -1014,11 +2164,14 @@
       // No need to reposition the candles label; it sits next to the mode buttons.
       riskSummaryEl.innerHTML='<span class="spinner"></span> Loading 1-minute bars...'; riskAdviceEl.innerHTML='';
       try{
-        const all=await fetchIntraday(etf);
+        const all=await fetchIntraday(etf); try{ setMarketStatusFrom(all.regStart, all.regEnd, etf); }catch(_){}
         const sessionBars=filterToSession(all.bars, all.regStart, all.regEnd);
         const win=selectWindow(sessionBars,trendMinutes);
         const info=statsTrend(win);
-        if(!info.ok){riskSummaryEl.innerHTML=`<span class="muted">Risk read unavailable (${info.reason})</span>`;drawTrend(riskCanvas,[]);return}
+        if(!info.ok){riskSummaryEl.innerHTML=`<span class="muted">Risk read unavailable (${info.reason}
+        // Busy notification tracker
+        try{ busyTrackerTick(info.busyLabel==='Busy'); }catch(_){}
+)</span>`;drawTrend(riskCanvas,[]);return}
 
         const dirPill=`<span class="pill ${info.dirClass}"><i class="fa-solid fa-arrow-trend-${info.direction==='Downtrend'?'down':'up'}"></i> ${info.direction}</span>`;
         const busyPill=`<span class="pill ${info.busyClass}"><i class="fa-solid fa-bolt"></i> ${info.busyLabel}</span>`;
@@ -1030,7 +2183,8 @@
         setLegend(riskLegend);
 
         const N = Math.max(3, Math.min(15, riskCandlesN||3));
-        const M = Math.max(2, Math.min(N, trendMinutes));
+        let M = Math.min(6, win.length);
+        if (M < 3) M = Math.min(3, win.length);
 
         let rec; if(riskMode==='aggressive'){ rec = lastNSignal(win, N); } else { rec = conservativeSignal(info, win, N); }
         // After computing the basic recommendation, perform breakout failure checks and append trade plan.
@@ -1111,14 +2265,31 @@
         // We'll attach the recommendation pill handler after appending the pill row
     
 
-        const lean = leanWindow(win, M);
-        if(lean){
-          const pctStr2=`${lean.pct>=0?'+':''}${lean.pct.toFixed(2)}%`;
-          const extra=document.createElement('div');
-          extra.className=`pill ${lean.cls}`;
-          extra.innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i>&nbsp; Last <b>${M} minutes</b>: leaning <b>${lean.dir}</b> (${pctStr2}).`;
-          pillRow.appendChild(extra);
-        }
+        
+const lean = leanWindowSmart(win, M);
+if(lean){
+  const pctStr = `${lean.pct>=0?'+':''}${lean.pct.toFixed(2)}%`;
+  const extra = document.createElement('div');
+  extra.className = `pill ${lean.cls}`;
+  extra.title = `Score ${lean.score.toFixed(2)} • ${lean.reasons}`;
+  extra.innerHTML =
+    `<i class="fa-solid fa-clock-rotate-left"></i>&nbsp; Last <b>${M}m</b>: <b>${lean.dir}</b> (${pctStr}) ` +
+    `<span class="muted" style="margin-left:6px">score ${lean.score.toFixed(2)}</span>`;
+  extra.style.cursor='pointer';
+  extra.addEventListener('click', ()=> {
+    try {
+      openExplain({
+        title: 'Why this lean?',
+        html: `<p><b>${lean.dir}</b> • score ${lean.score.toFixed(2)}</p>
+               <ul style='margin-top:6px'>
+                 ${lean.reasons.split(' • ').map(s=>`<li>${s}</li>`).join('')}
+               </ul><p class='muted' style='margin-top:8px'>Interpretation: around <b>+1.1</b> is Bullish and <b>-1.1</b> is Bearish. Higher positive = stronger bull; more negative = stronger bear.</p>`
+      });
+    } catch(_) {}
+  });
+  pillRow.appendChild(extra);
+}
+
         // Append the row of prediction/lean pills to the advice container
         riskAdviceEl.appendChild(pillRow);
 
@@ -1181,7 +2352,7 @@ async function pnlGetTotals(){
     chipAKAll.textContent='N/A'; chipBGAll.textContent='N/A';
     return;
   }
-  const url = `${PNL_API}?token=${encodeURIComponent(PNL_TOKEN)}`;
+  const url = `${PNL_API}?token=${encodeURIComponent(PNL_TOKEN)}&ts=${Date.now()}`;
 
   async function tryDirect(){
     const r = await fetch(url, { cache: 'no-store' });
@@ -1189,9 +2360,13 @@ async function pnlGetTotals(){
     return await r.json();
   }
   async function tryProxy(){
-    const fr = await (typeof fetchWithFallback==='function' ? fetchWithFallback(url, 'json', 10000) : Promise.resolve({ok:false, error:'no proxy'}));
-    if (!fr.ok) throw new Error(fr.error || 'proxy fail');
-    return fr.data;
+    if (typeof fetchWithFallback === 'function'){
+      const fr = await fetchWithFallback(url, 'json', 12000);
+      if (!fr.ok) throw new Error(fr.error || 'proxy fail');
+      return fr.data;
+    } else {
+      throw new Error('no proxy');
+    }
   }
 
   try {
@@ -1301,6 +2476,13 @@ async function pnlUndoLast(){
 
       // Start aligned refresh loop
       scheduleAlignedRefresh();
+      initBell();
+
+      // Initial market status
+      updateMarketStatusInitial();
+      // Update on selection/bundle changes
+      try{ document.getElementById('futures').addEventListener('change', ()=>updateMarketStatusInitial()); }catch(_){}
+      document.addEventListener('click', (ev)=>{ const b = ev.target && ev.target.closest && ev.target.closest('[data-bundle]'); if(b) setTimeout(updateMarketStatusInitial, 60); }, true);
     });
 
     
@@ -2414,5 +3596,70 @@ window.addEventListener('load', function(){
 });
 </script>
 
+
+<script>
+// Delegated click handler: only runs if core functions exist
+document.addEventListener('click', (ev)=>{
+  const el = ev.target && (ev.target.closest ? ev.target.closest('#start, #runTrend, #runRisk') : null);
+  if (!el) return;
+  try{
+    if (typeof window.setNav !== 'function' || typeof window.setTab !== 'function') return;
+    if (el.id === 'start'){
+      if (typeof window.startAnalyze === 'function'){
+        window.setNav('nav-prep'); window.setTab('prep'); window.startAnalyze({linksOnly:false});
+      }
+    } else if (el.id === 'runTrend'){
+      if (typeof window.buildTrend === 'function' && typeof window.getSelectedFutures === 'function'){
+        window.setNav('nav-trend'); window.setTab('trend');
+        const m = window.getSelectedFutures(); window.buildTrend(m.length? m : ['ES']);
+      }
+    } else if (el.id === 'runRisk'){
+      if (typeof window.buildRisk === 'function' && typeof window.getSelectedFutures === 'function'){
+        window.setNav('nav-risk'); window.setTab('risk');
+        const m = window.getSelectedFutures(); window.buildRisk(m.length? m : ['ES']);
+      }
+    }
+  }catch(e){ if (console && console.warn) console.warn('Analyze click failed:', e); }
+});
+</script>
+
+<script>
+// Keep Analyze buttons (Prep/Trend/Risk) visually "pressed" after click
+(function(){
+  function setAnalyzeActive(activeId){
+    var ids = ['start','runTrend','runRisk'];
+    ids.forEach(function(id){
+      var el = document.getElementById(id);
+      if(!el) return;
+      var on = (id === activeId);
+      el.classList.toggle('active', on);
+      try{ el.setAttribute('aria-pressed', on ? 'true' : 'false'); }catch(_){}
+    });
+  }
+  ['start','runTrend','runRisk'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('click', function(){ setAnalyzeActive(id); }, {capture:false, passive:true});
+  });
+})();
+</script>
+
+<script>
+// Disable the global sticky-click from earlier for non-toggle buttons.
+(function(){
+  try{ localStorage.removeItem('GLASS_CLICKED_IDS'); }catch(_){}
+  // On any click, if the element is not a known toggle, drop the 'clicked' class immediately.
+  const toggles = new Set(['start','runTrend','runRisk','nav-prep','nav-trend','nav-risk','nav-settings','nav-pnl']);
+  document.addEventListener('click', (ev)=>{
+    const el = ev.target.closest('button, .btn, [role="button"], .tabbtn, .segbtn, input[type="button"], input[type="submit"]');
+    if(!el) return;
+    const isToggle = (el.id && toggles.has(el.id)) || el.classList.contains('tabbtn') || el.classList.contains('segbtn');
+    if(!isToggle){
+      // remove any leftover sticky class right after click
+      setTimeout(()=>{ el.classList.remove('clicked'); }, 0);
+    }
+  }, true);
+})();
+</script>
 </body>
 </html>
