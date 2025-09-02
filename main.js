@@ -19,14 +19,14 @@
       if(v.endsWith('?url=') || v.endsWith('%3Furl%3D')) return v + encodeURIComponent(u);
       return v + encodeURIComponent(u);
     }
-    async function fetchWithFallback(url, type='json', timeout=10000){
+    async function fetchWithFallback(url, type='json', timeout=10000, options={}){
       let lastErr=null, used='';
       for(let i=0;i<PROXIES.length;i++){
         const wrapped = wrapUrl(url, i);
         if(!wrapped) continue;
         try{
           const c = new AbortController(); const to = setTimeout(()=>c.abort('timeout'), timeout);
-          const res = await fetch(wrapped, {signal:c.signal, cache:'no-store'});
+          const res = await fetch(wrapped, Object.assign({signal:c.signal, cache:'no-store'}, options||{}));
           clearTimeout(to);
           if(!res.ok) throw new Error('HTTP '+res.status);
           used = (typeof PROXIES[i] === 'function') ? (PROXIES[i]===PROXIES[0]?'PROXY_RAW':'customProxy') : 'allorigins';
@@ -56,7 +56,7 @@
         testBtn.addEventListener('click', async()=>{
           if(diagEl) diagEl.textContent = 'Testing Yahoo 1m via fallbacks...';
           const url='https://query1.finance.yahoo.com/v8/finance/chart/SPY?range=1d&interval=1m&includePrePost=true';
-          const r = await fetchWithFallback(url,'json',10000);
+          const r = await fetchWithFallback(url,'json',10000,{});
           if(r.ok){
             if(diagEl) diagEl.innerHTML = `<span class="chip ok">OK via <b>${r.used}</b></span>`;
             const c2=document.getElementById('conn2'); if(c2){ c2.className='chip ok'; c2.innerHTML='<i class="fa-solid fa-chart-line"></i> Data OK'; }
@@ -616,7 +616,7 @@ function busyTrackerTick(isBusy){
 })();/* ---------------- Intraday fetch ---------------- */
     async function fetchIntraday(etf){
       const u = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(etf)}?range=1d&interval=1m&includePrePost=true&t=${Date.now()}`;
-      const _r = (typeof fetchWithFallback==='function') ? await fetchWithFallback(u,'json',12000) : null;
+      const _r = (typeof fetchWithFallback==='function') ? await fetchWithFallback(u,'json',12000,{}) : null;
       const data = (_r && _r.ok) ? _r.data : await fetchJsonRetry(PROXY_RAW + encodeURIComponent(u), 2);
       const r = data?.chart?.result?.[0];
       const q = r?.indicators?.quote?.[0];
@@ -1155,7 +1155,7 @@ async function pnlGetTotals(){
   }
   async function tryProxy(){
     if (typeof fetchWithFallback === 'function'){
-      const fr = await fetchWithFallback(url, 'json', 12000);
+      const fr = await fetchWithFallback(url, 'json', 12000, {});
       if (!fr.ok) throw new Error(fr.error || 'proxy fail');
       return fr.data;
     } else {
