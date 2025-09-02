@@ -1199,19 +1199,19 @@ async function pnlUndoLast(){
   if (!PNL_API || !PNL_TOKEN) throw new Error('Missing API/token');
   const payload = { token: PNL_TOKEN, action:'undo' };
 
-  // Try POST (preflight-safe), then GET fallback
-  try {
-    const r = await fetch(PNL_API, {
-      method: 'POST',
-      headers: { 'Content-Type':'text/plain;charset=UTF-8', 'Accept':'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (!r.ok) throw new Error('HTTP '+r.status);
-    const j = await r.json();
-    if (!j.ok) throw new Error(j.error || 'undo failed');
-    return j;
-  } catch (e){
+  async function tryDirect(){
+    // Try POST (preflight-safe) then form-encoded
     try {
+      const r = await fetch(PNL_API, {
+        method: 'POST',
+        headers: { 'Content-Type':'text/plain;charset=UTF-8', 'Accept':'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!r.ok) throw new Error('HTTP '+r.status);
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error || 'undo failed');
+      return j;
+    } catch (e){
       const body = new URLSearchParams(payload).toString();
       const r2 = await fetch(PNL_API, {
         method: 'POST',
@@ -1222,16 +1222,20 @@ async function pnlUndoLast(){
       const txt = await r2.text();
       try { const j2 = JSON.parse(txt); if (!j2.ok) throw new Error(j2.error || 'undo failed'); return j2; }
       catch { return { ok:true, raw:txt }; }
-    } catch (_){
-      // GET fallback
-      const url = `${PNL_API}?token=${encodeURIComponent(PNL_TOKEN)}&action=undo`;
-      const r3 = await fetch(url, { cache:'no-store' });
-      if (!r3.ok) throw new Error('HTTP '+r3.status);
-      const j3 = await r3.json();
-      if (!j3.ok) throw new Error(j3.error || 'undo failed');
-      return j3;
     }
   }
+  async function tryProxy(){
+    if(typeof fetchWithFallback!=='function') throw new Error('no proxy');
+    const url = `${PNL_API}?${new URLSearchParams(payload).toString()}`;
+    const fr = await fetchWithFallback(url,'json',12000);
+    if(!fr.ok) throw new Error(fr.error || 'proxy fail');
+    const j = fr.data;
+    if(!j || !j.ok) throw new Error(j?.error || 'undo failed');
+    return j;
+  }
+
+  try { return await tryDirect(); }
+  catch { return await tryProxy(); }
 }
 
 
@@ -1338,36 +1342,50 @@ async function pnlPostLog({ user, amount, note }){
   if (!PNL_API) throw new Error('PNL_API missing');
   const payload = { token: PNL_TOKEN, user, amount, note };
 
-  // Try simple text/plain first (avoids CORS preflight in most browsers)
-  try {
-    const r = await fetch(PNL_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=UTF-8', 'Accept': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const j = await r.json();
-    if (!j.ok) throw new Error(j.error || 'save failed');
-    return j;
-  } catch (e) {
-    // Fallback: x-www-form-urlencoded (also avoids preflight)
-    const body = new URLSearchParams(payload).toString();
-    const r2 = await fetch(PNL_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
-      body
-    });
-    if (!r2.ok) throw new Error('HTTP ' + r2.status);
-    const txt = await r2.text();
+  async function tryDirect(){
+    // Try simple text/plain first (avoids CORS preflight in most browsers)
     try {
-      const j2 = JSON.parse(txt);
-      if (!j2.ok) throw new Error(j2.error || 'save failed');
-      return j2;
-    } catch {
-      // If Apps Script returns plain OK
-      return { ok: true, raw: txt };
+      const r = await fetch(PNL_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8', 'Accept': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error || 'save failed');
+      return j;
+    } catch(e){
+      // Fallback: x-www-form-urlencoded (also avoids preflight)
+      const body = new URLSearchParams(payload).toString();
+      const r2 = await fetch(PNL_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+        body
+      });
+      if (!r2.ok) throw new Error('HTTP ' + r2.status);
+      const txt = await r2.text();
+      try {
+        const j2 = JSON.parse(txt);
+        if (!j2.ok) throw new Error(j2.error || 'save failed');
+        return j2;
+      } catch {
+        // If Apps Script returns plain OK
+        return { ok: true, raw: txt };
+      }
     }
   }
+  async function tryProxy(){
+    if(typeof fetchWithFallback !== 'function') throw new Error('no proxy');
+    const url = `${PNL_API}?${new URLSearchParams(payload).toString()}`;
+    const fr = await fetchWithFallback(url,'json',12000);
+    if(!fr.ok) throw new Error(fr.error || 'proxy fail');
+    const j = fr.data;
+    if(!j || !j.ok) throw new Error(j?.error || 'save failed');
+    return j;
+  }
+
+  try { return await tryDirect(); }
+  catch { return await tryProxy(); }
 }
 ;
 
