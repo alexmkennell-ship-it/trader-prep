@@ -1,25 +1,19 @@
 // sw.js — network-first for HTML, cache-first for static assets
 // Increase the cache version whenever assets change.  This forces browsers
 // to discard old caches and pull the latest files.
-const CACHE = 'trader-prep-v53';
+const CACHE = 'trader-prep-v54';
 
-// A list of core assets to pre‑cache.  Because our entry point is named
-// `indexhtml.txt` in this repository, include that file explicitly rather
-// than `index.html`.  The manifest and icons have been corrected and
-// included here as well.  If you rename your HTML file to `index.html`
-// later, update this list accordingly.
+// A list of core assets to pre‑cache. Include the HTML entry point,
+// manifest, icons, and bundled static files.
 const ASSETS = [
   './',
-  // Pre-cache both index.html (primary entry point on GitHub Pages) and
-  // indexhtml.txt (alternate filename used in this repo).  Having both
-  // ensures offline functionality regardless of which filename the
-  // server is serving.
   './index.html',
-  './indexhtml.txt',
   './manifest.webmanifest',
   './icon-192.png',
   './icon-512.png',
-  './favicon-32.png'
+  './favicon-32.png',
+  './style.css',
+  './main.js'
 ];
 
 // Install: pre-cache core assets
@@ -59,11 +53,11 @@ self.addEventListener('fetch', evt => {
           return res;
         })
         .catch(() =>
-          // Fall back to the cached HTML entrypoints when offline.  First try
-          // the request itself from the cache, then index.html, then indexhtml.txt.
-          caches.match(req).then(r =>
-            r || caches.match('./index.html').then(r2 => r2 || caches.match('./indexhtml.txt'))
-          )
+        // Fall back to the cached HTML entry point when offline. First try
+        // the request itself from the cache, then index.html.
+        caches.match(req).then(r =>
+          r || caches.match('./index.html')
+        )
         )
     );
     return;
