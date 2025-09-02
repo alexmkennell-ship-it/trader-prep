@@ -1282,7 +1282,6 @@ async function pnlUndoLast(){
     
     
     
-    /* ======= Explain modal helpers (robust binding) ======= */
     function ensureExplainBindings(){
       const m=document.getElementById('explainModal'); if(!m||m.dataset.bound==='1') return;
       m.dataset.bound='1';
@@ -1302,7 +1301,6 @@ async function pnlUndoLast(){
       m.style.display='flex';
     }
 
-    /* ======= Auto-scroll utilities ======= */
     function applyMarquee(el, minDur=10, pxPerSec=50){
       if(!el) return;
       // Only marquee if it would overflow
@@ -1336,8 +1334,6 @@ async function pnlUndoLast(){
       requestAnimationFrame(step);
     }
 
-    // ======== Minimal P&L logger post (stubbed same as before) ========
-    // ======== Minimal P&L logger post (preflight-safe & robust) ========
 async function pnlPostLog({ user, amount, note }){
   if (!PNL_API) throw new Error('PNL_API missing');
   const payload = { token: PNL_TOKEN, user, amount, note };
@@ -2464,54 +2460,6 @@ document.addEventListener('click', (ev)=>{
 })();
 ;
 
-// === Topstep trading window status (repurpose "Market hours" chip) ===
-(function(){
-  function chicagoHM(d){
-    try{
-      const parts = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'America/Chicago', hour12: false, hour: '2-digit', minute: '2-digit'
-      }).formatToParts(d);
-      let h=0,m=0;
-      for(const p of parts){ if(p.type==='hour') h=parseInt(p.value,10); if(p.type==='minute') m=parseInt(p.value,10); }
-      return {h,m};
-    }catch(_){ return {h:d.getHours(), m:d.getMinutes()}; }
-  }
-  // Topstep open: 17:00 → 15:10 next day CT. Closed daily window: 15:10–17:00 CT.
-  function topstepOpenNow(d){
-    const ct = chicagoHM(d||new Date());
-    const inCloseBlock = ((ct.h>15 || (ct.h===15 && ct.m>=10)) && (ct.h<17));
-    return !inCloseBlock;
-  }
-  function findHoursChip(){
-    var el = document.getElementById('marketHours') || document.getElementById('marketHoursChip');
-    if(el) return el;
-    var candidates = document.querySelectorAll('.chip, .pill, .tag, .btn, button, [class*="chip"], [class*="pill"]');
-    for (var i=0;i<candidates.length;i++){
-      var t=(candidates[i].textContent||'').trim().toLowerCase();
-      if(t==='market hours' || t.indexOf('market hours')!==-1) return candidates[i];
-    }
-    return null;
-  }
-  function locateHost(){
-    var title = Array.from(document.querySelectorAll('h1,h2,h3,h4,.title,.card h3')).find(n=>/choose your markets/i.test(n.textContent||''));
-    return (title && title.parentElement) || document.getElementById('panel-prep') || document.body;
-  }
-      var open = topstepOpenNow(new Date());
-    chip.textContent = open ? 'Topstep: OPEN' : 'Topstep: CLOSED';
-    chip.title = 'Topstep trading window: 5:00 pm – 3:10 pm CT';
-    chip.classList.remove('ok','bad','warn');
-    chip.classList.add(open ? 'ok' : 'bad');
-  }
-  function start(){
-    try{ renderTopstep(); }catch(_){}
-    var now=new Date();
-    var ms=((60-now.getSeconds())*1000 - now.getMilliseconds()) + 50;
-    setTimeout(function(){ renderTopstep(); setInterval(renderTopstep, 60000); }, Math.max(200, ms));
-  }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', start);
-  else start();
-})();
-;
 
 (function(){
   function ctHourMinute(d){
