@@ -1209,6 +1209,116 @@ button, .btn, [role="button"], .tabbtn, .segbtn,
   #riskQuickTabs .qt-refresh { order: 3; } /* optional: push to end of row */
 }
 </style>
+
+<style>
+#explainCard .modal-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+#explainCard .modal-head .icon{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:linear-gradient(180deg,rgba(116,36,172,.25),rgba(116,36,172,.08));border:1px solid rgba(116,36,172,.6);box-shadow:inset 0 1px 0 rgba(255,255,255,.06);}
+#explainCard .modal-head .icon i{color:#fff;}
+#explainCard .modal-head .title{font-weight:700;letter-spacing:.2px;color:#fff;}
+#explainBody .row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;}
+#explainBody .row + .row{border-top:1px solid #2d2c33;}
+#explainBody .left{display:flex;align-items:center;gap:10px;color:#e8e8ee;}
+#explainBody .left i{color:#b18ad3;}
+#explainBody .hint{color:#a6a6b3;font-size:12px;margin-top:6px;}
+#explainBody .actions{display:flex;gap:10px;margin-top:12px;}
+#explainBody .btn{padding:8px 12px;border-radius:10px;cursor:pointer;user-select:none;background:linear-gradient(180deg,rgba(116,36,172,.22),rgba(116,36,172,.10));border:1px solid rgba(116,36,172,.70);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),inset 0 -1px 0 rgba(0,0,0,.35),0 6px 18px rgba(116,36,172,.35);}
+#explainBody .btn:hover{filter:brightness(1.05);}
+#explainBody .btn.secondary{background:#1b1b22;border-color:#32323a;box-shadow:inset 0 1px 0 rgba(255,255,255,.04);color:#e9e9f1;}
+#explainBody input[type="checkbox"]{accent-color:#7424ac;width:18px;height:18px;}
+#explainBody .notif-slider{height:6px;border-radius:999px;background:#2c2b33;}
+#explainBody .notif-slider::-webkit-slider-thumb{width:18px;height:18px;border-radius:50%;background:#7424ac;border:1px solid rgba(116,36,172,.75);box-shadow:0 0 0 4px rgba(116,36,172,.22);}
+</style>
+
+
+<style id="glass-header-override">
+/* Force bell/watch to share IDENTICAL pressed glass look */
+.iconbtn#nav-bell.active,
+.iconbtn#nav-watch.active{
+  color:#fff !important;
+  background:
+    radial-gradient(120% 120% at 50% -10%, rgba(116,36,172,0.30) 0%, rgba(116,36,172,0.10) 45%, rgba(0,0,0,0.0) 60%),
+    linear-gradient(180deg, rgba(116,36,172,0.22) 0%, rgba(116,36,172,0.10) 100%) !important;
+  border:1px solid rgba(116,36,172,0.70) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    inset 0 -1px 0 rgba(0,0,0,0.35),
+    0 6px 18px rgba(116,36,172,0.35) !important;
+}
+.iconbtn#nav-bell.active i,
+.iconbtn#nav-watch.active i{ color:#fff !important; }
+</style>
+
+
+<style id="mobile-polish-v1">
+/* ===== Mobile polish (cosmetics only; no JS or proxy changes) ===== */
+@media (max-width: 520px){
+  :root{
+    --chip-font: 12.5px;
+    --chip-pad-y: 6px;
+    --chip-pad-x: 10px;
+    --btn-h: 44px;
+    --radius: 12px;
+  }
+  /* Top bar spacing */
+  .header, #topbar, .appbar{ padding-left: 8px; padding-right: 8px; }
+  /* Icon buttons */
+  .iconbtn, .icon-btn, .btn.icon, .header .btn{
+    width: 44px; height: 44px; border-radius: 14px;
+  }
+  .iconbtn i, .icon-btn i, .btn.icon i{ font-size: 18px; }
+  /* Stat chips row */
+  .statstrip{ padding: 8px 10px 0; gap: 8px; }
+  .statstrip .chip, .statstrip .pill{
+    font-size: var(--chip-font);
+    padding: var(--chip-pad-y) var(--chip-pad-x);
+    border-radius: var(--radius);
+    min-height: 30px;
+  }
+  /* Any general chips/pills */
+  .chip, .pill{
+    font-size: var(--chip-font);
+    padding: var(--chip-pad-y) var(--chip-pad-x);
+    border-radius: var(--radius);
+  }
+  /* Market hours pill alignment */
+  #marketHours, #marketHoursChip{ margin-left: 10px; }
+  /* Cards tighter */
+  .card{ padding: 14px; border-radius: 16px; }
+  .card h3, .card .title{ margin-bottom: 8px; }
+  /* Futures list input height + font */
+  select, input, textarea{ font-size: 16px; } /* avoid iOS zoom */
+  /* Timeframe segmented buttons */
+  .segbtn, [data-tf], [data-timeframe]{
+    min-width: 64px; height: 36px; line-height: 36px;
+    border-radius: 12px; font-weight: 600;
+  }
+  .segbtn.active, [data-tf].active, [data-timeframe].active{
+    color: #fff;
+    background: linear-gradient(180deg, rgba(116,36,172,.25), rgba(116,36,172,.08));
+    border: 1px solid rgba(116,36,172,.65);
+    box-shadow: 0 10px 28px rgba(116,36,172,.28), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  /* Analyze buttons sizing */
+  #start, #runTrend, #runRisk{
+    min-height: var(--btn-h);
+    border-radius: 14px;
+    font-size: 15px;
+  }
+  /* Quick tabs bar */
+  #riskQuickTabs.card{ padding: 10px 12px; border-radius: 16px; }
+  #riskQuickTabs .tabbtn{ height: 32px; border-radius: 12px; }
+  #riskQuickTabs .qt-controls .qt-refresh{ max-width: 46vw; }
+  /* Dropdown caret alignment */
+  select.qt-refresh{ padding-right: 28px; }
+  /* “Market CLOSED/OPEN” pill inside section header */
+  .card h3 + .chip, .card .title + .chip{ margin-left: 10px; }
+  /* Smaller legend pills */
+  .legend .item{ font-size: 12px; }
+  /* Slider modal buttons text size */
+  #sliderConfirm .btn{ font-size: 14px; }
+}
+</style>
+
 </head>
 <body>
 <!-- HEADER -->
@@ -1219,6 +1329,7 @@ button, .btn, [role="button"], .tabbtn, .segbtn,
 </div>
 <nav class="navicons">
   <div class="iconbtn" id="nav-bell" title="Notifications"><i id="bellIcon" class="fa-regular fa-bell"></i></div>
+  <div class="iconbtn" id="nav-watch" title="Stock Watcher"><i class="fa-regular fa-eye"></i></div>
 <div class="iconbtn active" id="nav-prep" title="Prep"><i class="fa-solid fa-bars-staggered"></i></div>
 <div class="iconbtn" id="nav-trend" title="Trend"><i class="fa-solid fa-wave-square"></i></div>
 <div class="iconbtn" id="nav-risk" title="Risk"><i class="fa-solid fa-fire-flame-curved"></i></div>
@@ -1462,32 +1573,13 @@ function setNotifEnabled(on){
 }
 async function initBell(){
   if(!bellBtn) return;
-  // initial state
-  const on = notifIsEnabled();
-  setNotifEnabled(on);
-  bellBtn.addEventListener('click', async ()=>{
-    const cur = notifIsEnabled();
-    const next = !cur;
-    if(next && 'Notification' in window){
-      try{
-        if(Notification.permission==='default'){
-          const p = await Notification.requestPermission().catch(()=>{});
-          if(p!=='granted'){ setNotifEnabled(false); return; }
-        } else if(Notification.permission==='denied'){
-          // can't enable in this state
-          setNotifEnabled(false);
-          return;
-        }
-      }catch(_){}
-    }
-    setNotifEnabled(next);
+  const on = notifIsEnabled && notifIsEnabled();
+  setNotifEnabled(!!on);
+  bellBtn.addEventListener('click', (e)=>{
+    e.preventDefault(); e.stopPropagation();
+    if(typeof openNotifSettings==='function'){ openNotifSettings(); }
   }, false);
 }
-/* ---------------- Elements ---------------- */
-/* ===== Market status pill (OPEN/CLOSED) ===== */
-const mktStatusEl = document.getElementById('mktStatus');
-let mktReg = { start: null, end: null, etf: null };
-
 function refreshMarketStatus(){
   if(!mktStatusEl) return;
   mktStatusEl.classList.remove('ok','bad','warn');
@@ -1820,7 +1912,163 @@ function busyTrackerTick(isBusy){
     _busyNotified = false;
   }
 }
-/* ---------------- Intraday fetch ---------------- */
+
+/* ===== Notifications settings UI + rules (enhanced) ===== */
+(function(){
+  const LS = {
+    ENABLED:'NOTIFY_ENABLED',
+    BUSY5:'NOTIFY_BUSY5',            // bool
+    CONF_DROP:'NOTIFY_CONF_DROP',    // percent integer threshold e.g. 7
+    WEARY:'NOTIFY_WEARY',            // bool
+    FLIP:'NOTIFY_FLIP',              // bool
+    SELECTED_ONLY:'NOTIFY_SEL_ONLY'  // bool
+  };
+  const DEFAULTS = { enabled:false, busy5:true, confDrop:7, weary:true, flip:true, selectedOnly:true };
+  const read = (k, d)=>{
+    try{ const v=localStorage.getItem(k); return v===null? d : (/^\d+$/.test(v)? Number(v): (v==='true'? true: (v==='false'? false: v))); }catch(_){ return d; }
+  };
+  const write = (k,v)=>{ try{ localStorage.setItem(k, String(v)); }catch(_){} };
+
+  function getPrefs(){
+    return {
+      enabled: read(LS.ENABLED, DEFAULTS.enabled) ? true:false,
+      busy5:   read(LS.BUSY5, DEFAULTS.busy5) ? true:false,
+      confDrop: Number(read(LS.CONF_DROP, DEFAULTS.confDrop))||DEFAULTS.confDrop,
+      weary:   read(LS.WEARY, DEFAULTS.weary) ? true:false,
+      flip:    read(LS.FLIP, DEFAULTS.flip) ? true:false,
+      selectedOnly: read(LS.SELECTED_ONLY, DEFAULTS.selectedOnly) ? true:false
+    };
+  }
+  function savePrefs(p){
+    write(LS.ENABLED, p.enabled? 'true':'false');
+    write(LS.BUSY5, p.busy5? 'true':'false');
+    write(LS.CONF_DROP, String(Math.max(1, Math.min(30, Math.round(p.confDrop||DEFAULTS.confDrop)))));
+    write(LS.WEARY, p.weary? 'true':'false');
+    write(LS.FLIP, p.flip? 'true':'false');
+    write(LS.SELECTED_ONLY, p.selectedOnly? 'true':'false');
+    // also reflect header bell state
+    try{
+      const bell=document.getElementById('nav-bell'), icon=document.getElementById('bellIcon');
+      bell && bell.classList.toggle('active', !!p.enabled);
+      if(icon){ icon.classList.remove('fa-regular','fa-solid'); icon.classList.add(p.enabled?'fa-solid':'fa-regular','fa-bell'); }
+    }catch(_){}
+  }
+  // reuse earlier helpers
+  window.notifIsEnabled = ()=> getPrefs().enabled;
+
+  // Build and show settings using the existing explain modal
+  window.openNotifSettings = async function(){
+    const prefs = getPrefs();
+    const html = `
+      <form id="notifForm" class="formgrid" style="min-width:280px;max-width:520px">
+        <label class="row"><span>Enable notifications</span>
+          <input type="checkbox" id="nf_on" ${prefs.enabled?'checked':''} />
+        </label>
+        <hr/>
+        <label class="row"><span>Alert if tape is <b>Busy ≥ 5 min</b></span>
+          <input type="checkbox" id="nf_busy" ${prefs.busy5?'checked':''} />
+        </label>
+        <label class="row"><span>Alert on <b>confidence drop</b> ≥ <b id="nf_dropLbl">${prefs.confDrop}%</b></span>
+          <input type="range" min="3" max="20" step="1" id="nf_drop" value="${prefs.confDrop}" />
+        </label>
+        <label class="row"><span>Alert when confidence in <b>50–60%</b> “weary” zone</span>
+          <input type="checkbox" id="nf_weary" ${prefs.weary?'checked':''} />
+        </label>
+        <label class="row"><span>Alert on <b>signal flip</b> (e.g., Bullish → Neutral/Bearish)</span>
+          <input type="checkbox" id="nf_flip" ${prefs.flip?'checked':''} />
+        </label>
+        <label class="row"><span>Only for <b>current/selected symbols</b></span>
+          <input type="checkbox" id="nf_sel" ${prefs.selectedOnly?'checked':''} />
+        </label>
+        <p class="muted" style="font-size:12px;margin-top:10px">
+          Notifications use your browser. You may need to allow them when prompted.
+          Applies only while this tab is open.
+        </p>
+      </form>`;
+    if(typeof openExplain==='function'){
+      openExplain({title:'Notifications', html});
+      // Bind interactions after the modal is inserted
+      requestAnimationFrame(()=>{
+        const $ = sel => document.querySelector('#explainModal '+sel);
+        const on = $('#nf_on'), busy=$('#nf_busy'), dr=$('#nf_drop'), drLbl=$('#nf_dropLbl'), wy=$('#nf_weary'), fl=$('#nf_flip'), sel=$('#nf_sel');
+        if(dr && drLbl){ dr.addEventListener('input', ()=> drLbl.textContent = dr.value+'%'); }
+        const save = async()=>{
+          const newPrefs = {
+            enabled: !!(on && on.checked),
+            busy5: !!(busy && busy.checked),
+            confDrop: dr ? Number(dr.value||prefs.confDrop) : prefs.confDrop,
+            weary: !!(wy && wy.checked),
+            flip: !!(fl && fl.checked),
+            selectedOnly: !!(sel && sel.checked)
+          };
+          // if enabling, request permission
+          if(newPrefs.enabled && 'Notification' in window){
+            try{
+              if(Notification.permission==='default'){
+                const perm = await Notification.requestPermission().catch(()=>{});
+                if(perm!=='granted'){ newPrefs.enabled=false; }
+              } else if(Notification.permission==='denied'){
+                newPrefs.enabled=false;
+              }
+            }catch(_){}
+          }
+          savePrefs(newPrefs);
+        };
+        // Save on any change
+        [on,busy,dr,wy,fl,sel].forEach(el=>{ if(el) el.addEventListener('change', save, false); });
+      });
+    }
+  };
+
+  /* ------- Rules evaluation ------- */
+  const lastState = Object.create(null); // by symbol: {conf,lastLabel,lastNotifyTs}
+  window.notifCheckPred = function(sym, pred, info){
+    const prefs = getPrefs();
+    if(!prefs.enabled) return;
+    if(prefs.selectedOnly){
+      try{
+        const sel = (typeof getSelectedFutures==='function') ? getSelectedFutures() : null;
+        if(Array.isArray(sel) && sel.length && !sel.includes(sym) && sym!==((sel[0]||'').toUpperCase())) return;
+      }catch(_){}
+    }
+    const st = lastState[sym] || {};
+    const confNow = Math.round((pred.conf||0)*100);
+    const labelNow = String(pred.label||'').toLowerCase();
+
+    // 1) Confidence drop alert
+    if(typeof st.conf==='number'){
+      const drop = st.conf - confNow;
+      if(drop >= (prefs.confDrop||7)){
+        notifyNow('Confidence dropped', `From ${st.conf}% to ${confNow}% on ${sym}.`);
+      }
+    }
+
+    // 2) Weary zone alert (50–60%)
+    if(prefs.weary && confNow>=50 && confNow<=60){
+      notifyNow('Weary confidence zone', `${sym} confidence at ${confNow}%. Consider pausing.`);
+    }
+
+    // 3) Signal flip alert
+    if(prefs.flip && st.label && st.label!=='bullish' && labelNow==='bullish'){
+      // entering bullish
+      notifyNow('Signal: Bullish', `${sym} turned Bullish (${confNow}%).`);
+    } else if(prefs.flip && st.label && st.label==='bullish' && labelNow!=='bullish'){
+      notifyNow('Signal changed', `${sym} flipped to ${pred.label} (${confNow}%).`);
+    }
+
+    // Save
+    lastState[sym] = {conf:confNow, label:labelNow, t:Date.now()};
+    // Busy tracking is handled separately by busyTrackerTick
+  };
+
+  // Replace bell click to open settings
+  try{
+    const bellBtn = document.getElementById('nav-bell');
+    if(bellBtn){
+      bellBtn.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); openNotifSettings(); }, {capture:true});
+    }
+  }catch(_){}
+})();/* ---------------- Intraday fetch ---------------- */
     async function fetchIntraday(etf){
       const u = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(etf)}?range=1d&interval=1m&includePrePost=true&t=${Date.now()}`;
       const _r = (typeof fetchWithFallback==='function') ? await fetchWithFallback(u,'json',12000) : null;
@@ -2231,6 +2479,7 @@ function leanWindowSmart(bars, minutesDesired){
 
         // NEW: Prediction blip (purple)
         const pred = marketPrediction(info, win);
+        try{ notifCheckPred(etf, pred, info); }catch(_){}
         const pctConf = Math.round(pred.conf*100);
         const predEl = document.createElement('div');
         predEl.className='pill accent'; predEl.id='riskPredPill'; predEl.style.cursor='pointer'; predEl.title='Tap to see why';
@@ -3661,5 +3910,161 @@ document.addEventListener('click', (ev)=>{
   }, true);
 })();
 </script>
+
+<script>
+(function(){
+  const WATCH_KEY='STOCK_WATCH_ENABLED';
+  const watchBtn=document.getElementById('nav-watch');
+  function isEnabled(){ try{return localStorage.getItem(WATCH_KEY)==='1';}catch(_){return false;} }
+  function setEnabled(v){ try{localStorage.setItem(WATCH_KEY,v?'1':'0');}catch(_){ } watchBtn && watchBtn.classList.toggle('active',!!v); }
+  function ensurePerm(){ try{ if(!('Notification'in window))return; if(Notification.permission==='granted')return; if(Notification.permission!=='denied') Notification.requestPermission(()=>{});}catch(_){ } }
+  function openWatchExplain(){
+    const on=isEnabled();
+    const html=`
+      <div class="modal-head"><div class="icon"><i class="fa-regular fa-eye"></i></div><div class="title">Stock Watcher</div></div>
+      <div class="row"><div class="left"><i class="fa-solid fa-bell"></i>Send a notification <b>each refresh</b> for the current Risk view.</div><input type="checkbox" id="sw_on" ${on?'checked':''} /></div>
+      <div class="row"><div class="left"><i class="fa-solid fa-chart-line"></i>Includes <b>Recommendation</b> and <b>Prediction</b> for the active symbol.</div><span></span></div>
+      <div class="row"><div class="left"><i class="fa-solid fa-filter"></i>Respects your selected symbols and timeframe.</div><span></span></div>
+      <div class="hint">Uses your browser notifications. You may need to allow permission. Applies only while this tab is open.</div>
+      <div class="actions"><button class="btn" id="sw_save">${on?'Save':'Start Watching'}</button><button class="btn secondary" id="sw_close">Close</button></div>`;
+    if(typeof openExplain==='function'){
+      openExplain({title:'',html});
+      requestAnimationFrame(()=>{
+        const $=s=>document.querySelector('#explainModal '+s);
+        const tgl=$('#sw_on'), saveBtn=$('#sw_save'), closeBtn=$('#sw_close');
+        if(tgl) tgl.addEventListener('change', ()=>{ const val=!!tgl.checked; setEnabled(val); if(val) ensurePerm(); });
+        if(saveBtn) saveBtn.addEventListener('click', ()=>{ const val=!!(tgl && tgl.checked); setEnabled(val); if(val) ensurePerm(); const m=document.getElementById('explainModal'); if(m) m.style.display='none'; });
+        if(closeBtn) closeBtn.addEventListener('click', ()=>{ const m=document.getElementById('explainModal'); if(m) m.style.display='none'; });
+      });
+    }
+  }
+  if(watchBtn){
+    watchBtn.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); openWatchExplain(); });
+    setEnabled(isEnabled());
+  }
+  // keep existing riskUpdate listener if present; otherwise no-op
+})();
+</script>
+
+
+<script>
+(function(){
+  const WATCH_KEY='STOCK_WATCH_ENABLED';
+  function isWatchOn(){ try{ return localStorage.getItem(WATCH_KEY)==='1'; }catch(_){ return false; } }
+  function syncWatchBtn(){
+    const btn=document.getElementById('nav-watch');
+    if(!btn) return;
+    btn.classList.toggle('active', isWatchOn());
+  }
+  document.addEventListener('DOMContentLoaded', syncWatchBtn);
+  // If the explain modal toggles the setting, reflect immediately
+  document.addEventListener('change', function(e){
+    if(e && e.target && (e.target.id==='sw_on')){ setTimeout(syncWatchBtn, 0); }
+  }, true);
+  // Expose if needed
+  window.syncWatchBtn = syncWatchBtn;
+})();
+</script>
+
+
+<script>
+// === Topstep trading window status (repurpose "Market hours" chip) ===
+(function(){
+  function chicagoHM(d){
+    try{
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Chicago', hour12: false, hour: '2-digit', minute: '2-digit'
+      }).formatToParts(d);
+      let h=0,m=0;
+      for(const p of parts){ if(p.type==='hour') h=parseInt(p.value,10); if(p.type==='minute') m=parseInt(p.value,10); }
+      return {h,m};
+    }catch(_){ return {h:d.getHours(), m:d.getMinutes()}; }
+  }
+  // Topstep open: 17:00 → 15:10 next day CT. Closed daily window: 15:10–17:00 CT.
+  function topstepOpenNow(d){
+    const ct = chicagoHM(d||new Date());
+    const inCloseBlock = ((ct.h>15 || (ct.h===15 && ct.m>=10)) && (ct.h<17));
+    return !inCloseBlock;
+  }
+  function findHoursChip(){
+    var el = document.getElementById('marketHours') || document.getElementById('marketHoursChip');
+    if(el) return el;
+    var candidates = document.querySelectorAll('.chip, .pill, .tag, .btn, button, [class*="chip"], [class*="pill"]');
+    for (var i=0;i<candidates.length;i++){
+      var t=(candidates[i].textContent||'').trim().toLowerCase();
+      if(t==='market hours' || t.indexOf('market hours')!==-1) return candidates[i];
+    }
+    return null;
+  }
+  function locateHost(){
+    var title = Array.from(document.querySelectorAll('h1,h2,h3,h4,.title,.card h3')).find(n=>/choose your markets/i.test(n.textContent||''));
+    return (title && title.parentElement) || document.getElementById('panel-prep') || document.body;
+  }
+      var open = topstepOpenNow(new Date());
+    chip.textContent = open ? 'Topstep: OPEN' : 'Topstep: CLOSED';
+    chip.title = 'Topstep trading window: 5:00 pm – 3:10 pm CT';
+    chip.classList.remove('ok','bad','warn');
+    chip.classList.add(open ? 'ok' : 'bad');
+  }
+  function start(){
+    try{ renderTopstep(); }catch(_){}
+    var now=new Date();
+    var ms=((60-now.getSeconds())*1000 - now.getMilliseconds()) + 50;
+    setTimeout(function(){ renderTopstep(); setInterval(renderTopstep, 60000); }, Math.max(200, ms));
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+})();
+</script>
+
+
+<script id="topstep-only-repurpose">
+(function(){
+  function ctHourMinute(d){
+    try{
+      const parts = new Intl.DateTimeFormat('en-US', {timeZone:'America/Chicago', hour12:false, hour:'2-digit', minute:'2-digit'}).formatToParts(d);
+      let hh=0, mm=0;
+      for(const p of parts){ if(p.type==='hour') hh = parseInt(p.value,10); if(p.type==='minute') mm = parseInt(p.value,10); }
+      return {hh, mm};
+    }catch(_){ return {hh:d.getHours(), mm:d.getMinutes()}; }
+  }
+  function isTopstepOpen(d){
+    const {hh, mm} = ctHourMinute(d||new Date());
+    // Closed window: 15:10–17:00 CT daily
+    const closed = ((hh>15 || (hh===15 && mm>=10)) && hh<17);
+    return !closed;
+  }
+  function findMarketHoursChip(){
+    // Prefer explicit ids if present
+    let el = document.getElementById('marketHours') || document.getElementById('marketHoursChip');
+    if(el) return el;
+    // Fallback: look for a visible "Market hours" chip only (avoid touching other buttons)
+    const candidates = document.querySelectorAll('.chip, .pill, [class*="chip"], [class*="pill"]');
+    for(const c of candidates){
+      const txt = (c.textContent||'').trim().toLowerCase();
+      if(txt === 'market hours' || txt.indexOf('market hours') !== -1) return c;
+    }
+    return null;
+  }
+  function update(){
+    const chip = findMarketHoursChip();
+    if(!chip) return; // do nothing if it's not there
+    const open = isTopstepOpen(new Date());
+    chip.textContent = open ? 'Topstep: OPEN' : 'Topstep: CLOSED';
+    chip.title = 'Topstep trading window: 5:00 pm – 3:10 pm CT';
+    chip.classList.remove('ok','bad','warn');
+    chip.classList.add(open ? 'ok' : 'bad');
+  }
+  function start(){
+    try{ update(); }catch(_){}
+    const now = new Date();
+    const ms = (60-now.getSeconds())*1000 - now.getMilliseconds() + 50;
+    setTimeout(function(){ update(); setInterval(update, 60000); }, Math.max(200, ms));
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+})();
+</script>
+
 </body>
 </html>
