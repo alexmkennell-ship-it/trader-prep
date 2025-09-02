@@ -103,7 +103,6 @@
 /* ===== Notifications bell (header quick toggle) ===== */
 const bellBtn = document.getElementById('nav-bell');
 const bellIcon = document.getElementById('bellIcon');
-const mktStatusEl = document.getElementById('mktStatus');
 const mktReg = { start: null, end: null, etf: null };
 
 function notifIsEnabled(){ return localStorage.getItem('NOTIFY_ENABLED')==='1'; }
@@ -128,6 +127,7 @@ async function initBell(){
   }, false);
 }
 function refreshMarketStatus(){
+  const mktStatusEl = document.getElementById('mktStatus');
   if(!mktStatusEl) return;
   mktStatusEl.classList.remove('ok','bad','warn');
   let label = 'Market hours';
