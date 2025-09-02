@@ -103,6 +103,8 @@
 /* ===== Notifications bell (header quick toggle) ===== */
 const bellBtn = document.getElementById('nav-bell');
 const bellIcon = document.getElementById('bellIcon');
+const mktStatusEl = document.getElementById('mktStatus');
+const mktReg = { start: null, end: null, etf: null };
 
 function notifIsEnabled(){ return localStorage.getItem('NOTIFY_ENABLED')==='1'; }
 function setNotifEnabled(on){
