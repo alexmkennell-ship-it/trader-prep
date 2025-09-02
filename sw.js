@@ -1,7 +1,7 @@
 // sw.js — network-first for HTML, cache-first for static assets
 // Increase the cache version whenever assets change.  This forces browsers
 // to discard old caches and pull the latest files.
-const CACHE = 'trader-prep-v54';
+const CACHE = 'trader-prep-v55';
 
 // A list of core assets to pre‑cache. Include the HTML entry point,
 // manifest, icons, and bundled static files.
