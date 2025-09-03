@@ -1902,14 +1902,42 @@ document.addEventListener('click', (ev)=>{
     // reflect both Watcher and bell icon state
     try{
       watchBtn && watchBtn.classList.toggle('active', !!v);
-      const bell=document.getElementById('nav-bell'), icon=document.getElementById('bellIcon');
-      bell && bell.classList.toggle('active', !!v);
-      if(icon){ icon.classList.remove('fa-regular','fa-solid'); icon.classList.add(v?'fa-solid':'fa-regular','fa-bell'); }
+      if(typeof setNotifEnabled==='function'){
+        setNotifEnabled(!!v);
+      }else{
+        const bell=document.getElementById('nav-bell'), icon=document.getElementById('bellIcon');
+        bell && bell.classList.toggle('active', !!v);
+        if(icon){ icon.classList.remove('fa-regular','fa-solid'); icon.classList.add(v?'fa-solid':'fa-regular','fa-bell'); }
+      }
     }catch(_){ }
     // request notification permission if turning on
-    if(v) ensurePerm();
+    if(v){
+      try{
+        Notification.requestPermission().then(perm=>{
+          if(perm==='granted'){
+            try{
+              localStorage.setItem('NOTIFY_ENABLED','true');
+              localStorage.setItem('NOTIFY_BUSY5','false');
+              localStorage.setItem('NOTIFY_CONF_DROP','100');
+              localStorage.setItem('NOTIFY_WEARY','false');
+              localStorage.setItem('NOTIFY_FLIP','false');
+              localStorage.setItem('NOTIFY_SEL_ONLY','false');
+            }catch(_){ }
+            if(typeof setNotifEnabled==='function') setNotifEnabled(true);
+            if(typeof initBell==='function') initBell();
+          }else if(perm==='denied'){
+            try{ localStorage.setItem(WATCH_KEY,'0'); localStorage.setItem('NOTIFY_ENABLED','false'); }catch(_){ }
+            if(typeof setNotifEnabled==='function') setNotifEnabled(false);
+            watchBtn && watchBtn.classList.toggle('active', false);
+            const bell=document.getElementById('nav-bell'), icon=document.getElementById('bellIcon');
+            if(bell) bell.classList.toggle('active', false);
+            if(icon){ icon.classList.remove('fa-solid'); icon.classList.add('fa-regular','fa-bell'); }
+            alert('Notifications blocked. Stock Watcher disabled.');
+          }
+        });
+      }catch(_){ }
+    }
   }
-  function ensurePerm(){ try{ if(!('Notification'in window))return; if(Notification.permission==='granted')return; if(Notification.permission!=='denied') Notification.requestPermission(()=>{});}catch(_){ } }
   function openWatchExplain(){
     const on=isEnabled();
     const html=`
