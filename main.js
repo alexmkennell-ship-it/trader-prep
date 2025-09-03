@@ -1129,6 +1129,18 @@ if(lean){
         }
         const refEl=document.getElementById('riskRef'); if(refEl){refEl.textContent=new Date().toLocaleTimeString();refEl.classList.remove('flash');void refEl.offsetWidth;refEl.classList.add('flash')}
         riskWinEl.textContent=`${trendMinutes}m`;
+        // Broadcast to listeners (e.g. Stock Watcher) with latest pills
+        try{
+          const recEl=document.getElementById('riskRecPill');
+          const predEl=document.getElementById('riskPredPill');
+          window.dispatchEvent(new CustomEvent('riskUpdate',{
+            detail:{
+              etf,
+              recText:recEl?recEl.textContent.trim():'',
+              predText:predEl?predEl.textContent.trim():''
+            }
+          }));
+        }catch(_){ }
       }catch(e){riskSummaryEl.innerHTML=`<span class="muted">Risk fetch failed (${String(e.message||e)})</span>`;drawTrend(riskCanvas,[])}
     }
 
@@ -1889,6 +1901,13 @@ document.addEventListener('click', (ev)=>{
     watchBtn.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); openWatchExplain(); });
     setEnabled(isEnabled());
   }
+  window.addEventListener('riskUpdate', (ev)=>{
+    if(!isEnabled() || !notifyEnabled()) return;
+    const rec = ev.detail?.recText || (document.getElementById('riskRecPill')?.textContent.trim() || '');
+    const pred = ev.detail?.predText || (document.getElementById('riskPredPill')?.textContent.trim() || '');
+    const body = [pred, rec].filter(Boolean).join('\n');
+    if(body) notifyNow(`Stock Watch: ${ev.detail?.etf||''}`, body);
+  });
   // keep existing riskUpdate listener if present; otherwise no-op
 })();
 ;
