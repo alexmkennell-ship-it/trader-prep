@@ -1524,7 +1524,7 @@ async function pnlPostLog({ user, amount, note }){
 
   function setActiveUI(sym){
     var bar=document.getElementById('riskTabBar'); if (!bar) return;
-    $all('.rtab',bar).forEach(function(b){ b.classList.toggle('active', b.dataset.sym===sym); });
+    $all('.tabbtn',bar).forEach(function(b){ b.classList.toggle('active', b.dataset.sym===sym); });
     try{ window.currentSymbol=sym; document.dispatchEvent(new CustomEvent('symbolchange',{detail:{symbol:sym,pane:'risk'}})); }catch(_){}
     try{ localStorage.setItem(LS_KEY.last, sym||''); }catch(_){}
   }
@@ -1579,7 +1579,7 @@ async function pnlPostLog({ user, amount, note }){
     sticky.add(sym); saveSet(LS_KEY.sticky,sticky);
     if (order.indexOf(sym)===-1){ order.push(sym); saveArr(LS_KEY.order,order); }
     var b=document.createElement('button');
-    b.type='button'; b.className='rtab'+(pinned[sym]?' pinned':''); b.dataset.sym=sym; b.draggable=true;
+    b.type='button'; b.className='tabbtn'+(pinned[sym]?' pinned':''); b.dataset.sym=sym; b.draggable=true;
     b.innerHTML='<span class="label">'+sym+'</span> <span class="pin" title="Pin">📌</span> <span class="close" title="Close">×</span>';
     b.addEventListener('click',function(ev){
       var t=ev.target;
@@ -1587,9 +1587,9 @@ async function pnlPostLog({ user, amount, note }){
         sticky.delete(sym); saveSet(LS_KEY.sticky,sticky);
         var idx=order.indexOf(sym); if (idx>-1){ order.splice(idx,1); saveArr(LS_KEY.order,order); }
         b.remove();
-        var active=document.querySelector('#riskTabBar .rtab.active');
+        var active=document.querySelector('#riskTabBar .tabbtn.active');
         if (!active){
-          var first=document.querySelector('#riskTabBar .rtab'); if (first) activate(first.dataset.sym);
+          var first=document.querySelector('#riskTabBar .tabbtn'); if (first) activate(first.dataset.sym);
           else { var o=riskOut(); if (o) o.innerHTML=''; }
         }
         return;
@@ -1602,10 +1602,10 @@ async function pnlPostLog({ user, amount, note }){
     b.addEventListener('dragover',function(ev){ ev.preventDefault(); ev.dataTransfer.dropEffect='move'; });
     b.addEventListener('drop',function(ev){
       ev.preventDefault(); var src=ev.dataTransfer.getData('text/plain'); if (!src||src===sym) return;
-      var bar=document.getElementById('riskTabBar'); var srcBtn=bar.querySelector('.rtab[data-sym="'+src+'"]'); if (!srcBtn) return;
+      var bar=document.getElementById('riskTabBar'); var srcBtn=bar.querySelector('.tabbtn[data-sym="'+src+'"]'); if (!srcBtn) return;
       var rect=b.getBoundingClientRect();
       if (ev.clientX < rect.left + rect.width/2){ bar.insertBefore(srcBtn,b); } else { bar.insertBefore(srcBtn,b.nextSibling); }
-      order=Array.from(bar.querySelectorAll('.rtab')).map(function(x){ return x.dataset.sym; });
+      order=Array.from(bar.querySelectorAll('.tabbtn')).map(function(x){ return x.dataset.sym; });
       saveArr(LS_KEY.order,order);
     });
     b.addEventListener('contextmenu',function(ev){ ev.preventDefault(); toggleContextMenu(ev.pageX,ev.pageY,sym); });
@@ -1615,7 +1615,7 @@ async function pnlPostLog({ user, amount, note }){
   function uniq(list){ var seen=new Set(), out=[]; list.forEach(function(s){ if (!seen.has(s)){ seen.add(s); out.push(s); } }); return out; }
   function existingTabSymbols(){
     var bar=document.getElementById('riskTabBar'); if (!bar) return [];
-    return Array.from(bar.querySelectorAll('.rtab')).map(function(b){ return b.dataset.sym; });
+    return Array.from(bar.querySelectorAll('.tabbtn')).map(function(b){ return b.dataset.sym; });
   }
 
   function buildTabs(prefer){
@@ -1636,19 +1636,19 @@ async function pnlPostLog({ user, amount, note }){
     }
 
     union.forEach(function(sym){
-      if (!bar.querySelector('.rtab[data-sym="'+sym+'"]')){
+      if (!bar.querySelector('.tabbtn[data-sym="'+sym+'"]')){
         var btn=makeTab(sym);
         var spacer=bar.querySelector('.spacer');
         bar.insertBefore(btn, spacer || null);
       }else{
-        var ex=bar.querySelector('.rtab[data-sym="'+sym+'"]');
+        var ex=bar.querySelector('.tabbtn[data-sym="'+sym+'"]');
         ex.classList.toggle('pinned', !!pinned[sym]);
       }
     });
 
     var last = prefer || preferSym || loadLast();
     var target = (last && union.indexOf(last)!==-1) ? last
-                : (document.querySelector('#riskTabBar .rtab.active')||{}).dataset?.sym
+                : (document.querySelector('#riskTabBar .tabbtn.active')||{}).dataset?.sym
                 || union[0] || null;
     if (target){
       setActiveUI(target);
@@ -1664,19 +1664,19 @@ async function pnlPostLog({ user, amount, note }){
   function hideContext(){ ctx.style.display='none'; }
   function toggleContextMenu(x,y,sym){
     var bar=document.getElementById('riskTabBar'); if (!bar) return;
-    var active=(document.querySelector('#riskTabBar .rtab.active')||{}).dataset?.sym || sym;
+    var active=(document.querySelector('#riskTabBar .tabbtn.active')||{}).dataset?.sym || sym;
     ctx.innerHTML='';
     function add(label,fn){ var i=document.createElement('div'); i.className='mi'; i.textContent=label; i.addEventListener('click',function(ev){ ev.stopPropagation(); hideContext(); fn&&fn(); }); ctx.appendChild(i); }
     if (sym){
-      add('Close', function(){ var b=bar.querySelector('.rtab[data-sym="'+sym+'"]'); if (b) b.querySelector('.close').click(); });
-      add(pinned[sym]?'Unpin':'Pin', function(){ var b=bar.querySelector('.rtab[data-sym="'+sym+'"]'); if (b) togglePin(sym,b); });
+      add('Close', function(){ var b=bar.querySelector('.tabbtn[data-sym="'+sym+'"]'); if (b) b.querySelector('.close').click(); });
+      add(pinned[sym]?'Unpin':'Pin', function(){ var b=bar.querySelector('.tabbtn[data-sym="'+sym+'"]'); if (b) togglePin(sym,b); });
       ctx.appendChild(document.createElement('hr'));
     }
     add('Close others', function(){
-      Array.from(bar.querySelectorAll('.rtab')).forEach(function(b){ var s=b.dataset.sym; if (s!==active && !pinned[s]){ b.querySelector('.close').click(); } });
+      Array.from(bar.querySelectorAll('.tabbtn')).forEach(function(b){ var s=b.dataset.sym; if (s!==active && !pinned[s]){ b.querySelector('.close').click(); } });
     });
     add('Close all (keep pinned)', function(){
-      Array.from(bar.querySelectorAll('.rtab')).forEach(function(b){ var s=b.dataset.sym; if (!pinned[s]){ b.querySelector('.close').click(); } });
+      Array.from(bar.querySelectorAll('.tabbtn')).forEach(function(b){ var s=b.dataset.sym; if (!pinned[s]){ b.querySelector('.close').click(); } });
     });
     ctx.appendChild(document.createElement('hr'));
     add('Clear cache (active)', function(){ var key=ctxKey(active); delete cache[key]; });
@@ -1691,7 +1691,7 @@ async function pnlPostLog({ user, amount, note }){
   document.addEventListener('keydown', function(e){
     var root=riskPanel(); if (!root.contains(document.activeElement) && !root.matches(':hover')) return;
     var bar=document.getElementById('riskTabBar'); if (!bar) return;
-    var tabs=Array.from(bar.querySelectorAll('.rtab')); if (!tabs.length) return;
+    var tabs=Array.from(bar.querySelectorAll('.tabbtn')); if (!tabs.length) return;
     var idx=Math.max(0,tabs.findIndex(x=>x.classList.contains('active')));
     function go(i){ if (i<0) i=tabs.length-1; if (i>=tabs.length) i=0; tabs[i].click(); }
     if ((e.ctrlKey||e.metaKey) && (e.key==='w'||e.key==='W')){ e.preventDefault(); var a=tabs[idx]; if (a) a.querySelector('.close').click(); return; }
@@ -1715,7 +1715,7 @@ async function pnlPostLog({ user, amount, note }){
     var looksTF=e.target.matches('[data-timeframe],[data-tf]')||/^\s*\d{1,3}\s*(m|min|minutes|h|hr|hour)s?\s*$/i.test((e.target.textContent||''));
     if (looksMode||looksTF){
       var out=riskOut(); if (!out) return;
-      var el=document.querySelector('#riskTabBar .rtab.active'); var active=el?el.dataset.sym:preferSym;
+      var el=document.querySelector('#riskTabBar .tabbtn.active'); var active=el?el.dataset.sym:preferSym;
       if (!active) return;
       observeOnce(out,function(){ try{ var html=out.innerHTML; if(!/risk-shimmer|Loading 1-minute bars/i.test(html)) cache[ctxKey(active)]=html; }catch(_){ } });
     }
@@ -1745,7 +1745,7 @@ async function pnlPostLog({ user, amount, note }){
   }
   function getSymbolFromNode(node){
     if (!node) return null;
-    var el = node.closest('.rtab,.tabbtn,[data-sym]') || node;
+    var el = node.closest('.tabbtn,[data-sym]') || node;
     var sym = el.getAttribute('data-sym') || el.getAttribute('aria-label') || el.textContent || '';
     sym = symTok(sym);
     return (/^[A-Z0-9]{1,4}$/).test(sym) ? sym : null;
@@ -1822,7 +1822,7 @@ async function pnlPostLog({ user, amount, note }){
     bar.dataset._bridgedV3 = '1';
 
     function handler(e){
-      var tab = e.target.closest('.rtab');
+      var tab = e.target.closest('.tabbtn,[data-sym]');
       if (!tab) return;
       if (e.type === 'auxclick' && e.button === 1) return; // middle-click for close
       if (e.target && e.target.classList && (e.target.classList.contains('close') || e.target.classList.contains('pin'))) return;
@@ -2021,8 +2021,8 @@ async function pnlPostLog({ user, amount, note }){
 
   // D) On Risk tab click (above risk card)
   document.addEventListener('click', (ev)=>{
-    const rtab = ev.target && ev.target.closest('#riskTabBar .rtab');
-    if (rtab && rtab.dataset && rtab.dataset.sym) setTimeout(()=>addChip(rtab.dataset.sym), 0);
+    const tab = ev.target && ev.target.closest('#riskTabBar .tabbtn');
+    if (tab && tab.dataset && tab.dataset.sym) setTimeout(()=>addChip(tab.dataset.sym), 0);
   }, true);
 
   // E) First load
@@ -2069,8 +2069,8 @@ async function pnlPostLog({ user, amount, note }){
 
   // 4) Also rebuild when a pinned Risk tab is clicked (ensures bar stays in sync)
   document.addEventListener('click', (e)=>{
-    const rtab = e.target && e.target.closest('#riskTabBar .rtab');
-    if (rtab) setTimeout(rebuild, 0);
+    const tab = e.target && e.target.closest('#riskTabBar .tabbtn');
+    if (tab) setTimeout(rebuild, 0);
   }, true);
 
   // 5) First load safety net
