@@ -970,10 +970,14 @@ function leanWindowSmart(bars, minutesDesired){
         const sessionBars=filterToSession(all.bars, all.regStart, all.regEnd);
         const win=selectWindow(sessionBars,trendMinutes);
         const info=statsTrend(win);
-        if(!info.ok){riskSummaryEl.innerHTML=`<span class="muted">Risk read unavailable (${info.reason}
-        // Busy notification tracker
-        try{ busyTrackerTick(info.busyLabel==='Busy'); }catch(_){}
-)</span>`;drawTrend(riskCanvas,[]);return}
+        if(!info.ok){
+          riskSummaryEl.innerHTML =
+            `<span class="muted">Risk read unavailable (${info.reason})</span>`;
+          // Busy notification tracker
+          try { busyTrackerTick(info.busyLabel === 'Busy'); } catch (_) {}
+          drawTrend(riskCanvas, []);
+          return;
+        }
 
         const dirPill=`<span class="pill ${info.dirClass}"><i class="fa-solid fa-arrow-trend-${info.direction==='Downtrend'?'down':'up'}"></i> ${info.direction}</span>`;
         const busyPill=`<span class="pill ${info.busyClass}"><i class="fa-solid fa-bolt"></i> ${info.busyLabel}</span>`;
