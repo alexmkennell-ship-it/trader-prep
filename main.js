@@ -1886,7 +1886,29 @@ document.addEventListener('click', (ev)=>{
   const WATCH_KEY='STOCK_WATCH_ENABLED';
   const watchBtn=document.getElementById('nav-watch');
   function isEnabled(){ try{return localStorage.getItem(WATCH_KEY)==='1';}catch(_){return false;} }
-  function setEnabled(v){ try{localStorage.setItem(WATCH_KEY,v?'1':'0');}catch(_){ } watchBtn && watchBtn.classList.toggle('active',!!v); }
+  function setEnabled(v){
+    try{ localStorage.setItem(WATCH_KEY, v ? '1' : '0'); }catch(_){ }
+    // when enabling, force notification prefs on with safe defaults
+    try{
+      localStorage.setItem('NOTIFY_ENABLED', v ? 'true' : 'false');
+      if(v){
+        localStorage.setItem('NOTIFY_BUSY5','false');
+        localStorage.setItem('NOTIFY_CONF_DROP','100');
+        localStorage.setItem('NOTIFY_WEARY','false');
+        localStorage.setItem('NOTIFY_FLIP','false');
+        localStorage.setItem('NOTIFY_SEL_ONLY','false');
+      }
+    }catch(_){ }
+    // reflect both Watcher and bell icon state
+    try{
+      watchBtn && watchBtn.classList.toggle('active', !!v);
+      const bell=document.getElementById('nav-bell'), icon=document.getElementById('bellIcon');
+      bell && bell.classList.toggle('active', !!v);
+      if(icon){ icon.classList.remove('fa-regular','fa-solid'); icon.classList.add(v?'fa-solid':'fa-regular','fa-bell'); }
+    }catch(_){ }
+    // request notification permission if turning on
+    if(v) ensurePerm();
+  }
   function ensurePerm(){ try{ if(!('Notification'in window))return; if(Notification.permission==='granted')return; if(Notification.permission!=='denied') Notification.requestPermission(()=>{});}catch(_){ } }
   function openWatchExplain(){
     const on=isEnabled();
@@ -1902,8 +1924,8 @@ document.addEventListener('click', (ev)=>{
       requestAnimationFrame(()=>{
         const $=s=>document.querySelector('#explainModal '+s);
         const tgl=$('#sw_on'), saveBtn=$('#sw_save'), closeBtn=$('#sw_close');
-        if(tgl) tgl.addEventListener('change', ()=>{ const val=!!tgl.checked; setEnabled(val); if(val) ensurePerm(); });
-        if(saveBtn) saveBtn.addEventListener('click', ()=>{ const val=!!(tgl && tgl.checked); setEnabled(val); if(val) ensurePerm(); const m=document.getElementById('explainModal'); if(m) m.style.display='none'; });
+        if(tgl) tgl.addEventListener('change', ()=>{ setEnabled(!!tgl.checked); });
+        if(saveBtn) saveBtn.addEventListener('click', ()=>{ const val=!!(tgl && tgl.checked); setEnabled(val); const m=document.getElementById('explainModal'); if(m) m.style.display='none'; });
         if(closeBtn) closeBtn.addEventListener('click', ()=>{ const m=document.getElementById('explainModal'); if(m) m.style.display='none'; });
       });
     }
