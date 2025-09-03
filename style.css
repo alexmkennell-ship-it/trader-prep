@@ -91,7 +91,6 @@
 
 #riskQuickTabs{display:flex;gap:10px;margin:8px 0 2px;flex-wrap:wrap}
 
-#multiSymbolTabs{display:flex !important; gap:10px; margin:8px 0 2px; flex-wrap:wrap;}
 
     :root {
       --bg:#1b191b; --panel:#2a292f; --panel-2:#242328; --line:#35343a;
