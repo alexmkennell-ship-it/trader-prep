@@ -1490,96 +1490,6 @@ async function pnlPostLog({ user, amount, note }){
 })();
 ;
 
-(()=>{
-  const ensureRow = ()=>{
-    let row = document.getElementById('multiSymbolTabs');
-    if (!row) {
-      const anchor = document.querySelector('div.card') || document.body;
-      row = document.createElement('div');
-      row.id = 'multiSymbolTabs';
-      row.className = 'tabs';
-      row.setAttribute('aria-label','Open symbols');
-      anchor.parentNode.insertBefore(row, anchor);
-    }
-    return row;
-  };
-
-  const norm = s => (s||'').toUpperCase().trim().replace(/[^A-Z0-9]/g,'').slice(0,4);
-  const valid = s => /^[A-Z0-9]{1,4}$/.test(s||'');
-
-  function addChip(sym){
-    sym = norm(sym);
-    if (!valid(sym)) return;
-    const row = ensureRow();
-    let ex = row.querySelector('.tabbtn[data-sym="'+sym+'"]');
-    if (!ex){
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'tabbtn qt-chip';
-      b.dataset.sym = sym;
-      b.textContent = sym;
-        b.addEventListener('click', ()=>{
-          try{
-            if (typeof ensureChip==='function') ensureChip(sym);
-            if (typeof activateChip==='function') activateChip(sym);
-            else if (typeof reAnalyze==='function') reAnalyze(sym);
-          }catch(_){
-            try{ if (typeof reAnalyze==='function') reAnalyze(sym); }catch(e){}
-          }
-        }, false);
-      row.insertBefore(b, row.firstChild);
-      ex = b;
-    }
-    Array.from(row.querySelectorAll('.tabbtn')).forEach(btn=>btn.classList.toggle('active', btn===ex));
-  }
-
-  function selectedSymbolsFallback(){
-    try{
-      const sel = document.getElementById('futures');
-      if (!sel) return [];
-      const out = [];
-      Array.from(sel.options).forEach(o=>{ if(o.selected){ const tok=(o.value||o.text||'').split(/[ \u2014-]/)[0].toUpperCase(); if(/^[A-Z0-9]{1,4}$/.test(tok)) out.push(tok);} });
-      return Array.from(new Set(out));
-    }catch(_){ return []; }
-  }
-
-  function addChipsForSelected(){
-    let syms = [];
-    try { if (typeof getSelectedFutures==='function') syms = getSelectedFutures() || []; } catch(_){}
-    if (!Array.isArray(syms) || !syms.length) syms = selectedSymbolsFallback();
-    if (Array.isArray(syms) && syms.length) syms.forEach(addChip);
-  }
-
-  // A) On futures selection change
-  window.addEventListener('change', (ev)=>{
-    if (ev.target && ev.target.closest && ev.target.closest('#futures')){
-      setTimeout(addChipsForSelected, 0);
-    }
-  }, true);
-
-  // B) On bundle click
-  document.addEventListener('click', (ev)=>{
-    const b = ev.target && ev.target.closest('[data-bundle]');
-    if (b) setTimeout(addChipsForSelected, 60);
-  }, true);
-
-  // C) On Analyze (Risk) click
-  document.addEventListener('click', (ev)=>{
-    const btn = ev.target && ev.target.closest('button,.btn,[role="button"]');
-    if (!btn) return;
-    const txt = (btn.textContent||'').toLowerCase();
-    const looksAnalyzeRisk = btn.matches('[data-action="risk"]') || (txt.includes('analyze') && txt.includes('risk'));
-    if (looksAnalyzeRisk) setTimeout(addChipsForSelected, 200);
-  }, true);
-
-
-  // E) First load
-  window.addEventListener('load', ()=>{
-    ensureRow();
-    setTimeout(addChipsForSelected, 400);
-  });
-})();
-;
 function selectInDOM(sym){
   const sel = document.getElementById("futures");
   if (!sel) return;
@@ -1598,6 +1508,8 @@ function selectInDOM(sym){
 (()=>{
   const row = document.getElementById('riskQuickTabs');
   if (!row) return;
+  const legacy = document.getElementById('multiSymbolTabs');
+  if (legacy) legacy.remove();
 
   const LS = {
     ORDER: 'quickTabs.order',
@@ -1770,6 +1682,7 @@ function selectInDOM(sym){
       markActive(last);
     }
   }
+  window.rebuildChips = rebuildChips;
     window.ensureChip = ensureChip;
     window.activateChip = activateChip;
 
