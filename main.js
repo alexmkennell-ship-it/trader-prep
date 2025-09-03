@@ -2067,13 +2067,7 @@ async function pnlPostLog({ user, amount, note }){
     }
   }, true);
 
-  // 4) Also rebuild when a pinned Risk tab is clicked (ensures bar stays in sync)
-  document.addEventListener('click', (e)=>{
-    const rtab = e.target && e.target.closest('#riskTabBar .rtab');
-    if (rtab) setTimeout(rebuild, 0);
-  }, true);
-
-  // 5) First load safety net
+  // 4) First load safety net
   window.addEventListener('load', ()=>{
     setTimeout(rebuild, 700);
   });
