@@ -1408,460 +1408,7 @@ async function pnlPostLog({ user, amount, note }){
 })();
 ;
 
-// LITE_STICKY_QOL v2 (external JS build)
-(function(){
-  var cache = Object.create(null);
-  var initialized = false;
-  var preferSym = null;
-  var building  = false;
 
-  var LS_KEY = {
-    sticky: 'riskTabs.sticky',
-    order:  'riskTabs.order',
-    pinned: 'riskTabs.pinned',
-    last:   'riskTabs.lastActive'
-  };
-  function loadSet(key){ try{ return new Set(JSON.parse(localStorage.getItem(key)||'[]')); }catch(_){ return new Set(); } }
-  function saveSet(key, set){ try{ localStorage.setItem(key, JSON.stringify(Array.from(set||[]))); }catch(_){ } }
-  function loadMap(key){ try{ return JSON.parse(localStorage.getItem(key)||'{}')||{}; }catch(_){ return {}; } }
-  function saveMap(key, obj){ try{ localStorage.setItem(key, JSON.stringify(obj||{})); }catch(_){ } }
-  function loadArr(key){ try{ return JSON.parse(localStorage.getItem(key)||'[]')||[]; }catch(_){ return []; } }
-  function saveArr(key, arr){ try{ localStorage.setItem(key, JSON.stringify(arr||[])); }catch(_){ } }
-  function saveLast(sym){ try{ localStorage.setItem(LS_KEY.last, sym||''); }catch(_){ } }
-  function loadLast(){ try{ return localStorage.getItem(LS_KEY.last)||null; }catch(_){ return null; } }
-
-  var sticky = loadSet(LS_KEY.sticky);
-  var pinned = loadMap(LS_KEY.pinned);
-  var order  = loadArr(LS_KEY.order);
-
-  function $(s, r){ return (r||document).querySelector(s); }
-  function $all(s, r){ return Array.from((r||document).querySelectorAll(s)); }
-
-  function riskPanel(){ return document.getElementById('panel-risk') || document.querySelector('[id^="panel-risk"]') || document.body; }
-  function riskOut(){
-    return document.getElementById('riskOut')
-      || $('#panel-risk #riskOut')
-      || $('#panel-risk [data-risk-out]')
-      || $('#panel-risk .risk-out')
-      || $('#panel-risk .card > div, #panel-risk .card section')
-      || null;
-  }
-  function getSelect(){ return document.getElementById('futures'); }
-
-  function symbolsFromChips(){
-    var t = document.getElementById('multiSymbolTabs'); if (!t) return [];
-    return $all('.tabbtn', t).map(function(b){
-      var s=(b.dataset.sym||b.textContent||'').replace('×','').trim().toUpperCase();
-      return /^[A-Z0-9]{1,4}$/.test(s)?s:null;
-    }).filter(Boolean);
-  }
-  function selectedSymbols(){
-    var sel = getSelect(); if (!sel) return [];
-    var out=[];
-    Array.from(sel.options).forEach(function(o){
-      if (!o.selected) return;
-      var tok=(o.value||o.text||o.innerText||'').trim().split(/\s|—|-/)[0].toUpperCase();
-      if (/^[A-Z0-9]{1,4}$/.test(tok)) out.push(tok);
-    });
-    return out.filter((s,i,a)=>a.indexOf(s)===i);
-  }
-  function desiredSymbols(){
-    var chips = symbolsFromChips();
-    if (chips.length) return chips;
-    return selectedSymbols();
-  }
-
-  function modeKey(){
-    var root=riskPanel();
-    var el=root.querySelector('[data-mode].active,[data-risk-mode].active,[aria-pressed="true"][data-mode],[aria-pressed="true"][data-risk-mode]');
-    if (el) return (el.getAttribute('data-mode')||el.getAttribute('data-risk-mode')||'').toLowerCase();
-    var btns=$all('button,.btn,[role="button"]',root);
-    for (var i=0;i<btns.length;i++){
-      var b=btns[i],t=(b.textContent||'').trim().toLowerCase();
-      var pressed=b.matches('.active,[aria-pressed="true"]');
-      if (pressed&&(t.includes('conservative')||t.includes('aggressive'))) return t.includes('conservative')?'conservative':'aggressive';
-    }
-    var sel=root.querySelector('select[name*="mode" i]'); if (sel) return (sel.value||'').toLowerCase();
-    var rad=root.querySelector('input[type="radio"][name*="mode" i]:checked'); if (rad) return (rad.value||'').toLowerCase();
-    return 'default';
-  }
-  function timeframeKey(){
-    var root=riskPanel();
-    var el=root.querySelector('[data-timeframe].active,[data-tf].active,[aria-pressed="true"][data-timeframe]');
-    if (el) return (el.getAttribute('data-timeframe')||el.getAttribute('data-tf')||'').toLowerCase();
-    var tfBtn=Array.from(root.querySelectorAll('button,.btn,.chip,.tag')).find(function(b){
-      var active=b.matches('.active,[aria-pressed="true"]');
-      var txt=(b.textContent||'').trim().toLowerCase();
-      return active && (/^\d{1,3}\s*(m|min|minutes|h|hr|hour)s?$/i).test(txt);
-    });
-    if (tfBtn){ return (tfBtn.textContent||'').trim().toLowerCase().replace(/\s+/g,''); }
-    return 'tf-default';
-  }
-  function ctxKey(sym){ return [sym, modeKey(), timeframeKey()].join('|'); }
-
-  function ensureBar(){
-    var out=riskOut(); if (!out) return null;
-    var bar=document.getElementById('riskTabBar');
-    if (!bar){
-      bar=document.createElement('div'); bar.id='riskTabBar';
-      out.parentNode.insertBefore(bar,out);
-      var spacer=document.createElement('div'); spacer.className='spacer'; bar.appendChild(spacer);
-      var menu=document.createElement('button'); menu.type='button'; menu.className='menuBtn'; menu.textContent='⋯';
-      menu.addEventListener('click', function(ev){ ev.stopPropagation(); toggleContextMenu(ev.pageX, ev.pageY, null); }, false);
-      bar.appendChild(menu);
-    }else{
-      if (!bar.querySelector('.spacer')){
-        var spacer=document.createElement('div'); spacer.className='spacer'; bar.appendChild(spacer);
-        var menu=document.createElement('button'); menu.type='button'; menu.className='menuBtn'; menu.textContent='⋯';
-        menu.addEventListener('click', function(ev){ ev.stopPropagation(); toggleContextMenu(ev.pageX, ev.pageY, null); }, false);
-        bar.appendChild(menu);
-      }
-    }
-    return bar;
-  }
-
-  function shimmer(out){ if (out) out.innerHTML='<div class="risk-shimmer"></div>'; }
-
-  function setActiveUI(sym){
-    var bar=document.getElementById('riskTabBar'); if (!bar) return;
-    $all('.rtab',bar).forEach(function(b){ b.classList.toggle('active', b.dataset.sym===sym); });
-    try{ window.currentSymbol=sym; document.dispatchEvent(new CustomEvent('symbolchange',{detail:{symbol:sym,pane:'risk'}})); }catch(_){}
-    try{ localStorage.setItem(LS_KEY.last, sym||''); }catch(_){}
-  }
-  function selectInDOM(sym){
-    var sel=getSelect(); if (!sel) return;
-    var idx=-1;
-    for (var i=0;i<sel.options.length;i++){
-      var o=sel.options[i]; var tok=(o.value||o.text||o.innerText||'').trim().split(/\s|—|-/)[0].toUpperCase();
-      if (tok===sym){ o.selected=true; idx=i; }
-    }
-    if (idx>=0) sel.selectedIndex=idx;
-    sel.dispatchEvent(new Event('input',{bubbles:true}));
-    sel.dispatchEvent(new Event('change',{bubbles:true}));
-  }
-  function findAnalyzeBtn(){
-    return document.getElementById('btnAnalyzeRisk')
-      || document.getElementById('btnRisk')
-      || document.querySelector('[data-action="risk"]')
-      || Array.from(document.querySelectorAll('button,.btn,[role="button"]')).find(function(el){
-           var t=(el.textContent||'').toLowerCase(); return t.includes('analyze')&&t.includes('risk');
-         }) || null;
-  }
-  function observeOnce(el,cb){
-    if (!el || typeof MutationObserver==='undefined'){ setTimeout(cb,600); return; }
-    var obs=new MutationObserver(function(){ obs.disconnect(); cb(); });
-    obs.observe(el,{childList:true,subtree:true});
-    setTimeout(function(){ try{obs.disconnect();}catch(_){ } try{ cb(); }catch(_){ } },2500);
-  }
-  function runAnalyze(sym){
-    var out=riskOut(); if (!out) return;
-    var btn=findAnalyzeBtn(); if (!btn) return;
-    selectInDOM(sym); shimmer(out);
-    observeOnce(out,function(){ try{ var html=out.innerHTML; if(!/risk-shimmer|Loading 1-minute bars/i.test(html)) cache[ctxKey(sym)]=html; }catch(_){ } });
-    btn.click();
-  }
-  function activate(sym){
-    preferSym=sym; setActiveUI(sym);
-    var out=riskOut(); if (!out) return;
-    var key=ctxKey(sym);
-    if (cache[key]){ selectInDOM(sym); out.innerHTML = cache[key]; return; }
-    if(/risk-shimmer|Loading 1-minute bars/i.test(cache[key])){ try{ delete cache[key]; }catch(_){ } } else { return; }
-    runAnalyze(sym);
-  }
-
-  function togglePin(sym, btn){
-    pinned[sym]=!pinned[sym]; if (!pinned[sym]) delete pinned[sym];
-    saveMap(LS_KEY.pinned,pinned);
-    if (btn) btn.classList.toggle('pinned', !!pinned[sym]);
-  }
-
-  function makeTab(sym){
-    sticky.add(sym); saveSet(LS_KEY.sticky,sticky);
-    if (order.indexOf(sym)===-1){ order.push(sym); saveArr(LS_KEY.order,order); }
-    var b=document.createElement('button');
-    b.type='button'; b.className='rtab'+(pinned[sym]?' pinned':''); b.dataset.sym=sym; b.draggable=true;
-    b.innerHTML='<span class="label">'+sym+'</span> <span class="pin" title="Pin">📌</span> <span class="close" title="Close">×</span>';
-    b.addEventListener('click',function(ev){
-      var t=ev.target;
-      if (t.classList && t.classList.contains('close')){
-        sticky.delete(sym); saveSet(LS_KEY.sticky,sticky);
-        var idx=order.indexOf(sym); if (idx>-1){ order.splice(idx,1); saveArr(LS_KEY.order,order); }
-        b.remove();
-        var active=document.querySelector('#riskTabBar .rtab.active');
-        if (!active){
-          var first=document.querySelector('#riskTabBar .rtab'); if (first) activate(first.dataset.sym);
-          else { var o=riskOut(); if (o) o.innerHTML=''; }
-        }
-        return;
-      }
-      if (t.classList && t.classList.contains('pin')){ togglePin(sym,b); return; }
-      activate(sym);
-    },false);
-    b.addEventListener('auxclick',function(ev){ if (ev.button===1){ ev.preventDefault(); b.querySelector('.close').click(); } });
-    b.addEventListener('dragstart',function(ev){ ev.dataTransfer.setData('text/plain',sym); ev.dataTransfer.effectAllowed='move'; });
-    b.addEventListener('dragover',function(ev){ ev.preventDefault(); ev.dataTransfer.dropEffect='move'; });
-    b.addEventListener('drop',function(ev){
-      ev.preventDefault(); var src=ev.dataTransfer.getData('text/plain'); if (!src||src===sym) return;
-      var bar=document.getElementById('riskTabBar'); var srcBtn=bar.querySelector('.rtab[data-sym="'+src+'"]'); if (!srcBtn) return;
-      var rect=b.getBoundingClientRect();
-      if (ev.clientX < rect.left + rect.width/2){ bar.insertBefore(srcBtn,b); } else { bar.insertBefore(srcBtn,b.nextSibling); }
-      order=Array.from(bar.querySelectorAll('.rtab')).map(function(x){ return x.dataset.sym; });
-      saveArr(LS_KEY.order,order);
-    });
-    b.addEventListener('contextmenu',function(ev){ ev.preventDefault(); toggleContextMenu(ev.pageX,ev.pageY,sym); });
-    return b;
-  }
-
-  function uniq(list){ var seen=new Set(), out=[]; list.forEach(function(s){ if (!seen.has(s)){ seen.add(s); out.push(s); } }); return out; }
-  function existingTabSymbols(){
-    var bar=document.getElementById('riskTabBar'); if (!bar) return [];
-    return Array.from(bar.querySelectorAll('.rtab')).map(function(b){ return b.dataset.sym; });
-  }
-
-  function buildTabs(prefer){
-    if (building) return; building=true;
-    var bar=ensureBar(); if (!bar){ building=false; return; }
-
-    var desired = desiredSymbols();
-    var union = uniq([].concat(existingTabSymbols(), Array.from(sticky), desired));
-
-    if (order && order.length){
-      union.sort(function(a,b){
-        var ia=order.indexOf(a), ib=order.indexOf(b);
-        if (ia===-1 && ib===-1) return 0;
-        if (ia===-1) return 1;
-        if (ib===-1) return -1;
-        return ia-ib;
-      });
-    }
-
-    union.forEach(function(sym){
-      if (!bar.querySelector('.rtab[data-sym="'+sym+'"]')){
-        var btn=makeTab(sym);
-        var spacer=bar.querySelector('.spacer');
-        bar.insertBefore(btn, spacer || null);
-      }else{
-        var ex=bar.querySelector('.rtab[data-sym="'+sym+'"]');
-        ex.classList.toggle('pinned', !!pinned[sym]);
-      }
-    });
-
-    var last = prefer || preferSym || loadLast();
-    var target = (last && union.indexOf(last)!==-1) ? last
-                : (document.querySelector('#riskTabBar .rtab.active')||{}).dataset?.sym
-                || union[0] || null;
-    if (target){
-      setActiveUI(target);
-      var out=riskOut();
-      if (out && !out.innerHTML.trim()){ activate(target); }
-    }
-
-    building=false;
-  }
-
-  var ctx=document.getElementById('riskContext');
-  if (!ctx){ ctx=document.createElement('div'); ctx.id='riskContext'; document.body.appendChild(ctx); }
-  function hideContext(){ ctx.style.display='none'; }
-  function toggleContextMenu(x,y,sym){
-    var bar=document.getElementById('riskTabBar'); if (!bar) return;
-    var active=(document.querySelector('#riskTabBar .rtab.active')||{}).dataset?.sym || sym;
-    ctx.innerHTML='';
-    function add(label,fn){ var i=document.createElement('div'); i.className='mi'; i.textContent=label; i.addEventListener('click',function(ev){ ev.stopPropagation(); hideContext(); fn&&fn(); }); ctx.appendChild(i); }
-    if (sym){
-      add('Close', function(){ var b=bar.querySelector('.rtab[data-sym="'+sym+'"]'); if (b) b.querySelector('.close').click(); });
-      add(pinned[sym]?'Unpin':'Pin', function(){ var b=bar.querySelector('.rtab[data-sym="'+sym+'"]'); if (b) togglePin(sym,b); });
-      ctx.appendChild(document.createElement('hr'));
-    }
-    add('Close others', function(){
-      Array.from(bar.querySelectorAll('.rtab')).forEach(function(b){ var s=b.dataset.sym; if (s!==active && !pinned[s]){ b.querySelector('.close').click(); } });
-    });
-    add('Close all (keep pinned)', function(){
-      Array.from(bar.querySelectorAll('.rtab')).forEach(function(b){ var s=b.dataset.sym; if (!pinned[s]){ b.querySelector('.close').click(); } });
-    });
-    ctx.appendChild(document.createElement('hr'));
-    add('Clear cache (active)', function(){ var key=ctxKey(active); delete cache[key]; });
-    add('Clear cache (all)', function(){ cache = Object.create(null); });
-
-    ctx.style.left=(x+4)+'px'; ctx.style.top=(y+4)+'px'; ctx.style.display='block';
-  }
-  document.addEventListener('click', hideContext, true);
-  document.addEventListener('scroll', hideContext, true);
-  window.addEventListener('blur', hideContext);
-
-  document.addEventListener('keydown', function(e){
-    var root=riskPanel(); if (!root.contains(document.activeElement) && !root.matches(':hover')) return;
-    var bar=document.getElementById('riskTabBar'); if (!bar) return;
-    var tabs=Array.from(bar.querySelectorAll('.rtab')); if (!tabs.length) return;
-    var idx=Math.max(0,tabs.findIndex(x=>x.classList.contains('active')));
-    function go(i){ if (i<0) i=tabs.length-1; if (i>=tabs.length) i=0; tabs[i].click(); }
-    if ((e.ctrlKey||e.metaKey) && (e.key==='w'||e.key==='W')){ e.preventDefault(); var a=tabs[idx]; if (a) a.querySelector('.close').click(); return; }
-    if ((e.ctrlKey && e.key==='PageUp') || (e.altKey && e.key==='ArrowLeft')){ e.preventDefault(); go(idx-1); return; }
-    if ((e.ctrlKey && e.key==='PageDown') || (e.altKey && e.key==='ArrowRight')){ e.preventDefault(); go(idx+1); return; }
-  }, true);
-
-  function wireAnalyzeOnce(){
-    if (initialized) return;
-    var btn=findAnalyzeBtn(); if (!btn) return;
-    initialized=true;
-    btn.addEventListener('click', function(){
-      setTimeout(function(){ buildTabs(preferSym||null); }, 300);
-    }, false);
-  }
-
-  document.addEventListener('click', function(e){
-    var root=riskPanel(); if (!root.contains(e.target)) return;
-    var t=(e.target.textContent||'').toLowerCase();
-    var looksMode=t.includes('conservative')||t.includes('aggressive')||e.target.matches('[data-mode],[data-risk-mode]');
-    var looksTF=e.target.matches('[data-timeframe],[data-tf]')||/^\s*\d{1,3}\s*(m|min|minutes|h|hr|hour)s?\s*$/i.test((e.target.textContent||''));
-    if (looksMode||looksTF){
-      var out=riskOut(); if (!out) return;
-      var el=document.querySelector('#riskTabBar .rtab.active'); var active=el?el.dataset.sym:preferSym;
-      if (!active) return;
-      observeOnce(out,function(){ try{ var html=out.innerHTML; if(!/risk-shimmer|Loading 1-minute bars/i.test(html)) cache[ctxKey(active)]=html; }catch(_){ } });
-    }
-  }, true);
-
-  window.addEventListener('load', function(){
-    try{ wireAnalyzeOnce(); }catch(_){}
-    setTimeout(wireAnalyzeOnce, 500);
-    setTimeout(wireAnalyzeOnce, 1200);
-    setTimeout(function(){ buildTabs(localStorage.getItem(LS_KEY.last)||null); }, 600);
-  });
-
-  window.riskTabsForceRebuild = function(){ buildTabs(preferSym||null); };
-})();
-;
-
-// Bridge v3: sync chips + select + force analyze on tab click (works for pinned tabs)
-(function(){
-  var pending = null;
-
-  function $(s, r){ return (r||document).querySelector(s); }
-  function $$(s, r){ return Array.from((r||document).querySelectorAll(s)); }
-
-  // --- symbol helpers ---
-  function symTok(s){
-    return (s||'').replace(/[×✕✖📌★]/g,'').trim().split(/\s+/)[0].toUpperCase();
-  }
-  function getSymbolFromNode(node){
-    if (!node) return null;
-    var el = node.closest('.rtab,.tabbtn,[data-sym]') || node;
-    var sym = el.getAttribute('data-sym') || el.getAttribute('aria-label') || el.textContent || '';
-    sym = symTok(sym);
-    return (/^[A-Z0-9]{1,4}$/).test(sym) ? sym : null;
-  }
-
-  // --- DOM sync: chips row (#multiSymbolTabs) ---
-  function syncChips(sym){
-    var row = document.getElementById('multiSymbolTabs');
-    if (!row) return;
-    var btn = row.querySelector('.tabbtn[data-sym="'+sym+'"]') || Array.from(row.querySelectorAll('.tabbtn')).find(function(b){ return symTok(b.textContent)===sym; });
-    if (!btn) return;
-    // mark active and move to front to be "primary"
-    Array.from(row.querySelectorAll('.tabbtn')).forEach(function(b){ b.classList.toggle('active', b===btn); });
-    if (btn.previousElementSibling){
-      row.insertBefore(btn, row.firstElementChild || null);
-    }
-  }
-
-  // --- DOM sync: multi-select ---
-  function findMultiSelect(){
-    var sel = document.getElementById('futures');
-    if (sel) return sel;
-    // Fallback: any multiple <select> inside the market chooser card
-    var picks = $$('select[multiple]');
-    if (picks.length) return picks[0];
-    return null;
-  }
-  function setMultiSelect(sym){
-    var sel = findMultiSelect(); if (!sel) return;
-    var targetIndex = -1;
-    for (var i=0;i<sel.options.length;i++) sel.options[i].selected = false;
-    for (var j=0;j<sel.options.length;j++){
-      var o = sel.options[j];
-      var tok = symTok((o.value||o.text||o.innerText||''));
-      if (tok === sym){ o.selected = true; targetIndex = j; break; }
-    }
-    if (targetIndex >= 0) sel.selectedIndex = targetIndex;
-    sel.dispatchEvent(new Event('input',  {bubbles:true, cancelable:true}));
-    sel.dispatchEvent(new Event('change', {bubbles:true, cancelable:true}));
-  }
-
-  // --- native refresh hooks or Analyze (Risk) ---
-  function findAnalyzeBtn(){
-    return document.getElementById('btnAnalyzeRisk')
-        || document.getElementById('btnRisk')
-        || document.querySelector('[data-action="risk"]')
-        || Array.from(document.querySelectorAll('button, .btn, [role="button"]')).find(function(el){
-             var t=(el.textContent||'').toLowerCase();
-             return t.includes('analyze') && t.includes('risk');
-           }) || null;
-  }
-  function nativeRefresh(sym){
-    try{
-      if (typeof window.refreshRisk === 'function'){ window.refreshRisk(sym); return true; }
-      if (typeof window.renderSymbol === 'function'){ window.renderSymbol(sym); return true; }
-      if (typeof window.refreshSymbol === 'function'){ window.refreshSymbol(sym); return true; }
-    }catch(_){}
-    return false;
-  }
-  function reAnalyze(sym){
-    if (!sym) return;
-    try{ if (pending) clearTimeout(pending); }catch(_){}
-    pending = setTimeout(function(){
-      syncChips(sym);
-      setMultiSelect(sym);
-      selectInDOM(sym);
-      if (!nativeRefresh(sym)) {  try {    if (typeof window.buildRisk === 'function') {      const m = (typeof getSelectedFutures==='function') ? getSelectedFutures() : [sym];      window.buildRisk(Array.isArray(m)&&m.length?m:[sym]);    } else {      var btn = findAnalyzeBtn(); if (btn) btn.click();    }  } catch(_) {    var btn = findAnalyzeBtn(); if (btn) btn.click();  }}
-    }, 50);
-  }
-
-  function bind(){
-    var bar = document.getElementById('riskTabBar');
-    if (!bar || bar.dataset._bridgedV3) return;
-    bar.dataset._bridgedV3 = '1';
-
-    function handler(e){
-      var tab = e.target.closest('.rtab');
-      if (!tab) return;
-      if (e.type === 'auxclick' && e.button === 1) return; // middle-click for close
-      if (e.target && e.target.classList && (e.target.classList.contains('close') || e.target.classList.contains('pin'))) return;
-      var sym = getSymbolFromNode(tab);
-      if (!sym) return;
-      // Let internal handler mark active; then force re-analyze
-      setTimeout(function(){  try{ activate(sym); }catch(_){ reAnalyze(sym); }  try{ if(typeof window.syncChips==='function'){ syncChips(sym); } }catch(_){ }  try{ if(typeof window.buildRisk==='function'){    const m=(typeof getSelectedFutures==='function')?getSelectedFutures():[sym];    window.buildRisk(Array.isArray(m)&&m.length?m:[sym]);  }}catch(_){ }},0);}
-    bar.addEventListener('click', handler, false);
-    bar.addEventListener('pointerup', handler, false);
-    bar.addEventListener('auxclick', handler, false);
-  }
-
-  function observe(){
-    var panel = document.getElementById('panel-risk') || document.body;
-    if (!panel || typeof MutationObserver === 'undefined') return;
-    var mo = new MutationObserver(function(){
-      try{ bind(); }catch(_){}
-    });
-    mo.observe(panel, {childList:true, subtree:true});
-  }
-
-  function boot(){
-    try{ bind(); }catch(_){}
-    var tries = 10;
-    (function again(){
-      if (tries-- <= 0) return;
-      setTimeout(function(){ try{ bind(); }catch(_){ } again(); }, 300);
-    })();
-    try{ observe(); }catch(_){}
-  }
-
-  if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', boot, {once:true});
-  } else {
-    boot();
-  }
-  window.addEventListener('load', function(){ try{ bind(); }catch(_){} });
-})();
-;
 
 (()=>{
   const ready = (fn)=>{
@@ -1971,9 +1518,15 @@ async function pnlPostLog({ user, amount, note }){
       b.className = 'tabbtn qt-chip';
       b.dataset.sym = sym;
       b.textContent = sym;
-      b.addEventListener('click', ()=>{
-        try { activate(sym); } catch(_) { try { reAnalyze(sym); } catch(e){} }
-      }, false);
+        b.addEventListener('click', ()=>{
+          try{
+            if (typeof ensureChip==='function') ensureChip(sym);
+            if (typeof activateChip==='function') activateChip(sym);
+            else if (typeof reAnalyze==='function') reAnalyze(sym);
+          }catch(_){
+            try{ if (typeof reAnalyze==='function') reAnalyze(sym); }catch(e){}
+          }
+        }, false);
       row.insertBefore(b, row.firstChild);
       ex = b;
     }
@@ -2019,11 +1572,6 @@ async function pnlPostLog({ user, amount, note }){
     if (looksAnalyzeRisk) setTimeout(addChipsForSelected, 200);
   }, true);
 
-  // D) On Risk tab click (above risk card)
-  document.addEventListener('click', (ev)=>{
-    const rtab = ev.target && ev.target.closest('#riskTabBar .rtab');
-    if (rtab && rtab.dataset && rtab.dataset.sym) setTimeout(()=>addChip(rtab.dataset.sym), 0);
-  }, true);
 
   // E) First load
   window.addEventListener('load', ()=>{
@@ -2032,53 +1580,20 @@ async function pnlPostLog({ user, amount, note }){
   });
 })();
 ;
+function selectInDOM(sym){
+  const sel = document.getElementById("futures");
+  if (!sel) return;
+  let idx = -1;
+  for (let i=0;i<sel.options.length;i++){
+    const o = sel.options[i];
+    const tok=(o.value||o.text||o.innerText||"").trim().split(/\s|—|-/)[0].toUpperCase();
+    if (tok===sym){ o.selected=true; idx=i; } else { o.selected=false; }
+  }
+  if (idx>=0) sel.selectedIndex = idx;
+  sel.dispatchEvent(new Event("input",{bubbles:true}));
+  sel.dispatchEvent(new Event("change",{bubbles:true}));
+}
 
-(()=>{
-  const $ = (s, r=document)=>r.querySelector(s);
-  const $$ = (s, r=document)=>Array.from(r.querySelectorAll(s));
-
-  // Prefer existing function if present
-  const rebuild = ()=>{
-    try { if (typeof window.riskTabsForceRebuild==='function') return window.riskTabsForceRebuild(); } catch(_){}
-    try { if (typeof window.buildTabs==='function') return window.buildTabs(window.preferSym||null); } catch(_){}
-  };
-
-  // 1) Rebuild tabs when futures selection changes
-  window.addEventListener('change', (e)=>{
-    const sel = e.target && e.target.closest('#futures');
-    if (sel) setTimeout(rebuild, 50);
-  }, true);
-
-  // 2) Rebuild after clicking a bundle
-  document.addEventListener('click', (e)=>{
-    const btn = e.target && e.target.closest('[data-bundle]');
-    if (btn) setTimeout(rebuild, 120);
-  }, true);
-
-  // 3) Robust Analyze (Risk) detection using closest()
-  document.addEventListener('click', (e)=>{
-    const btn = e.target && e.target.closest('button,.btn,[role="button"]');
-    if (!btn) return;
-    const txt = (btn.textContent||'').toLowerCase();
-    const looksAnalyzeRisk = btn.matches('[data-action="risk"]')
-                           || (txt.includes('analyze') && txt.includes('risk'));
-    if (looksAnalyzeRisk){
-      setTimeout(rebuild, 300);
-    }
-  }, true);
-
-  // 4) Also rebuild when a pinned Risk tab is clicked (ensures bar stays in sync)
-  document.addEventListener('click', (e)=>{
-    const rtab = e.target && e.target.closest('#riskTabBar .rtab');
-    if (rtab) setTimeout(rebuild, 0);
-  }, true);
-
-  // 5) First load safety net
-  window.addEventListener('load', ()=>{
-    setTimeout(rebuild, 700);
-  });
-})();
-;
 
 (()=>{
   const row = document.getElementById('riskQuickTabs');
@@ -2255,6 +1770,9 @@ async function pnlPostLog({ user, amount, note }){
       markActive(last);
     }
   }
+    window.ensureChip = ensureChip;
+    window.activateChip = activateChip;
+
 
   // Wire to Analyze (Risk)
   document.addEventListener('click', (ev)=>{
