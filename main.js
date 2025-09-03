@@ -105,9 +105,12 @@ const bellBtn = document.getElementById('nav-bell');
 const bellIcon = document.getElementById('bellIcon');
 const mktReg = { start: null, end: null, etf: null };
 
-function notifIsEnabled(){ return localStorage.getItem('NOTIFY_ENABLED')==='1'; }
+function notifIsEnabled(){
+  const v = localStorage.getItem('NOTIFY_ENABLED');
+  return v === '1' || (typeof v === 'string' && v.toLowerCase() === 'true');
+}
 function setNotifEnabled(on){
-  localStorage.setItem('NOTIFY_ENABLED', on ? '1':'0');
+  localStorage.setItem('NOTIFY_ENABLED', on ? 'true' : 'false');
   if(bellBtn){
     bellBtn.classList.toggle('active', !!on);
   }
@@ -431,7 +434,11 @@ async function updateMarketStatusInitial(){
 
     
 /* ===== Notifications & Busy streak tracking ===== */
-function notifyEnabled(){ return localStorage.getItem('NOTIFY_ENABLED')==='1' && ('Notification' in window); }
+function notifyEnabled(){
+  const v = localStorage.getItem('NOTIFY_ENABLED');
+  const on = v === '1' || (typeof v === 'string' && v.toLowerCase() === 'true');
+  return on && ('Notification' in window);
+}
 async function notifyNow(title, body){
   if(!notifyEnabled()) return;
   let perm = Notification.permission;
