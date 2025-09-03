@@ -1927,17 +1927,26 @@ document.addEventListener('click', (ev)=>{
     const closed = ((hh>15 || (hh===15 && mm>=10)) && hh<17);
     return !closed;
   }
+  let marketHoursChipEl = null;
   function findMarketHoursChip(){
+    if(marketHoursChipEl && marketHoursChipEl.isConnected) return marketHoursChipEl;
     // Prefer explicit ids if present
-    let el = document.getElementById('marketHours') || document.getElementById('marketHoursChip');
-    if(el) return el;
-    // Fallback: look for a visible "Market hours" chip only (avoid touching other buttons)
-    const candidates = document.querySelectorAll('.chip, .pill, [class*="chip"], [class*="pill"]');
-    for(const c of candidates){
-      const txt = (c.textContent||'').trim().toLowerCase();
-      if(txt === 'market hours' || txt.indexOf('market hours') !== -1) return c;
+    let el = document.getElementById('marketHours') ||
+             document.getElementById('marketHoursChip') ||
+             document.getElementById('mktStatus');
+    if(!el){
+      // Fallback: look for a visible "Market hours" chip only (avoid touching other buttons)
+      const candidates = document.querySelectorAll('.chip, .pill, [class*="chip"], [class*="pill"]');
+      for(const c of candidates){
+        const txt = (c.textContent||'').trim().toLowerCase();
+        if(txt === 'market hours' || txt.indexOf('market hours') !== -1){
+          el = c;
+          break;
+        }
+      }
     }
-    return null;
+    marketHoursChipEl = el || null;
+    return marketHoursChipEl;
   }
   function update(){
     const chip = findMarketHoursChip();
