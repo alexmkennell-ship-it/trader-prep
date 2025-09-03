@@ -1915,15 +1915,29 @@ document.addEventListener('click', (ev)=>{
 (function(){
   function ctHourMinute(d){
     try{
-      const parts = new Intl.DateTimeFormat('en-US', {timeZone:'America/Chicago', hour12:false, hour:'2-digit', minute:'2-digit'}).formatToParts(d);
-      let hh=0, mm=0;
-      for(const p of parts){ if(p.type==='hour') hh = parseInt(p.value,10); if(p.type==='minute') mm = parseInt(p.value,10); }
-      return {hh, mm};
-    }catch(_){ return {hh:d.getHours(), mm:d.getMinutes()}; }
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone:'America/Chicago',
+        hour12:false,
+        weekday:'short',
+        hour:'2-digit',
+        minute:'2-digit'
+      }).formatToParts(d);
+      let hh=0, mm=0, wd='Sun';
+      for(const p of parts){
+        if(p.type==='hour') hh = parseInt(p.value,10);
+        if(p.type==='minute') mm = parseInt(p.value,10);
+        if(p.type==='weekday') wd = p.value;
+      }
+      const map={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6};
+      return {hh, mm, day:map[wd]};
+    }catch(_){ return {hh:d.getHours(), mm:d.getMinutes(), day:d.getDay()}; }
   }
   function isTopstepOpen(d){
-    const {hh, mm} = ctHourMinute(d||new Date());
-    // Closed window: 15:10–17:00 CT daily
+    const {hh, mm, day} = ctHourMinute(d||new Date());
+    // 24/5 schedule: closed 15:10–17:00 CT Mon–Thu, and from Fri 15:10 until Sun 17:00
+    if(day === 6) return false; // Saturday
+    if(day === 0 && hh < 17) return false; // Sunday before 5:00 pm CT
+    if(day === 5 && (hh>15 || (hh===15 && mm>=10))) return false; // Friday after 3:10 pm CT
     const closed = ((hh>15 || (hh===15 && mm>=10)) && hh<17);
     return !closed;
   }
@@ -1944,7 +1958,7 @@ document.addEventListener('click', (ev)=>{
     if(!chip) return; // do nothing if it's not there
     const open = isTopstepOpen(new Date());
     chip.textContent = open ? 'Topstep: OPEN' : 'Topstep: CLOSED';
-    chip.title = 'Topstep trading window: 5:00 pm – 3:10 pm CT';
+    chip.title = 'Topstep trading window: Sun 5:00 pm – Fri 3:10 pm CT';
     chip.classList.remove('ok','bad','warn');
     chip.classList.add(open ? 'ok' : 'bad');
   }
